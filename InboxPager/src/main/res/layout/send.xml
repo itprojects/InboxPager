@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout tools:context=".InboxMessage"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.v7.widget.Toolbar android:id="@+id/send_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/color_home_bar_background"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+            <ImageView android:id="@+id/ssl_auth_img_vw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10sp"
+                android:paddingStart="10sp"
+                android:paddingRight="0sp"
+                android:paddingEnd="0sp"
+                android:src="@drawable/ssl_no_auth"
+                android:visibility="gone"/>
+
+            <TextView android:id="@+id/tv_send"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginLeft="10sp"
+                android:layout_marginStart="10sp"
+                android:layout_marginRight="10sp"
+                android:layout_marginEnd="10sp"
+                android:paddingTop="3sp"
+                android:paddingLeft="6sp"
+                android:paddingStart="6sp"
+                android:paddingBottom="3sp"
+                android:paddingRight="6sp"
+                android:paddingEnd="6sp"
+                android:text="@string/send_send"
+                android:background="@drawable/send"
+                style="@style/shadow_button"/>
+        </android.support.v7.widget.Toolbar>
+
+        <TextView android:id="@+id/send_subject_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15sp"
+            android:layout_marginLeft="15sp"
+            android:layout_marginTop="15sp"
+            android:layout_marginEnd="15sp"
+            android:layout_marginRight="15sp"
+            android:text="@string/message_subject"
+            android:textColor="@color/color_message_headers"
+            android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+
+        <EditText android:id="@+id/send_subject"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20sp"
+            android:layout_marginLeft="20sp"
+            android:layout_marginEnd="20sp"
+            android:layout_marginRight="20sp"
+            android:maxLength="500"
+            android:minLines="1"
+            android:inputType="text|textNoSuggestions"
+            android:hint=""/>
+
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView android:id="@+id/send_to_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15sp"
+                android:layout_marginLeft="15sp"
+                android:layout_marginEnd="15sp"
+                android:layout_marginRight="15sp"
+                android:text="@string/message_to"
+                android:textColor="@color/color_message_headers"
+                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+
+            <EditText android:id="@+id/send_to"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20sp"
+                android:layout_marginRight="20sp"
+                android:minLines="1"
+                android:inputType="text|textNoSuggestions"
+                android:hint="@string/send_addresses_hint"/>
+
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView android:id="@+id/send_cc_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15sp"
+                android:layout_marginLeft="15sp"
+                android:layout_marginEnd="15sp"
+                android:layout_marginRight="15sp"
+                android:text="@string/message_cc"
+                android:textColor="@color/color_message_headers"
+                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+
+            <Switch android:id="@+id/send_cc_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15sp"
+                android:layout_marginRight="15sp"/>
+
+            <EditText android:id="@+id/send_cc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20sp"
+                android:layout_marginRight="20sp"
+                android:minLines="1"
+                android:inputType="text|textNoSuggestions"
+                android:hint="@string/send_addresses_hint"/>
+
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView android:id="@+id/send_bcc_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15sp"
+                android:layout_marginLeft="15sp"
+                android:layout_marginEnd="15sp"
+                android:layout_marginRight="15sp"
+                android:text="@string/message_bcc"
+                android:textColor="@color/color_message_headers"
+                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+
+            <Switch android:id="@+id/send_bcc_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15sp"
+                android:layout_marginRight="15sp"/>
+
+            <EditText android:id="@+id/send_bcc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20sp"
+                android:layout_marginRight="20sp"
+                android:minLines="1"
+                android:inputType="text|textNoSuggestions"
+                android:hint="@string/send_addresses_hint"/>
+
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView android:id="@+id/send_contents_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15sp"
+                android:layout_marginEnd="5sp"
+                android:layout_marginRight="5sp"
+                android:layout_marginBottom="15sp"
+                android:layout_marginStart="15sp"
+                android:layout_marginLeft="15sp"
+                android:text="@string/message_contents"
+                android:textColor="@color/color_message_headers"
+                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+
+            <TextView android:id="@+id/send_attachments_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15sp"
+                android:textColor="@color/color_message_headers"
+                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
+                android:drawableLeft="@drawable/attachment"
+                android:drawableStart="@drawable/attachment"/>
+
+        </LinearLayout>
+
+        <EditText android:id="@+id/send_contents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20sp"
+            android:layout_marginLeft="20sp"
+            android:layout_marginEnd="20sp"
+            android:layout_marginRight="20sp"
+            android:layout_marginBottom="15sp"
+            android:minLines="1"
+            android:inputType="text|textNoSuggestions"
+            android:hint=""/>
+    </LinearLayout>
+</ScrollView>

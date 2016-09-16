@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/inbox_action_refresh_btn"
+        android:title="@string/menu_refresh"
+        android:icon="@drawable/refresh"
+        app:showAsAction="always"/>
+    <item android:id="@+id/inbox_action_settings_btn"
+        android:title="@string/menu_settings"
+        android:icon="@drawable/settings"
+        app:showAsAction="always">
+
+        <menu>
+            <item android:id="@+id/mark_all_seen_menu" android:title="@string/menu_all_seen"/>
+            <item android:id="@+id/log_menu" android:title="@string/menu_log"/>
+            <item android:id="@+id/new_msg_menu" android:title="@string/menu_new_msg"/>
+            <item android:id="@+id/defaults_menu" android:title="@string/menu_settings"/>
+        </menu>
+    </item>
+</menu>

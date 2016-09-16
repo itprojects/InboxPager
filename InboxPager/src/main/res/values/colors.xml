@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_title">#F6F38C</color>
+    <color name="color_home_bar_background">#1D2412</color>
+    <color name="color_white">#FFFFFF</color>
+    <color name="color_message_headers">#499C4A</color>
+    <color name="color_send">#03C68B</color>
+    <color name="color_delete">#F60</color>
+</resources>

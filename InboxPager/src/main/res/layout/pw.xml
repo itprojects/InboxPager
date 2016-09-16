@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="270sp"
+    android:layout_height="wrap_content"
+    android:layout_centerHorizontal="true"
+    android:padding="10sp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <CheckBox android:id="@+id/cb_pw_enable"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"/>
+
+        <TextView android:id="@+id/tv_enabled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sett_change_pw_enable"/>
+    </LinearLayout>
+
+    <CheckBox android:id="@+id/cb_pw"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:text="@string/sett_change_pw_visible"/>
+
+    <TextView android:id="@+id/tv_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="20sp"
+        android:paddingLeft="7sp"
+        android:paddingStart="7sp"
+        android:paddingRight="0sp"
+        android:paddingEnd="0sp"
+        android:text="@string/sett_change_pw_text"/>
+
+    <EditText android:id="@+id/et_pw"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:hint="@string/sett_change_pw_new"
+        android:inputType="textPassword|textNoSuggestions"
+        android:maxLines="1"/>
+
+</LinearLayout>

@@ -1,0 +1,8 @@
+<resources>
+
+    <dimen name="text_size_edit_accounts_msg">22sp</dimen>
+    <dimen name="text_size_inbox_item">22sp</dimen>
+    <dimen name="text_size_message_item">22sp</dimen>
+    <dimen name="text_size_message_item_subtitle">18sp</dimen>
+
+</resources>

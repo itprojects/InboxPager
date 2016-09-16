@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/home_action_refresh_btn"
+        android:title="@string/menu_refresh"
+        android:icon="@drawable/refresh"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/home_action_settings_btn"
+        android:title="@string/menu_settings"
+        android:icon="@drawable/settings"
+        app:showAsAction="always">
+
+        <menu>
+            <item android:id="@+id/about_menu" android:title="@string/menu_about"/>
+            <item android:id="@+id/add_menu" android:title="@string/menu_add_account"/>
+            <item android:id="@+id/log_menu" android:title="@string/menu_log"/>
+            <item android:id="@+id/defaults_menu" android:title="@string/menu_settings"/>
+        </menu>
+
+    </item>
+</menu>

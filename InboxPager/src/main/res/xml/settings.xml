@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Should the messages be looked for on server on every application start. -->
+    <CheckBoxPreference android:key="auto_check_msg_all"
+        android:defaultValue="true"
+        android:title="@string/sett_auto_check_title"
+        android:summary="@string/sett_auto_check_summary"/>
+
+    <!-- Default: sound notification for new messages. -->
+    <CheckBoxPreference android:key="beeps"
+        android:defaultValue="true"
+        android:title="@string/sett_beeps_download_title"
+        android:summary="@string/sett_beeps_download_summary"/>
+
+    <!-- Default: vibration notification for new messages. -->
+    <CheckBoxPreference android:key="vibrates"
+        android:defaultValue="true"
+        android:title="@string/sett_vibrates_download_title"
+        android:summary="@string/sett_vibrates_download_summary"/>
+
+    <!-- Password: change password -->
+    <Preference android:key="change_pw"
+        android:title="@string/sett_change_pw_title"
+        android:summary="@string/sett_change_pw_summary"/>
+
+    <!-- Default: font size in message view. -->
+    <EditTextPreference android:key="sett_msg_font_size"
+        android:defaultValue="18"
+        android:numeric="integer"
+        android:inputType="number"
+        android:title="@string/sett_msg_font_size_title"
+        android:summary="@string/sett_msg_font_size_summary"/>
+
+</PreferenceScreen>

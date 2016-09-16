@@ -1,0 +1,57 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:minHeight="?android:attr/listPreferredItemHeight">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/message_list_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@+id/message_list_attachments"
+        android:layout_toLeftOf="@+id/message_list_attachments"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginStart="10sp"
+        android:layout_marginLeft="10sp"
+        android:layout_marginTop="4sp"
+        android:layout_marginBottom="4sp">
+
+        <ImageView android:id="@+id/message_list_title_unseen_mark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4sp"
+            android:src="@drawable/unseen"
+            android:visibility="gone"/>
+
+        <TextView android:id="@+id/message_list_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/message_list_title_unseen_mark"
+            android:layout_toEndOf="@+id/message_list_title_unseen_mark"
+            android:textSize="@dimen/text_size_message_item"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+        <TextView android:id="@+id/message_list_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/message_list_title"
+            android:textSize="@dimen/text_size_message_item_subtitle"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+    </RelativeLayout>
+
+    <TextView android:id="@+id/message_list_attachments"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="4sp"
+        android:maxLines="1"
+        android:textSize="@dimen/text_size_message_item"
+        android:drawableRight="@drawable/attachment"
+        android:drawableEnd="@drawable/attachment"/>
+
+</RelativeLayout>

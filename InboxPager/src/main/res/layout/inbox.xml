@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout tools:context=".InboxUI"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar android:id="@+id/inbox_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/color_home_bar_background"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+        <TextView android:id="@+id/inbox_page_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:textAppearance="@android:style/TextAppearance.Large.Inverse"
+            android:textColor="@color/color_home_bar_background"
+            android:background="@drawable/counter_rounded"
+            android:shadowColor="@color/color_title"
+            android:shadowRadius="3"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:paddingTop="4sp"
+            android:paddingRight="4sp"
+            android:paddingBottom="4sp"
+            android:paddingLeft="4sp"/>
+
+        <ImageView android:id="@+id/ssl_auth_img_vw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10sp"
+            android:paddingStart="10sp"
+            android:paddingRight="0sp"
+            android:paddingEnd="0sp"
+            android:contentDescription="@string/ssl_auth_popup_title"
+            android:src="@drawable/ssl_no_auth"/>
+
+    </android.support.v7.widget.Toolbar>
+
+    <ListView android:id="@+id/msg_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/no_messages"
+        android:layout_below="@+id/inbox_toolbar"/>
+
+    <TextView android:id="@+id/no_messages"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/text_size_edit_accounts_msg"
+        android:layout_centerInParent="true"
+        android:text="@string/no_messages"
+        android:textAllCaps="true"
+        android:textSize="@dimen/text_size_edit_accounts_msg"/>
+
+</RelativeLayout>
