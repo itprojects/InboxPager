@@ -19,28 +19,31 @@ package net.inbox.server;
 import android.util.Base64;
 
 import net.inbox.Pager;
+import net.inbox.db.Message;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
 
+    private static Matcher mat;
+    private static Pattern pat;
+
     // Types of MIME data
     private static String t_composite =
             "ALTERNATIVE|DIGEST|ENCRYPTED|FORM DATA|MESSAGE|MIXED|RELATED|REPORT|SIGNED";
 
-    private static Pattern pat;
-    private static Matcher mat;
-
     /**
      * Parses IMAP bodystructure into java objects.
      **/
-    public static ArrayList<String[]> imap_parse_bodystructure(String buff) {
+    static ArrayList<String[]> imap_parse_bodystructure(String buff) {
         String msg_body;
 
         pat = Pattern.compile(".*BODY\\w{0,9}\\s(.*)\\)", Pattern.CASE_INSENSITIVE);
@@ -179,7 +182,7 @@ public class Utils {
     /**
      * Finds text nodes, prepares the attachments.
      **/
-    public static ArrayList<String[]> imap_parse_nodes(ArrayList<String[]> structure,
+    static ArrayList<String[]> imap_parse_nodes(ArrayList<String[]> structure,
         String[] arr_texts_plain, String[] arr_texts_html, String[] arr_texts_other) {
         if (structure == null) return null;
         if (structure.size() == 1) {
@@ -404,221 +407,211 @@ public class Utils {
         return new String[] { str_attach[0], type, name, encoding, size };
     }
 
+    private static class MIME {
+
+        MIME() {}
+
+        Boolean multipart = false;
+        String charset = "";
+        String boundary = "";
+        String mime_type = "";
+        String name = "";
+        String type = "";
+        String transfer_encoding = "";
+        String disposition = "";
+        String description = "";
+        String size = "";
+        String index = "";
+        String[] sequence = null;
+
+        String[] toArray() {
+            return new String[]
+                    { index, mime_type, boundary, name, transfer_encoding, charset, size };
+        }
+    }
+
     /**
      * Parses MIME bodystructure.
+     * buff mime part of the email,
+     * m_boundary top mime boundary,
+     * m_type content type of the mime
      **/
-    public static ArrayList<String[]> mime_bodystructure(String buff, String boundary) {
-        // Array values correspond to index (1 or 1.1), and contents
-        ArrayList<String[]> structure = new ArrayList<>();
-
-        ArrayList<String> lines = new ArrayList<>();
+    public static ArrayList<String[]> mime_bodystructure(String buff, String m_boundary,
+                                                         String m_type) {
         ArrayList<String> boundaries = new ArrayList<>();
-        boundaries.add(boundary);
+        boundaries.add(m_boundary);
 
-        String tmp = "";
-        boolean semi = false;
-        Pattern pt1 = Pattern.compile("Content-.*:.*", Pattern.CASE_INSENSITIVE);
-        Pattern pt2 = Pattern.compile(".*boundary=(.*)", Pattern.CASE_INSENSITIVE);
-        int sz = buff.length();
-        for (int i = 0;i < sz;++i) {
-            if (buff.charAt(i) == '\n') {
-                if (tmp.startsWith("--")) {
-                    // Boundary check
-                    for (String str : boundaries) {
-                        if (tmp.startsWith(str)) lines.add(tmp);
-                    }
-                } else {
-                    // Next line Content-Type
-                    if (pt1.matcher(tmp).matches() && (tmp.trim().length() <= 15)) {
-                        semi = true;
-                        continue;
-                    }
-                    if (semi) {
-                        if (lines.size() > 0) {
-                            lines.set(lines.size() - 1, (lines.get(lines.size() - 1) + tmp));
-                        }
-                        mat = pt2.matcher(tmp);
-                        if (mat.matches())
-                            boundaries.add("--" + mat.group(1).replaceAll("\"", "").trim());
-                    }
-                    if (pt1.matcher(tmp).matches()) {
-                        lines.add(tmp);
-                        semi = tmp.trim().matches(".*;");
-                    } else {
-                        semi = false;
+        // Finding the boundaries
+        Pattern pat_border = Pattern.compile(".*boundary=\"(.*)\".*",
+                Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+        mat = pat_border.matcher(buff);
+        while (mat.find()) { boundaries.add("--" + mat.group(1)); }
+
+        String[] lines = buff.replaceAll("\r", "").split("\n");
+
+        ArrayList<MIME> parts = new ArrayList<>();
+
+        MIME item = new MIME();
+
+        boolean multiline = false;
+        boolean multi_match;
+
+        // 1 type 2 transfer-encoding 3 disposition 4 description
+        int content_prop = 0;
+        pat = Pattern.compile("Content-(.*):(.*)", Pattern.CASE_INSENSITIVE);
+        for (String t : lines) {
+            // Boundary check
+            if (t.startsWith("--")) {
+                for (String bn : boundaries) {
+                    if (t.startsWith(bn) && !t.endsWith(bn + "--")) {
+                        parts.add(item);
+                        item = new MIME();
+                        item.boundary = t.trim();
                     }
                 }
-                tmp = "";
-            } else if (buff.charAt(i) != '\r' && buff.charAt(i) != '\t') {
-                tmp += Character.toString(buff.charAt(i));
+            }
+
+            mat = pat.matcher(t);
+            multi_match = mat.matches();
+            if (multiline || multi_match) {
+                if (multi_match) {
+                    multiline = mat.group(2).trim().endsWith(";");
+                    switch (mat.group(1).toLowerCase()) {
+                        case "type":
+                            content_prop = 1;
+                            item.type = mat.group(2).replaceAll("\r", "").trim();
+                            if (item.type.toLowerCase().contains("multipart")) {
+                                item.multipart = true;
+                                mat = pat_border.matcher(item.type);
+                            }
+                            break;
+                        case "transfer-encoding":
+                            content_prop = 2;
+                            item.transfer_encoding = mat.group(2).replaceAll("\r", "").trim();
+                            break;
+                        case "disposition":
+                            content_prop = 3;
+                            item.disposition = mat.group(2).replaceAll("\r", "").trim();
+                            break;
+                        case "description":
+                            content_prop = 4;
+                            item.description = mat.group(2).replaceAll("\r", "").trim();
+                            break;
+                    }
+                } else {
+                    // Not a Content-* line
+                    switch (content_prop) {
+                        case 1:
+                            item.type += t.replaceAll("\r", "").trim();
+                            multiline = item.type.endsWith(";");
+                            break;
+                        case 2:
+                            item.transfer_encoding += t.replaceAll("\r", "").trim();
+                            multiline = item.transfer_encoding.endsWith(";");
+                            break;
+                        case 3:
+                            item.disposition += t.replaceAll("\r", "").trim();
+                            multiline = item.disposition.endsWith(";");
+                            break;
+                        case 4:
+                            item.description += t.replaceAll("\r", "").trim();
+                            multiline = item.description.endsWith(";");
+                            break;
+                    }
+                }
             }
         }
-        if (!tmp.isEmpty()) lines.add(tmp);
 
-        // Top level structure
-        ArrayList<String> nodes = new ArrayList<>();
-        Pattern pt3 = Pattern.compile("Content-Type:.*multipart/.*", Pattern.CASE_INSENSITIVE);
+        // Adding leftover item
+        if (item.boundary.length() > 1) parts.add(item);
+
+        parts.get(0).multipart = true;
+        parts.get(0).type = m_type.substring(13).trim();
+
+        // Mime part
+        for (MIME p : parts) {
+            p.sequence = new String[boundaries.size()];
+        }
+
         int level = 0;
-        boolean multipart;
-        boolean complete = true;
-        while (complete) {
-            for (String st : lines) {
-                if (st.startsWith(boundary)) {
-                    if (nodes.size() > 0) {
-                        // Multipart test
-                        multipart = false;
-                        for (String t : nodes) {
-                            mat = pt3.matcher(t);
-                            if (mat.matches()) multipart = true;
-                        }
-                        if (multipart) {
-                            String m = "";
-                            for (String nd : nodes) { m += nd + "\n"; }
-                            structure.addAll(mime_parse_node_multipart(String.valueOf(++level), m));
+        for (int i = 0;i < boundaries.size();++i) {
+            for (MIME p : parts) {
+                if (p.boundary.equals(boundaries.get(i))) ++level;
+                p.sequence[i] = String.valueOf(level);
+            }
+            level = 0;
+        }
+
+        // Removing wrong indices
+        int index_bound;
+        for (MIME p : parts) {
+            index_bound = boundaries.indexOf(p.boundary);
+            if (index_bound > -1) {
+                for (int l = 0;l < p.sequence.length;++l) {
+                    if (l > index_bound) {
+                        p.sequence[l] = null;
+                    } else {
+                        if (l == 0) {
+                            p.index += String.valueOf(p.sequence[l]);
                         } else {
-                            structure.add(mime_parse_node(String.valueOf(++level),
-                                    boundaries.get(0), nodes));
+                            p.index += "." + String.valueOf(p.sequence[l]);
                         }
-                        nodes.clear();
                     }
-                } else {
-                    nodes.add(st);
                 }
             }
-
-            // Test for remaining multipart
-            boolean loop = false;
-            for (String[] t_str : structure) {
-                if (t_str[1].matches("multipart.*")) {
-                    loop = true;
-                    break;
-                }
-            }
-            complete = loop;
         }
 
-        return structure;
-    }
+        Pattern pt_name = Pattern.compile(".*(name|name\\*)=(.*)", Pattern.CASE_INSENSITIVE);
+        Pattern pt_char = Pattern.compile(".*(charset|charset\\*)=(.*)", Pattern.CASE_INSENSITIVE);
 
-    /**
-     * Parses MIME bodystructure into java objects.
-     **/
-    private static ArrayList<String[]> mime_parse_node_multipart(String num, String s_array) {
+        // Removing wrong mime parts
+        for (int i = parts.size() - 1;i >= 0;i--) {
+            if (parts.get(i).multipart) {
+                parts.remove(parts.get(i));
+            } else {
+                // name
+                if (parts.get(i).disposition.toLowerCase().contains("name")) {
+                    mat = pt_name.matcher(parts.get(i).disposition);
+                    if (mat.matches()) {
+                        parts.get(i).name = mat.group(2).trim();
+                        // From B64, QP, or URL to text
+                        if (parts.get(i).name.length() > 0) {
+                            if (validate_B64_QP(parts.get(i).name)) {
+                                parts.get(i).name = split_B64_QP(parts.get(i).name);
+                            } else {
+                                parts.get(i).name = content_disposition_name(false, parts.get(i).name);
+                            }
+                            // Remove quotes
+                            if (parts.get(i).name.startsWith("\"")
+                                    && parts.get(i).name.endsWith("\"")) {
+                                parts.get(i).name = parts.get(i).name.
+                                        substring(1, parts.get(i).name.length() - 1);
+                            }
+                        }
+                    }
+                }
+                // mime-type
+                int nn = parts.get(i).type.indexOf(";");
+                if (nn > -1) {
+                    parts.get(i).mime_type = parts.get(i).type.substring(0, nn).trim();
+                } else {
+                    // mime-type is only property
+                    parts.get(i).mime_type = parts.get(i).type.trim();
+                }
+
+                // charset
+                mat = pt_char.matcher(parts.get(i).type);
+                if (mat.matches()) {
+                    parts.get(i).charset = mat.group(2).trim().replaceAll("\"", "");
+                }
+            }
+        }
+
+        // Rebuilding the structure
         ArrayList<String[]> structure = new ArrayList<>();
-        String[] arr = s_array.split("\n");
-        String bound = "";
-
-        pat = Pattern.compile("Content-Type:.*multipart/.*;.*boundary=(.*)",
-                Pattern.CASE_INSENSITIVE);
-
-        for (int i = 0;i < arr.length;++i) {
-            mat = pat.matcher(arr[i]);
-            if (mat.matches()) {
-                bound = "--" + mat.group(1).replaceAll("\"", "").trim();
-                arr[i] = "";
-                break;
-            }
-        }
-
-        ArrayList<String> nodes = new ArrayList<>();
-        Pattern pt1 = Pattern.compile("Content-Type:.*multipart/.*", Pattern.CASE_INSENSITIVE);
-        boolean multipart;
-        int level = 0;
-        for (String st : arr) {
-            if (st.startsWith(bound)) {
-                if (nodes.size() > 0) {
-                    // Multipart test
-                    multipart = false;
-                    for (String t : nodes) {
-                        mat = pt1.matcher(t);
-                        if (mat.matches()) multipart = true;
-                    }
-                    if (multipart) {
-                        String m = "";
-                        for (String nd : nodes) { m += nd + "\n"; }
-                        structure.add(new String[] { num + "." + String.valueOf(++level),
-                                "multipart/", m });
-                    } else {
-                        structure.add(mime_parse_node(num + "." + String.valueOf(++level),
-                                bound, nodes));
-                    }
-                    nodes.clear();
-                }
-            } else {
-                if (!st.isEmpty()) nodes.add(st);
-            }
-        }
+        for (MIME p : parts) { structure.add(p.toArray()); }
 
         return structure;
-    }
-
-    /**
-     * Parses MIME bodystructure element into sub-elements.
-     **/
-    private static String[] mime_parse_node(String num, String bounds, ArrayList<String> n_array) {
-        String[] ret = new String[] { num, "", bounds, "", "", "", "" };
-
-        boolean b_content_type = false;
-        boolean b_content_transfer = false;
-        boolean b_content_disposition = false;
-
-        String tmp_chk;
-        String content_disposition = "";
-
-        Pattern pt1 = Pattern.compile("Content-Type:(.*);.*", Pattern.CASE_INSENSITIVE);
-        Pattern pt2 = Pattern.compile("Content-Type:(.*)", Pattern.CASE_INSENSITIVE);
-        Pattern pt3 = Pattern.compile(".*(name|name\\*)=(.*)", Pattern.CASE_INSENSITIVE);
-        Pattern pt4 = Pattern.compile(".*charset=(.*)", Pattern.CASE_INSENSITIVE);
-
-        for (String t : n_array) {
-            tmp_chk = t.trim().toLowerCase();
-            if (tmp_chk.startsWith("content-type:") && !b_content_type) {
-                // Get mime-type
-                mat = pt1.matcher(t);
-                if (mat.matches()) {
-                    ret[1] = mat.group(1).trim();
-                } else {
-                    mat = pt2.matcher(t);
-                    if (mat.matches()) ret[1] = mat.group(1).trim();
-                }
-
-                // Get name
-                mat = pt3.matcher(t);
-                if (mat.matches()) {
-                    ret[3] = mat.group(2).trim().replaceAll("\"", "");
-                }
-
-                // Get text charset
-                mat = pt4.matcher(t);
-                if (mat.matches()) {
-                    ret[5] = mat.group(1).trim().replaceAll("\"", "").toUpperCase();
-                }
-                b_content_type = true;
-            } else if (tmp_chk.startsWith("content-transfer-encoding:") && !b_content_transfer) {
-                // Get transfer encoding
-                pat = Pattern.compile("(.*)", Pattern.CASE_INSENSITIVE);
-                mat = pat.matcher(t.substring(26).trim().toUpperCase());
-                if (mat.matches()) ret[4] = mat.group(1).trim();
-                b_content_transfer = true;
-            } else if (tmp_chk.startsWith("content-disposition:") && !b_content_disposition) {
-                // Get attachment filename
-                pat = Pattern.compile("(.*);(.*)(filename|filename\\*)=(.*)", Pattern.CASE_INSENSITIVE);
-                mat = pat.matcher(content_disposition);
-                if (mat.matches()) ret[3] = mat.group(4).trim();
-                b_content_disposition = true;
-            }
-        }
-
-        // From B64, QP, or URL to text
-        if (ret[3].length() > 0) {
-            if (validate_B64_QP(ret[3])) {
-                ret[3] = split_B64_QP(ret[3]);
-            } else {
-                ret[3] = content_disposition_name(false, ret[3]);
-            }
-        }
-
-        return ret;
     }
 
     /**
@@ -636,70 +629,158 @@ public class Utils {
 
         boolean b = true;
         int count = 0;
-        int current_indx = 0;
+        int current_index = 0;
         while (b) {
-            current_indx = s.indexOf(uid_boundary, current_indx);
-            if (current_indx == -1) {
+            current_index = s.indexOf(uid_boundary, current_index);
+            if (current_index == -1) {
                 b = false;
             } else {
                 ++count;
                 if (count == n_uid) {
                     b = false;
                 } else {
-                    current_indx += uid_boundary.length();
+                    current_index += uid_boundary.length();
                 }
             }
         }
 
-        if (current_indx == -1) return "!";
-        String str = s.substring(current_indx);
+        if (current_index == -1) return "!";
+        String str = s.substring(current_index);
 
         // Removing top boundary
-        str = str.substring((uid_boundary.length() + 2));
+        str = str.substring((uid_boundary.length() + 1));
 
-        boolean content;
-        boolean semi = false;
-        int mime_hdr;
-        pat = Pattern.compile("Content-.*", Pattern.CASE_INSENSITIVE);
-        String tmp = "";
-        String[] s_arr = str.split("\r\n");
-        for (String s_tmp : s_arr) {
-            content = pat.matcher(s_tmp).matches();
-            if (content) {
-                semi = tmp.replaceAll("\r", "").replaceAll("\n", "").replaceAll("\t", "")
-                        .replaceAll(" ", "").endsWith(";");
-                tmp += s_tmp + "\r\n";
-            } else {
-                if (semi) {
-                    tmp += s_tmp + "\r\n";
-                } else {
-                    break;
-                }
-            }
+        int mime_hdr = 0;
+
+        // Header removal, \n-vs-\r\n
+        if (str.contains("\r\n")) {
+            int xo = str.indexOf("\r\n\r\n");
+            if (xo != -1) mime_hdr = xo + 4;
+        } else {
+            int xo = str.indexOf("\n\n");
+            if (xo != -1) mime_hdr = xo + 2;
         }
 
-        mime_hdr = tmp.length();
-
-        int end_indx = str.indexOf(uid_boundary, uid_boundary.length());
-        if (end_indx == -1) {
+        int end_index = str.indexOf(uid_boundary, uid_boundary.length());
+        if (end_index == -1) {
             str =  "!";
         } else {
-            str = str.substring(mime_hdr, end_indx);
-        }
-
-        // Removing extra new line characters
-        if (str.length() >= 3 && str.charAt(0) == '\n' && str.charAt(str.length() - 1) == '\n') {
-            str = str.substring(1, str.length() - 1);
+            str = str.substring(mime_hdr, end_index);
         }
 
         return str;
     }
 
-    public static boolean validate_B64_QP(String s) {
+    /**
+     * Parses a MIME to set message texts.
+     **/
+    public static void mime_parse_full_msg_into_texts(String txt, ArrayList<String[]> msg_structure,
+                                                      ArrayList<String[]> msg_texts, Message msg) {
+        // Preparing texts
+        boolean has_texts = false;
+        ListIterator<String[]> iterate = msg_structure.listIterator();
+        while (iterate.hasNext()) {
+            String[] arr = iterate.next();
+            if (arr[0].startsWith("1") && arr[1].startsWith("text/")) {
+                if (!has_texts) has_texts = true;
+                msg_texts.add(arr);
+                iterate.remove();
+            } else if (msg.get_content_type().toLowerCase()
+                    .contains("multipart/alternative")
+                    || (arr[0].startsWith("2") && !has_texts && arr[1].startsWith("text/"))) {
+                msg_texts.add(arr);
+                iterate.remove();
+            }
+        }
+
+        String str = "";
+        String hold = "";
+        String txt_tmp;
+
+        // Parsing texts
+        for (String[] arr : msg_texts) {
+            if (arr[1].startsWith("text/plain")) {
+                msg.set_charset_plain(arr[5]);
+                txt_tmp = Utils.mime_part_section(txt, arr[0], arr[2]);
+                if (arr[4].equalsIgnoreCase("BASE64")) {
+                    txt_tmp = Utils.parse_BASE64(txt_tmp);
+                } else if (arr[4].equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                    txt_tmp = Utils.parse_quoted_printable(txt_tmp.replaceAll("\n", "")
+                                    .replaceAll("\r", "").replaceAll("\t", ""),
+                            (arr[5].isEmpty() ? arr[5] : "UTF-8"));
+                }
+                msg.set_contents_plain(txt_tmp);
+            } else if (arr[1].startsWith("text/html")) {
+                msg.set_charset_html(arr[5]);
+                txt_tmp = Utils.mime_part_section(txt, arr[0], arr[2]);
+                if (arr[4].equalsIgnoreCase("BASE64")) {
+                    for (int j = 0;j < txt_tmp.length();++j) {
+                        if (txt_tmp.charAt(j) == '\n') {
+                            str += Utils.parse_BASE64(hold);
+                        } else if (txt_tmp.charAt(j) != '\r' && txt_tmp.charAt(j) != '\t') {
+                            hold += Character.toString(txt_tmp.charAt(j));
+                        }
+                    }
+                    txt_tmp = str;
+                    str = "";
+                    hold = "";
+                } else if (arr[4].equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                    txt_tmp = Utils.parse_quoted_printable(txt_tmp.replaceAll("\n", "")
+                                    .replaceAll("\r", "").replaceAll("\t", ""),
+                            (arr[5].isEmpty() ? arr[5] : "UTF-8"));
+                }
+                msg.set_contents_html(txt_tmp);
+            } else {
+                msg.set_contents_other(Utils.mime_part_section(txt, arr[0], arr[2]));
+            }
+        }
+    }
+
+    /**
+     * Find content-type and boundary in given String.
+     **/
+    public static String[] content_type_boundary(String s) {
+        boolean semi_col = false;
+        String[] str_arr = s.replaceAll("\r", "").split("\n");
+        String ct = "";
+        for (String st : str_arr) {
+            if (st.toLowerCase().startsWith("content-type:")) {
+                ct = st.trim();
+                if (ct.endsWith(";")) {
+                    semi_col = true;
+                } else break;
+            } else if (semi_col) {
+                ct += st;
+                if (ct.endsWith(";")) {
+                    semi_col = true;
+                } else break;
+            }
+        }
+
+        if (ct.length() == 0) {
+            ct = s.trim();
+        } else ct = ct.substring(13);
+
+        String boundary = "--";
+        str_arr = ct.split(";");
+        for (String t : str_arr) {
+            if (t.toLowerCase().contains("boundary=")) {
+                boundary += t.trim().substring(9).replaceAll("\"", "");
+            }
+        }
+
+        return new String[]{ ct, boundary };
+    }
+
+    public static String boundary() {
+        return ("=__" + UUID.randomUUID().toString().replace("-","").substring(0, 30));
+    }
+
+    static boolean validate_B64_QP(String s) {
         return !s.isEmpty() && (s.contains("=?") && s.contains("?="));
     }
 
-    public static String split_B64_QP(String s) {
+    static String split_B64_QP(String s) {
         String ret = "";
         StringBuilder sb = new StringBuilder();
         boolean in_bracket = false;
@@ -744,7 +825,7 @@ public class Utils {
     /**
      * Converts from BASE64 to text. Kkg1YTQtdC= -> Text 1 contents.
      **/
-    public static String parse_BASE64(String s) {
+    static String parse_BASE64(String s) {
         String ret = "";
         String[] st = s.split("\r\n");
         for (String tmp : st) {
@@ -763,7 +844,7 @@ public class Utils {
      * =?utf-8?Q?=D6=93=D4=BE=D1?=
      * =?charset?encoding?encoded-text?=
      **/
-    public static String parse_line_B64_QP(String s) {
+    private static String parse_line_B64_QP(String s) {
         s = s.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", "");
         pat = Pattern.compile("=\\?(.*)\\?(\\w)\\?(.*)\\?=", Pattern.CASE_INSENSITIVE);
         mat = pat.matcher(s);
@@ -775,7 +856,7 @@ public class Utils {
                     return new String((new String(arr_bytes, mat.group(1))).getBytes(), "UTF-8");
                 } catch (UnsupportedEncodingException e) {
                     System.out.println("Exception: " + e.getMessage());
-                    Pager.log += "!!:" + e.getMessage() + "\n";
+                    Pager.log += "!!:" + e.getMessage() + "\n\n";
                     return s;
                 }
             } else if (mat.group(2).matches("(Q|q)")) {
@@ -797,13 +878,13 @@ public class Utils {
      * =?utf-8?Q?=D6=93=D4=BE=D1?=
      * =?charset?encoding?encoded-text?=
      **/
-    public static String parse_quoted_printable(String s, String encoding) {
+    static String parse_quoted_printable(String s, String encoding) {
         String s_tmp;
         try {
             s_tmp = new String(s.getBytes(), encoding);
         } catch (UnsupportedEncodingException e) {
             System.out.println("Exception: " + e.getMessage());
-            Pager.log += "!!:" + e.getMessage() + "\n";
+            Pager.log += "!!:" + e.getMessage() + "\n\n";
             return s;
         }
         if (s_tmp.endsWith("=")) s_tmp = s_tmp.substring(0, s_tmp.length() - 1);
@@ -838,7 +919,7 @@ public class Utils {
             return new String(reduced, encoding);
         } catch (UnsupportedEncodingException e) {
             System.out.println("Exception: " + e.getMessage());
-            Pager.log += "!!:" + e.getMessage() + "\n";
+            Pager.log += "!!:" + e.getMessage() + "\n\n";
             return s;
         }
     }
@@ -871,22 +952,22 @@ public class Utils {
                 }
             } catch (UnsupportedEncodingException e) {
                 System.out.println("Exception: " + e.getMessage());
-                Pager.log += "!!:" + e.getMessage() + "\n";
+                Pager.log += "!!:" + e.getMessage() + "\n\n";
                 return filename;
             } catch (Exception e) {
                 System.out.println("Exception: " + e.getMessage());
-                Pager.log += "!!:" + e.getMessage() + "\n";
+                Pager.log += "!!:" + e.getMessage() + "\n\n";
                 return filename;
             }
         }
     }
 
-    public static String to_ascii(String s) {
+    static String to_ascii(String s) {
         try {
             return new String(s.getBytes("US-ASCII"));
         } catch (UnsupportedEncodingException enc) {
             System.out.println("Exception: " + enc.getMessage());
-            Pager.log += "!!:" + enc.getMessage() + "\n";
+            Pager.log += "!!:" + enc.getMessage() + "\n\n";
         }
         return s;
     }

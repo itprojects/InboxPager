@@ -37,6 +37,9 @@
 
         <activity android:name=".Settings"/>
 
+        <activity
+            android:name=".InboxGPG"
+            android:label="OpenPGP">
+        </activity>
     </application>
-
 </manifest>

@@ -18,6 +18,7 @@ package net.inbox;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -38,8 +39,10 @@ import android.widget.Toast;
 import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
+import net.inbox.dialogs.DialogsCerts;
 import net.inbox.dialogs.Dialogs;
 import net.inbox.dialogs.SpinningStatus;
+import net.inbox.server.Handler;
 import net.inbox.server.SMTP;
 
 import java.io.File;
@@ -54,14 +57,21 @@ public class InboxSend extends AppCompatActivity {
     private EditText et_cc;
     private Switch sw_bcc;
     private EditText et_bcc;
-    private TextView tv_attachments;
     private EditText et_contents;
+    private TextView tv_attachments;
+    private ImageView iv_encryption;
+    private TextView tv_encryption_reset;
+
+    // GPG variables
+    private boolean crypto_locked = false;
+    private String msg_contents;
 
     private ListView attachments_list;
     private AlertDialog attachments_dialog;
     private ArrayList<String> attachment_paths = new ArrayList<>();
     private long attachments_size = 0;
 
+    private Handler handler;
     private Message current = new Message();
     private Inbox current_inbox;
 
@@ -105,7 +115,7 @@ public class InboxSend extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (sending_active) {
-                    toaster();
+                    toaster(false, "");
                 } else {
                     send();
                 }
@@ -118,8 +128,8 @@ public class InboxSend extends AppCompatActivity {
         sw_bcc = (Switch) findViewById(R.id.send_bcc_check);
         et_bcc = (EditText) findViewById(R.id.send_bcc);
         et_subject = (EditText) findViewById(R.id.send_subject);
-        tv_attachments = (TextView) findViewById(R.id.send_attachments_title);
         et_contents = (EditText) findViewById(R.id.send_contents);
+        tv_attachments = (TextView) findViewById(R.id.send_attachments_count);
 
         et_cc.setVisibility(View.GONE);
         et_bcc.setVisibility(View.GONE);
@@ -145,7 +155,10 @@ public class InboxSend extends AppCompatActivity {
                 }
             }
         });
-        tv_attachments.setOnClickListener(new View.OnClickListener() {
+        tv_attachments.setTypeface(Pager.tf);
+
+        ImageView iv_attachments = (ImageView) findViewById(R.id.send_attachments_img);
+        iv_attachments.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -160,6 +173,29 @@ public class InboxSend extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog_servers();
+            }
+        });
+
+        // Starts encryption
+        iv_encryption = (ImageView) findViewById(R.id.iv_encryption);
+        iv_encryption.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                gpg_crypto_tests();
+            }
+        });
+
+        tv_encryption_reset = (TextView) findViewById(R.id.tv_encryption_reset);
+        tv_encryption_reset.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                tv_encryption_reset.setVisibility(View.GONE);
+                current.set_contents_crypto(null);
+                et_contents.setText(msg_contents);
+                crypto_locked = false;
+                crypto_padlock();
             }
         });
 
@@ -196,6 +232,19 @@ public class InboxSend extends AppCompatActivity {
                 tv_attachments.setText(String.valueOf(attachment_paths.size()));
             } else {
                 tv_attachments.setText("");
+            }
+        } else if (resultCode == 19091) {
+            tv_encryption_reset.setVisibility(View.VISIBLE);
+            crypto_locked = true;
+            crypto_padlock();
+            if (data.getIntExtra("ret-code", 0) != 0) {
+                current.set_contents_crypto(data.getStringExtra("message-crypto"));
+                if (current.get_contents_crypto() != null
+                        && current.get_contents_crypto().length() > 500) {
+                    et_contents.setText(current.get_contents_crypto().substring(0, 500));
+                } else {
+                    et_contents.setText(current.get_contents_crypto());
+                }
             }
         }
     }
@@ -444,57 +493,189 @@ public class InboxSend extends AppCompatActivity {
         sending_active = false;
 
         // Starting a spinning animation dialog
-        SpinningStatus spt = new SpinningStatus(false, this);
+        SpinningStatus spt = new SpinningStatus(false, this, handler);
         spt.execute();
         spt.onProgressUpdate(getString(R.string.send_spin), "");
 
         // Starting SENDing message
-        Pager.handler = new SMTP(this);
-        Pager.handler.start();
-        Pager.handler.sp = spt;
+        handler = new SMTP(this);
+        handler.start();
+        handler.sp = spt;
         if (attachment_paths.size() > 0) {
             String str = "";
             for (String st: attachment_paths) { str += st + "\uD83D\uDCCE"; }
-            Pager.handler.msg_action(current_inbox.get_id(), current, str, false, this);
+            handler.msg_action(current_inbox.get_id(), current, str, false, this);
         } else {
-            Pager.handler.msg_action(current_inbox.get_id(), current, null, false, this);
+            handler.msg_action(current_inbox.get_id(), current, null, false, this);
         }
     }
 
     public void connection_security() {
-        if (Pager.handler != null && Pager.handler.get_certificates() != null) {
-            good_incoming_server = Pager.handler.get_certificates().length() > 0;
-            iv_ssl_auth.setVisibility(View.VISIBLE);
-            if (good_incoming_server) {
-                good_incoming_server = true;
-                iv_ssl_auth.setImageResource(R.drawable.ssl_auth);
+        good_incoming_server = handler.get_hostname_verify();
+        if (good_incoming_server) {
+            if (handler != null && handler.get_last_connection_data() != null
+                    && (handler.get_last_connection_data_id() == current_inbox.get_id())) {
+                good_incoming_server = handler.get_last_connection_data().size() > 0;
+                iv_ssl_auth.setVisibility(View.VISIBLE);
+                if (good_incoming_server) {
+                    good_incoming_server = true;
+                    iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
+                } else {
+                    good_incoming_server = false;
+                    iv_ssl_auth.setImageResource(R.drawable.padlock_error);
+                }
             } else {
                 good_incoming_server = false;
-                iv_ssl_auth.setImageResource(R.drawable.ssl_no_auth);
+                iv_ssl_auth.setVisibility(View.GONE);
             }
         } else {
-            good_incoming_server = false;
-            iv_ssl_auth.setVisibility(View.GONE);
+            iv_ssl_auth.setVisibility(View.VISIBLE);
+            iv_ssl_auth.setImageResource(R.drawable.padlock_error);
+            Dialogs.toaster(false, getString(R.string.err_action_failed), this);
         }
     }
 
     /**
      * Intermediaries' SSL certificates of the last live connection.
      **/
-    public void dialog_servers() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.ssl_auth_popup_title));
+    private void dialog_servers() {
         if (good_incoming_server) {
-            builder.setMessage(getString(R.string.ssl_auth_popup_you)
-                    + Pager.handler.get_certificates());
+            DialogsCerts.dialog_certs(this, handler.get_last_connection_data());
         } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.ssl_auth_popup_title));
             builder.setMessage(getString(R.string.ssl_auth_popup_bad_connection));
+            builder.setPositiveButton(getString(android.R.string.ok), null);
+            builder.show();
         }
-        builder.setPositiveButton(getString(android.R.string.ok), null);
-        builder.show();
     }
 
-    private void toaster() {
-        Toast.makeText(this, getString(R.string.send_wait), Toast.LENGTH_SHORT).show();
+    /**
+     * Looks for available and supported encryption packages.
+     * OpenKeychain for GPG.
+     **/
+    private boolean crypto_package() {
+        PackageManager pack_man = getPackageManager();
+        try {
+            pack_man.getPackageInfo(Pager.open_key_chain, PackageManager.GET_ACTIVITIES);
+            return pack_man.getApplicationInfo(Pager.open_key_chain, 0).enabled;
+        } catch (PackageManager.NameNotFoundException e) {
+            toaster(true, getString(R.string.open_pgp_none_found));
+            return false;
+        }
+    }
+
+    /**
+     * Tests message for required GPG parameters.
+     **/
+    private void gpg_crypto_tests() {
+        // Testing OpenKeychain
+        if (crypto_package()) {
+            // Testing To
+            String[] arr_to;
+            String s_to = et_to.getText().toString().trim();
+            if (s_to.isEmpty()) {
+                toaster(true, getString(R.string.send_missing_rcpt_to));
+                return;
+            } else {
+                arr_to = s_to.split(",");
+                int to_count = 0;
+                for (String s_to_name : arr_to) { if (!s_to_name.trim().isEmpty()) ++to_count; }
+                if (to_count == 0) toaster(true, getString(R.string.send_missing_rcpt_to));
+            }
+
+            // Testing Subject
+            String subject = et_subject.getText().toString();
+            if (!subject.isEmpty()) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getString(R.string.send_cleartext_subject));
+                builder.setMessage(getString(R.string.send_cleartext_content));
+                builder.setPositiveButton(getString(R.string.send_cleartext_delete),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            et_subject.setText("");
+                            gpg_crypto_start();
+                        }
+                    }
+                );
+                builder.setNegativeButton(getString(R.string.send_cleartext_keep),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            gpg_crypto_start();
+                        }
+                    }
+                );
+                builder.show();
+            } else {
+                gpg_crypto_start();
+            }
+        }
+    }
+
+    /**
+     * Starts GPG message work.
+     **/
+    private void gpg_crypto_start() {
+        // Testing attachments
+        boolean empty_contents = et_contents.getText().toString().isEmpty();
+        boolean mime_attachments = attachment_paths.size() > 0;
+        if (empty_contents && !mime_attachments) {
+            // No encryption required
+            crypto_locked = true;
+            crypto_padlock();
+            tv_encryption_reset.setVisibility(View.VISIBLE);
+        } else {
+            // Encryption required
+            Intent gpg = new Intent(this, InboxGPG.class);
+            Bundle b = new Bundle();
+            String s_rcpt = et_to.getText().toString();
+            if (sw_cc.isChecked() && et_cc.getText().length() > 0) {
+                s_rcpt += "," + et_cc.getText().toString();
+            }
+            if (sw_bcc.isChecked() && et_bcc.getText().length() > 0) {
+                s_rcpt += "," + et_bcc.getText().toString();
+            }
+            b.putString("recipients", s_rcpt);
+            if (mime_attachments) b.putStringArrayList("attachments", attachment_paths);
+
+            // Message text
+            current.set_contents_crypto(null);
+            msg_contents = et_contents.getText().toString();
+            b.putString("message-data", msg_contents);
+
+            b.putInt("request-code", 91);
+            gpg = gpg.putExtras(b);
+            startActivityForResult(gpg, 91, null);
+            overridePendingTransition(R.anim.left_in, R.anim.left_out);
+        }
+    }
+
+    private void crypto_padlock() {
+        if (crypto_locked) {
+            et_to.setEnabled(false);
+            et_cc.setEnabled(false);
+            et_bcc.setEnabled(false);
+            et_subject.setEnabled(false);
+            et_contents.setEnabled(false);
+            sw_cc.setEnabled(false);
+            sw_bcc.setEnabled(false);
+            tv_attachments.setEnabled(false);
+            iv_encryption.setImageResource(R.drawable.padlock_closed);
+        } else {
+            et_to.setEnabled(true);
+            et_cc.setEnabled(true);
+            et_bcc.setEnabled(true);
+            et_subject.setEnabled(true);
+            et_contents.setEnabled(true);
+            sw_cc.setEnabled(true);
+            sw_bcc.setEnabled(true);
+            tv_attachments.setEnabled(true);
+            iv_encryption.setImageResource(R.drawable.padlock_open);
+        }
+    }
+
+    private void toaster(boolean use_s, String s) {
+        if (!use_s) s = getString(R.string.send_wait);
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
 }

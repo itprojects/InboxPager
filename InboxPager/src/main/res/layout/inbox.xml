@@ -13,6 +13,15 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
+        <ImageButton android:id="@+id/refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:padding="4sp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/menu_refresh"
+            android:src="@drawable/btn_refresh"/>
+
         <TextView android:id="@+id/inbox_page_counter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -32,12 +41,11 @@
         <ImageView android:id="@+id/ssl_auth_img_vw"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="10sp"
             android:paddingStart="10sp"
-            android:paddingRight="0sp"
             android:paddingEnd="0sp"
             android:contentDescription="@string/ssl_auth_popup_title"
-            android:src="@drawable/ssl_no_auth"/>
+            android:src="@drawable/padlock_error"
+            android:visibility="gone"/>
 
     </android.support.v7.widget.Toolbar>
 

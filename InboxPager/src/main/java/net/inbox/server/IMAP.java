@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 
+import net.inbox.InboxMessage;
 import net.inbox.Pager;
 import net.inbox.R;
 import net.inbox.db.Attachment;
@@ -85,7 +86,7 @@ public class IMAP extends Handler {
     private DataIMAP data;
 
     // Command sent index
-    public int num = 0;
+    private int num = 0;
 
     public IMAP(Context ct) {
         super(ct);
@@ -106,7 +107,10 @@ public class IMAP extends Handler {
 
     @Override
     public void reply(String l) {
-        if (l.isEmpty()) return;
+        if (l.isEmpty()) {
+            data.sbuffer.append("\r\n");
+            return;
+        }
         if (l.startsWith(tag + " OK") || l.startsWith(tag + " NO") || l.startsWith(tag + " BAD")) {
             // Line is a tagged response: "a1 OK", "a1 BAD", "a1 NO"
             if (l.startsWith(tag + " OK")) {
@@ -136,6 +140,15 @@ public class IMAP extends Handler {
             l += "\r\n";
             data.sbuffer.append(l);
         } else if (l.charAt(0) == '*' || l.charAt(0) == '+')  {
+            // Catching stray data
+            if (l.length() > 2 && l.charAt(1) != ' ') {
+                // Message data
+                data.sbuffer.append(l);
+                data.sbuffer.append("\r\n");
+                return;
+            }
+
+            // Parsing command response
             if (ready) {
                 // Server response parameters
                 data.cmd_return_pars += l + "\r\n";
@@ -180,7 +193,7 @@ public class IMAP extends Handler {
             sleep(1000);
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
+            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
 
         if (!excepted) {
@@ -192,7 +205,7 @@ public class IMAP extends Handler {
                         sleep(3000);
                     } catch (InterruptedException e) {
                         System.out.println(e.getMessage());
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
+                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
 
                     if (current_inbox.get_imap_or_pop_extensions() != null
@@ -368,6 +381,7 @@ public class IMAP extends Handler {
         data.sequence.add("LOGIN");
         data.sequence.add("SELECT");// RW
         data.sequence.add("DELETE_MSG");
+        data.sequence.add("EXPUNGE");
         data.sequence.add("LOGOUT");
 
         socket_start_imap(this);
@@ -420,7 +434,8 @@ public class IMAP extends Handler {
                 case "LOGIN":
                     imap_login(cmd_start);
                     if (!cmd_start) {
-                        last_connection_data = io_sock.printSocket();
+                        last_connection_data_id = current_inbox.get_id();
+                        last_connection_data = io_sock.print();
                     }
                     break;
                 case "LOGOUT":
@@ -487,6 +502,10 @@ public class IMAP extends Handler {
                 case "DELETE_MSG":
                     // Moves a message on server to the deleted folder.
                     imap_delete_msg(cmd_start);
+                    break;
+                case "EXPUNGE":
+                    // Deletes all messages in \Deleted trash mailbox folder.
+                    imap_expunge(cmd_start);
                     break;
             }
             if (!cmd_start) {
@@ -558,24 +577,31 @@ public class IMAP extends Handler {
                 break;
             case "MSG_TEXT_PLAIN":
                 // Get plain text of the message
-                if (data.msg_text_plain[0] == null || data.msg_text_plain[0].equals("-1")) {
-                    cmd_start = false;
-                } else imap_fetch_msg_body_text(cmd_start, 1);
+                    if (data.msg_text_plain[0] == null || data.msg_text_plain[0].equals("-1")) {
+                        cmd_start = false;
+                    } else imap_fetch_msg_body_text(cmd_start, 1);
                 break;
             case "MSG_TEXT_HTML":
                 // Get html text of the message
-                if (data.msg_text_html == null || data.msg_text_html[0].equals("-1")) {
-                    cmd_start = false;
-                } else imap_fetch_msg_body_text(cmd_start, 2);
+                    if (data.msg_text_html == null || data.msg_text_html[0].equals("-1")) {
+                        cmd_start = false;
+                    } else imap_fetch_msg_body_text(cmd_start, 2);
                 break;
             case "MSG_TEXT_OTHER":
                 // Get (other type of) text of the message
-                if (data.msg_text_other[0].equals("-1")) {
-                    cmd_start = false;
-                } else imap_fetch_msg_body_text(cmd_start, 3);
+                if (!data.crypto_contents) {
+                    if (data.msg_text_other[0].equals("-1")) {
+                        cmd_start = false;
+                    } else imap_fetch_msg_body_text(cmd_start, 3);
+                } else cmd_start = false;
+                break;
+            case "MSG_CRYPTO_MIME":
+                if (data.crypto_contents) {
+                    imap_fetch_msg_body_full(cmd_start, true);
+                } else cmd_start = false;
                 break;
             case "MSG_FULL":
-                imap_fetch_msg_body_full(cmd_start);
+                imap_fetch_msg_body_full(cmd_start, false);
                 break;
             case "ADD_MSG":
                 // Add the message to database
@@ -838,6 +864,7 @@ public class IMAP extends Handler {
             data.delegation.add("MSG_TEXT_PLAIN");
             data.delegation.add("MSG_TEXT_HTML");
             data.delegation.add("MSG_TEXT_OTHER");
+            data.delegation.add("MSG_CRYPTO_MIME");
             if (current_inbox.get_auto_save_full_msgs()) {
                 data.delegation.add("MSG_FULL");
             }
@@ -885,6 +912,7 @@ public class IMAP extends Handler {
                 data.delegation.add("MSG_TEXT_PLAIN");
                 data.delegation.add("MSG_TEXT_HTML");
                 data.delegation.add("MSG_TEXT_OTHER");
+                data.delegation.add("MSG_CRYPTO_MIME");
                 if (current_inbox.get_auto_save_full_msgs()) {
                     data.delegation.add("MSG_FULL");
                 }
@@ -970,7 +998,13 @@ public class IMAP extends Handler {
                             }
                         }
                     }
+                    str = str.replaceAll("\r", "").replaceAll("\n", "");
                     data.msg_current.set_content_type(str);
+
+                    // Checking for signed and/or encrypted i.e. PGP/MIME
+                    str = data.msg_current.get_content_type().toLowerCase();
+                    data.crypto_contents = str.contains("multipart/encrypted")
+                            || str.contains("multipart/signed");
                 }
             }
             data.msg_current.set_received(received);
@@ -1100,7 +1134,7 @@ public class IMAP extends Handler {
     /**
      * Obtains the full message.
      **/
-    private void imap_fetch_msg_body_full(boolean go) {
+    private void imap_fetch_msg_body_full(boolean go, boolean crypto) {
         if (go) {
             tag();
             write(tag + " UID FETCH " + data.msg_current.get_uid() + " BODY[]");
@@ -1115,8 +1149,38 @@ public class IMAP extends Handler {
                 }
             }
 
-            // Loading full message
-            data.msg_current.set_full_msg(data.sbuffer.toString());
+            if (crypto) {
+                // Boundary search
+                String bounds = data.msg_current.get_content_type();
+                pat = Pattern.compile(".*boundary=(.*)", Pattern.CASE_INSENSITIVE);
+                mat = pat.matcher(bounds);
+                if (mat.matches()) {
+                    bounds = "--" + mat.group(1).replaceAll("\"", "");
+                } else {
+                    pat = Pattern.compile(".*boundary=(.*);", Pattern.CASE_INSENSITIVE);
+                    mat = pat.matcher(bounds);
+                    if (mat.matches()) {
+                        bounds = "--" + mat.group(1).replaceAll("\"", "");
+                    }
+                }
+                pat = Pattern.compile(bounds);
+                mat = pat.matcher(data.sbuffer);
+                int cut_off = data.sbuffer.indexOf(bounds);
+                if (cut_off > 0) {
+                    // Reduction to MIME
+                    data.sbuffer = data.sbuffer.delete(0, cut_off);
+                    data.msg_current.set_contents_crypto(data.sbuffer.toString().trim());
+                } else {
+                    // On error - save full message
+                    data.msg_current.set_full_msg(data.sbuffer.toString());
+                }
+            } else {
+                // Loading full message
+                data.msg_current.set_full_msg(data.sbuffer.toString());
+                Dialogs.toaster(true, ctx.getString(R.string.message_action_done),
+                        (AppCompatActivity) ctx);
+            }
+
             clear_buff();
         }
     }
@@ -1174,25 +1238,19 @@ public class IMAP extends Handler {
                                     Base64.DEFAULT));
                         }
                         if (data.fstream != null) data.fstream.close();
-                    } else if (data.att_item.get_transfer_encoding().equalsIgnoreCase("7BIT")
-                            || data.att_item.get_transfer_encoding().equalsIgnoreCase("8BIT")
-                            || data.att_item.get_transfer_encoding().equalsIgnoreCase("BINARY")
-                            || data.att_item.get_transfer_encoding()
-                            .equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                    } else {
                         data.fstream.write(data.sbuffer.toString().getBytes());
                         if (data.fstream != null) data.fstream.close();
-                    } else {
-                        Pager.log += ctx.getString(R.string.err_unknown_transfer_encoding);
-                        Dialogs.dialog_error_line(ctx.getString
-                                (R.string.err_unknown_transfer_encoding), (AppCompatActivity) ctx);
                     }
                 }
                 if (sp != null) {
                     on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
                     sp.unblock = true;
+                    Dialogs.toaster(true, ctx.getString(R.string.message_action_done),
+                            (AppCompatActivity) ctx);
                 }
             } catch (IOException e) {
-                Pager.log += e.getMessage();
+                Pager.log += e.getMessage() + "\n\n";
                 error_dialog(e);
                 if (sp != null) {
                     on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
@@ -1238,7 +1296,7 @@ public class IMAP extends Handler {
                     data.fstream.write(data.sbuffer.toString().getBytes());
                     data.fstream.close();
                 } catch (IOException ioe) {
-                    Pager.log += ioe.getMessage();
+                    Pager.log += ioe.getMessage() + "\n\n";
                     error_dialog(ioe);
                     if (sp != null) {
                         on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
@@ -1250,6 +1308,8 @@ public class IMAP extends Handler {
             if (sp != null) {
                 on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
                 sp.unblock = true;
+                Dialogs.toaster(true, ctx.getString(R.string.message_action_done),
+                        (AppCompatActivity) ctx);
             }
 
             // Save to DB
@@ -1263,17 +1323,28 @@ public class IMAP extends Handler {
     }
 
     /**
-     * Moves a message to deleted folder.
-     * Server deletes message on next expunge cycle.
-     * Every server has a different waiting time, i.e. 30 days.
+     * Moves a message to the \Deleted mailbox folder.
      **/
     private void imap_delete_msg(boolean go) {
         if (go) {
             tag();
             write(tag + " UID STORE " + data.msg_current.get_uid() + " +FLAGS (\\Deleted)");
         } else {
-            on_ui_thread("-1", ctx.getString(R.string.progress_deleted_msg));
             db.delete_message(data.msg_current.get_id());
+            clear_buff();
+        }
+    }
+
+    /**
+     * Deletes ALL messages in \Deleted mailbox folder.
+     **/
+    private void imap_expunge(boolean go) {
+        if (go) {
+            tag();
+            write(tag + " EXPUNGE");
+        } else {
+            on_ui_thread("-1", ctx.getString(R.string.progress_deleted_msg));
+            ((InboxMessage) ctx).delete_message_ui();
             clear_buff();
         }
     }

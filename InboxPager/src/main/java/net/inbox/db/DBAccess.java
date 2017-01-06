@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.util.SparseArray;
 
 import net.sqlcipher.Cursor;
 import net.sqlcipher.SQLException;
@@ -30,7 +31,6 @@ import net.sqlcipher.database.SQLiteOpenHelper;
 
 public class DBAccess extends SQLiteOpenHelper {
 
-    private SQLiteDatabase dbr;
     private SQLiteDatabase dbw;
 
     private static final int db_version = 1;
@@ -70,6 +70,7 @@ public class DBAccess extends SQLiteOpenHelper {
     private final String key_bcc = "bcc";
     private final String key_from = "from_";
     private final String key_content_type = "content_type";
+    private final String key_content_transfer_encoding = "content_transfer_encoding";
     private final String key_charset_plain = "charset_plain";
     private final String key_charset_html = "charset_html";
     private final String key_subject = "subject";
@@ -81,6 +82,7 @@ public class DBAccess extends SQLiteOpenHelper {
     private final String key_contents_plain = "contents";
     private final String key_contents_html = "contents_html";
     private final String key_contents_other = "contents_other";
+    private final String key_contents_crypto = "contents_crypto";
     private final String key_full_msg = "full_msg";
     private final String key_attachments = "attachments";
     private final String key_seen = "seen";
@@ -115,11 +117,11 @@ public class DBAccess extends SQLiteOpenHelper {
 
         String create_table_messages = "CREATE TABLE IF NOT EXISTS messages ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT, account INTEGER, to_ TEXT, cc TEXT,"
-                + "bcc TEXT, from_ TEXT, content_type TEXT, charset_plain TEXT, charset_html TEXT,"
-                + "subject TEXT, message_id TEXT, uid TEXT, date TEXT, received TEXT,"
-                + "structure TEXT, contents TEXT, contents_html TEXT, contents_other TEXT,"
-                + "full_msg TEXT, size INTEGER, attachments INTEGER, seen BOOLEAN"
-                + " )";
+                + "bcc TEXT, from_ TEXT, content_type TEXT, content_transfer_encoding TEXT,"
+                + "charset_plain TEXT, charset_html TEXT, subject TEXT, message_id TEXT,"
+                + "uid TEXT, date TEXT, received TEXT, structure TEXT, contents TEXT,"
+                + "contents_html TEXT, contents_other TEXT, contents_crypto TEXT, full_msg TEXT,"
+                + "size INTEGER, attachments INTEGER, seen BOOLEAN )";
         db.execSQL(create_table_messages);
 
         String create_table_attachments = "CREATE TABLE IF NOT EXISTS attachments ("
@@ -142,7 +144,6 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public void activate_db(String s) {
-        dbr = getReadableDatabase(s);
         dbw = getWritableDatabase(s);
     }
 
@@ -213,8 +214,8 @@ public class DBAccess extends SQLiteOpenHelper {
 
     public Inbox get_account(int id) {
         // Query database
-        Cursor cursor = dbr.rawQuery("SELECT  * FROM " + table_accounts
-                + " WHERE id = " + id, null);
+        Cursor cursor = dbw.query(table_accounts, new String[] { "*" }, "id = " + id,
+                null, null, null, null);
 
         // If the account (id) is found
         if (cursor != null) {
@@ -250,7 +251,9 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public int get_global_unseen_count() {
-        Cursor cursor = dbr.rawQuery(("SELECT " + key_unseen + " FROM " + table_accounts), null);
+        Cursor cursor = dbw.query(table_accounts, new String[] { key_unseen }, null,
+                null, null, null, null);
+
         int count = 0;
         if (cursor.moveToFirst()) {
             do {
@@ -265,19 +268,25 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public int update_account_unseen_count(int id) {
-        Cursor cursor = dbr.rawQuery("SELECT " + key_seen + " FROM " + table_messages +
-                " WHERE account = " + id, null);
         int count = 0;
-        if (cursor.moveToFirst()) {
-            do {
-                if (cursor.getInt(0) != 1) ++count;
-            } while (cursor.moveToNext());
+        Cursor cursor;
+        try {
+            cursor = dbw.query(table_messages, new String[] { "COUNT(1)" },
+                    "account = " + id + " AND seen = 0", null, null, null, null);
+            if (!cursor.moveToFirst()) {
+                count = -1000;
+            } else {
+                count = cursor.getInt(0);
+            }
+            cursor.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
 
         int current_count = -1;
 
-        cursor = dbr.rawQuery("SELECT " + key_unseen + " FROM " + table_accounts +
-                " WHERE id = " + id, null);
+        cursor = dbw.query(table_accounts, new String[] { key_unseen }, "id = " + id,
+                null, null, null, null);
 
         if (cursor.moveToFirst()) {
             current_count = cursor.getInt(0);
@@ -297,10 +306,10 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public ArrayList<Inbox> get_all_accounts() {
+        Cursor cursor = dbw.query(table_accounts, new String[] { "*" }, null,
+                null, null, null, null);
+
         ArrayList<Inbox> accounts = new ArrayList<>();
-
-        Cursor cursor = dbr.rawQuery(("SELECT  * FROM " + table_accounts), null);
-
         Inbox current;
         if (cursor.moveToFirst()) {
             do {
@@ -329,10 +338,10 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public ArrayList<Integer> get_all_accounts_id() {
+        Cursor cursor = dbw.query(table_accounts, new String[] { "*" }, null,
+                null, null, null, null);
+
         ArrayList<Integer> accounts = new ArrayList<>();
-
-        Cursor cursor = dbr.rawQuery(("SELECT  * FROM " + table_accounts), null);
-
         Integer current;
         if (cursor.moveToFirst()) {
             do {
@@ -367,6 +376,7 @@ public class DBAccess extends SQLiteOpenHelper {
         values.put(key_bcc, current.get_bcc());
         values.put(key_from, current.get_from());
         values.put(key_content_type, current.get_content_type());
+        values.put(key_content_transfer_encoding, current.get_content_transfer_encoding());
         values.put(key_charset_plain, current.get_charset_plain());
         values.put(key_charset_html, current.get_charset_html());
         values.put(key_subject, current.get_subject());
@@ -378,6 +388,7 @@ public class DBAccess extends SQLiteOpenHelper {
         values.put(key_contents_plain, current.get_contents_plain());
         values.put(key_contents_html, current.get_contents_html());
         values.put(key_contents_other, current.get_contents_other());
+        values.put(key_contents_crypto, current.get_contents_crypto());
         values.put(key_full_msg, current.get_full_msg());
         values.put(key_size, current.get_size());
         values.put(key_attachments, current.get_attachments());
@@ -398,6 +409,7 @@ public class DBAccess extends SQLiteOpenHelper {
         values.put(key_bcc, current.get_bcc());
         values.put(key_from, current.get_from());
         values.put(key_content_type, current.get_content_type());
+        values.put(key_content_transfer_encoding, current.get_content_transfer_encoding());
         values.put(key_charset_plain, current.get_charset_plain());
         values.put(key_charset_html, current.get_charset_html());
         values.put(key_subject, current.get_subject());
@@ -409,6 +421,7 @@ public class DBAccess extends SQLiteOpenHelper {
         values.put(key_contents_plain, current.get_contents_plain());
         values.put(key_contents_html, current.get_contents_html());
         values.put(key_contents_other, current.get_contents_other());
+        values.put(key_contents_crypto, current.get_contents_crypto());
         values.put(key_full_msg, current.get_full_msg());
         values.put(key_size, current.get_size());
         values.put(key_attachments, current.get_attachments());
@@ -418,8 +431,8 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public Message get_message(int id) {
-        Cursor cursor = dbr.rawQuery(("SELECT * FROM " + table_messages
-                + " WHERE id = " + id), null);
+        Cursor cursor = dbw.query(table_messages, new String[] { "*" }, "id = " + id,
+                null, null, null, null);
 
         // If the message (id) is found
         if (cursor != null) {
@@ -433,21 +446,23 @@ public class DBAccess extends SQLiteOpenHelper {
             current.set_bcc(cursor.getString(4));
             current.set_from(cursor.getString(5));
             current.set_content_type(cursor.getString(6));
-            current.set_charset_plain(cursor.getString(7));
-            current.set_charset_html(cursor.getString(8));
-            current.set_subject(cursor.getString(9));
-            current.set_message_id(cursor.getString(10));
-            current.set_uid(cursor.getString(11));
-            current.set_date(cursor.getString(12));
-            current.set_received(cursor.getString(13));
-            current.set_structure(cursor.getString(14));
-            current.set_contents_plain(cursor.getString(15));
-            current.set_contents_html(cursor.getString(16));
-            current.set_contents_other(cursor.getString(17));
-            current.set_full_msg(cursor.getString(18));
-            current.set_size(cursor.getInt(19));
-            current.set_attachments(cursor.getInt(20));
-            current.set_seen(cursor.getInt(21) == 1);
+            current.set_content_transfer_encoding(cursor.getString(7));
+            current.set_charset_plain(cursor.getString(8));
+            current.set_charset_html(cursor.getString(9));
+            current.set_subject(cursor.getString(10));
+            current.set_message_id(cursor.getString(11));
+            current.set_uid(cursor.getString(12));
+            current.set_date(cursor.getString(13));
+            current.set_received(cursor.getString(14));
+            current.set_structure(cursor.getString(15));
+            current.set_contents_plain(cursor.getString(16));
+            current.set_contents_html(cursor.getString(17));
+            current.set_contents_other(cursor.getString(18));
+            current.set_contents_crypto(cursor.getString(19));
+            current.set_full_msg(cursor.getString(20));
+            current.set_size(cursor.getInt(21));
+            current.set_attachments(cursor.getInt(22));
+            current.set_seen(cursor.getInt(23) == 1);
 
             // Prevent memory issues
             cursor.close();
@@ -470,14 +485,14 @@ public class DBAccess extends SQLiteOpenHelper {
      * Changes all messages' status to seen.
      **/
     public void mark_all_seen(int id) {
-        Cursor cursor = dbw.rawQuery("SELECT  * FROM " + table_messages
-                + " WHERE account = " + id, null);
+        Cursor cursor = dbw.query(table_messages, new String[] { "*" }, "account = " + id,
+                null, null, null, null);
 
         if (cursor.moveToFirst()) {
             do {
-                boolean b_set = cursor.getInt(21) == 1;
+                boolean b_set = cursor.getInt(23) == 1;
                 if (!b_set) {
-                    seen_unseen_message(id, cursor.getString(11), true);
+                    seen_unseen_message(id, cursor.getString(12), true);
                 }
             } while (cursor.moveToNext());
         }
@@ -490,8 +505,8 @@ public class DBAccess extends SQLiteOpenHelper {
      * Counts the messages for an account.
      **/
     public int get_messages_count(int id) {
-        Cursor cursor = dbr.rawQuery("SELECT COUNT(*), * FROM " + table_messages +
-                " WHERE account = " + id, null);
+        Cursor cursor = dbw.query(table_messages, new String[] { "COUNT(*)" }, "account = " + id,
+                null, null, null, null);
 
         int result = 0;
         if (cursor.moveToFirst()) result = cursor.getInt(0);
@@ -506,8 +521,8 @@ public class DBAccess extends SQLiteOpenHelper {
      * Used with inbox statistical dialog.
      **/
     public int get_total_size(int id) {
-        Cursor cursor = dbr.rawQuery("SELECT total_size FROM " + table_accounts +
-                " WHERE id = " + id, null);
+        Cursor cursor = dbw.query(table_accounts, new String[] { key_total_size }, "id = " + id,
+                null, null, null, null);
 
         int result = 0;
         if (cursor.moveToFirst()) result = cursor.getInt(0);
@@ -523,8 +538,8 @@ public class DBAccess extends SQLiteOpenHelper {
      * Used with IMAP.
      **/
     public int refresh_total_size(int id) {
-        Cursor cursor = dbr.rawQuery("SELECT size FROM " + table_messages +
-                " WHERE account = " + id, null);
+        Cursor cursor = dbw.query(table_messages, new String[] { key_size }, "account = " + id,
+                null, null, null, null);
 
         int result = 0;
         if (cursor.moveToFirst()) {
@@ -546,15 +561,15 @@ public class DBAccess extends SQLiteOpenHelper {
      * Get the DB id and uid of a message. Every row is a message.
      **/
     public HashMap<Integer, String> get_all_message_uids(int id) {
-        Cursor cursor = dbr.rawQuery("SELECT  * FROM " + table_messages
-                + " WHERE account = " + id, null);
+        Cursor cursor = dbw.query(table_messages, new String[] { "*" }, "account = " + id,
+                null, null, null, null);
 
         HashMap<Integer, String> messages = new HashMap<>();
 
         if (cursor.moveToFirst()) {
             do {
                 // DB ID and message-uid
-                messages.put(cursor.getInt(0), cursor.getString(11));
+                messages.put(cursor.getInt(0), cursor.getString(12));
             } while (cursor.moveToNext());
         }
 
@@ -565,11 +580,10 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public ArrayList<Message> get_all_messages(int id) {
+        Cursor cursor = dbw.query(table_messages, new String[] {"*"}, "account = " + id,
+                null, null, null, null);
+
         ArrayList<Message> messages = new ArrayList<>();
-
-        Cursor cursor = dbr.rawQuery("SELECT  * FROM " + table_messages
-                + " WHERE account = " + id, null);
-
         Message current;
         if (cursor.moveToFirst()) {
             do {
@@ -577,9 +591,9 @@ public class DBAccess extends SQLiteOpenHelper {
                 current.set_id(cursor.getInt(0));
                 current.set_account(cursor.getInt(1));
                 current.set_from(cursor.getString(5));
-                current.set_subject(cursor.getString(9));
-                current.set_attachments(cursor.getInt(20));
-                current.set_seen(cursor.getInt(21) == 1);
+                current.set_subject(cursor.getString(10));
+                current.set_attachments(cursor.getInt(22));
+                current.set_seen(cursor.getInt(23) == 1);
                 messages.add(current);
             } while (cursor.moveToNext());
         }
@@ -599,12 +613,12 @@ public class DBAccess extends SQLiteOpenHelper {
      * Delete all messages, for an account.
      **/
     public void delete_all_messages(HashMap<Integer, String> m) {
-        Iterator<HashMap.Entry<Integer, String>> m_iter = m.entrySet().iterator();
-        while (m_iter.hasNext()) {
-            HashMap.Entry<Integer, String> entry = m_iter.next();
+        Iterator<HashMap.Entry<Integer, String>> m_iterate = m.entrySet().iterator();
+        while (m_iterate.hasNext()) {
+            HashMap.Entry<Integer, String> entry = m_iterate.next();
             dbw.delete(table_attachments, key_message + " = " + entry.getKey(), null);
             dbw.delete(table_messages, key_id + " = " + entry.getKey(), null);
-            m_iter.remove();
+            m_iterate.remove();
         }
     }
 
@@ -662,11 +676,10 @@ public class DBAccess extends SQLiteOpenHelper {
      * Get a list of attachments for a specific message of an account.
      **/
     public ArrayList<Attachment> get_all_attachments_of_msg(int mid) {
+        Cursor cursor = dbw.query(table_attachments, new String[] { "*" }, "message = " + mid,
+                null, null, null, null);
+
         ArrayList<Attachment> attachments = new ArrayList<>();
-
-        Cursor cursor = dbr.rawQuery("SELECT  * FROM " + table_attachments
-                + " WHERE message = " + mid, null);
-
         Attachment current;
         if (cursor.moveToFirst()) {
             do {
@@ -691,10 +704,10 @@ public class DBAccess extends SQLiteOpenHelper {
         return attachments;
     }
 
-    public boolean table_exists(String s) {
+    private boolean table_exists(String s) {
         if (s == null) return false;
-        Cursor cursor = dbr.rawQuery("SELECT COUNT(1) FROM sqlite_master "
-                + "WHERE type = 'table' AND name = '" + s + "'", null);
+        Cursor cursor = dbw.query("sqlite_master", new String[] { "COUNT(1)" },
+                "type = 'table' AND name = '" + s + "'", null, null, null, null);
         if (!cursor.moveToFirst()) return false;
         boolean ret = cursor.getInt(0) > 0;
         cursor.close();

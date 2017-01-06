@@ -37,6 +37,7 @@ import android.widget.TextView;
 import net.inbox.db.Inbox;
 import net.inbox.db.DBAccess;
 import net.inbox.dialogs.Dialogs;
+import net.inbox.server.Handler;
 import net.inbox.server.IMAP;
 import net.inbox.server.POP;
 import net.inbox.server.SMTP;
@@ -215,7 +216,7 @@ public class InboxPreferences extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 db.delete_all_full_messages(current.get_id());
-                Dialogs.toaster(getString(R.string.message_no_full_messages), ctx);
+                Dialogs.toaster(false, getString(R.string.message_no_full_messages), ctx);
             }
         });
 
@@ -285,7 +286,7 @@ public class InboxPreferences extends AppCompatActivity {
     private void btn_nc_check_action() {
         String server_name = et_imap_or_pop_server.getText().toString();
         if (server_name.isEmpty()) {
-            Dialogs.toaster(getString(R.string.edit_account_bad_params)
+            Dialogs.toaster(true, getString(R.string.edit_account_bad_params)
                     + getString(R.string.edit_account_bad_server) + ".", this);
         } else {
             // Starts the test
@@ -295,10 +296,10 @@ public class InboxPreferences extends AppCompatActivity {
     }
 
     private void btn_check_action(boolean smtp) {
-        Dialogs.toaster(getString(R.string.edit_account_checking), this);
+        Dialogs.toaster(true, getString(R.string.edit_account_checking), this);
 
         if (current.get_id() <= 0) {
-            Dialogs.toaster(getString(R.string.edit_account_check_save_first), this);
+            Dialogs.toaster(true, getString(R.string.edit_account_check_save_first), this);
             return;
         }
 
@@ -314,7 +315,7 @@ public class InboxPreferences extends AppCompatActivity {
             if (email.isEmpty())  {
                 err += getString(R.string.edit_account_bad_email);
             }
-            Dialogs.toaster(err, this);
+            Dialogs.toaster(true, err, this);
             return;
         }
         if (smtp) {
@@ -326,7 +327,7 @@ public class InboxPreferences extends AppCompatActivity {
                 if (port_outgoing.isEmpty()) {
                     err += getString(R.string.edit_account_bad_port);
                 }
-                Dialogs.toaster(err, this);
+                Dialogs.toaster(true, err, this);
                 return;
             }
         } else {
@@ -338,25 +339,26 @@ public class InboxPreferences extends AppCompatActivity {
                 if (port_incoming.isEmpty()) {
                     err += getString(R.string.edit_account_bad_port);
                 }
-                Dialogs.toaster(err, this);
+                Dialogs.toaster(true, err, this);
                 return;
             }
         }
 
         // Testing remote server
+        Handler handler;
         if (smtp) {
-            Pager.handler = new SMTP(this);
-            Pager.handler.start();
+            handler = new SMTP(this);
+            handler.start();
         } else {
             if (current.get_imap_or_pop()) {
-                Pager.handler = new IMAP(this);
-                Pager.handler.start();
+                handler = new IMAP(this);
+                handler.start();
             } else {
-                Pager.handler = new POP(this);
-                Pager.handler.start();
+                handler = new POP(this);
+                handler.start();
             }
         }
-        Pager.handler.test_server(current, this);
+        handler.test_server(current, this);
     }
 
     private void btn_save_action() {
@@ -382,15 +384,15 @@ public class InboxPreferences extends AppCompatActivity {
             current.set_smtp_port(465);
         } else current.set_smtp_port(Integer.parseInt(pt_smtp));
         if (et_email.getText().toString().isEmpty()) {
-            Dialogs.toaster(getString(R.string.edit_account_no_saving), this);
+            Dialogs.toaster(true, getString(R.string.edit_account_no_saving), this);
             return;
         } else {
-            Dialogs.toaster(getString(R.string.edit_account_saving), this);
+            Dialogs.toaster(true, getString(R.string.edit_account_saving), this);
         }
 
         if (add_mode) {
             if (current.get_email().isEmpty()) {
-                Dialogs.toaster(getString(R.string.edit_account_not_saved), this);
+                Dialogs.toaster(false, getString(R.string.edit_account_not_saved), this);
                 return;
             }
 

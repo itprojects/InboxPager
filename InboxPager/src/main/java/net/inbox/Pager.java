@@ -42,10 +42,12 @@ import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
@@ -65,14 +67,15 @@ public class Pager extends AppCompatActivity {
     public static boolean refresh;
     public static String log;
 
-    public static Handler handler;
     public static Typeface tf;
+    public static String open_key_chain = "org.sufficientlysecure.keychain";
 
     private static DBAccess db;
     private static SharedPreferences prefs;
     private static ToneGenerator beep;
     private static Vibrator vvv;
 
+    private Handler handler;
     private boolean unlocked;
     private int over;
 
@@ -192,16 +195,6 @@ public class Pager extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.home_action_refresh_btn:
-                if (list_mass_refresh.size() < 1) {
-                    // Starting a spinning animation dialog
-                    spt = new SpinningStatus(true, this);
-                    spt.execute();
-                    spt.onProgressUpdate(getString(R.string.progress_title), "");
-                    list_mass_refresh = db.get_all_accounts_id();
-                    mass_refresh();
-                }
-                break;
             case R.id.about_menu:
                 startActivity(new Intent(getApplicationContext(), About.class));
                 overridePendingTransition(R.anim.right_in, R.anim.right_out);
@@ -327,6 +320,16 @@ public class Pager extends AppCompatActivity {
         tv_page_counter = (TextView) findViewById(R.id.page_counter);
         tv_page_counter.setTypeface(tf);
 
+        // Mass Refresh Button
+        ImageButton iv_refresh = (ImageButton) findViewById(R.id.refresh);
+        iv_refresh.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                mass_refresh_check();
+            }
+        });
+
         // No accounts message is visible if the user has not init-ed the app
         tv_no_account = (TextView) findViewById(R.id.no_accounts);
         tv_no_account.setTypeface(tf);
@@ -411,6 +414,17 @@ public class Pager extends AppCompatActivity {
         } else if (i > 999) {
             str = "+999";
             tv_page_counter.setText(str);
+        }
+    }
+
+    public void mass_refresh_check() {
+        if (list_mass_refresh.size() < 1) {
+            // Starting a spinning animation dialog
+            spt = new SpinningStatus(true, this, handler);
+            spt.execute();
+            spt.onProgressUpdate(getString(R.string.progress_title), "");
+            list_mass_refresh = db.get_all_accounts_id();
+            mass_refresh();
         }
     }
 

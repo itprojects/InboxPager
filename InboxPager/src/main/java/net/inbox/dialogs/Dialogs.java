@@ -16,7 +16,6 @@
  **/
 package net.inbox.dialogs;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -103,7 +102,16 @@ public class Dialogs {
         builder.show();
     }
 
-    public static void toaster(String msg, Context ct) {
-        Toast.makeText(ct, msg, Toast.LENGTH_SHORT).show();
+    public static void toaster(final boolean time, final String msg, final AppCompatActivity ct) {
+        ct.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (time) {
+                    Toast.makeText(ct, msg, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ct, msg, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }

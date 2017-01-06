@@ -21,10 +21,12 @@ import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 
+import net.inbox.InboxMessage;
 import net.inbox.InboxSend;
 import net.inbox.InboxUI;
 import net.inbox.Pager;
 import net.inbox.R;
+import net.inbox.server.Handler;
 
 public class SpinningStatus extends AsyncTask<Void, String, Void> {
 
@@ -35,10 +37,12 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
 
     private AppCompatActivity act;
     private ProgressDialog pd;
+    private Handler handler;
 
-    public SpinningStatus(boolean cb, AppCompatActivity at) {
+    public SpinningStatus(boolean cb, AppCompatActivity at, Handler hand) {
         call_back = cb;
         act = at;
+        handler = hand;
     }
 
     /**
@@ -77,7 +81,7 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
             }
         }
         if (call_cancel) {
-            if (Pager.handler != null) Pager.handler.cancel_action();
+            if (handler != null) handler.cancel_action();
         }
         return null;
     }
@@ -101,6 +105,9 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
             if (act.getClass().toString().endsWith(".Pager")) {
                 // Refresh the account list
                 ((Pager) act).mass_refresh();
+            } else if (act.getClass().toString().endsWith(".InboxMessage")) {
+                // Set server certificate details
+                ((InboxMessage) act).connection_security();
             } else if (act.getClass().toString().endsWith(".InboxSend")) {
                 // Set server certificate details
                 ((InboxSend) act).connection_security();

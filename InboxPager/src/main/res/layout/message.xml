@@ -20,12 +20,20 @@
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
+            <ImageView android:id="@+id/ssl_auth_img_vw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10sp"
+                android:paddingEnd="0sp"
+                android:contentDescription="@string/message_contents"
+                android:src="@drawable/padlock_error"
+                android:visibility="gone"/>
+
             <TextView android:id="@+id/message_attachments"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:drawableEnd="@drawable/attachment"
-                android:drawableRight="@drawable/attachment"
                 android:shadowRadius="3"
                 android:shadowDx="0"
                 android:shadowDy="0"
@@ -36,32 +44,10 @@
 
         </android.support.v7.widget.Toolbar>
 
-        <TextView android:id="@+id/message_subject_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="15sp"
-            android:layout_marginLeft="15sp"
-            android:layout_marginTop="15sp"
-            android:layout_marginEnd="15sp"
-            android:layout_marginRight="15sp"
-            android:layout_marginBottom="15sp"
-            android:text="@string/message_subject"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
-
-        <TextView android:id="@+id/message_subject"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20sp"
-            android:layout_marginLeft="20sp"
-            android:layout_marginEnd="20sp"
-            android:layout_marginRight="20sp"
-            android:textIsSelectable="true"/>
-
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginStart="15sp"
             android:layout_marginLeft="15sp"
             android:layout_marginTop="15sp"
@@ -72,14 +58,12 @@
             <TextView android:id="@+id/message_from_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="5sp"
                 android:layout_marginEnd="5sp"
                 android:layout_marginBottom="5sp"
                 android:drawableEnd="@drawable/location"
-                android:drawableRight="@drawable/location"
                 android:text="@string/message_from"
                 android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+                android:textAppearance="@android:style/TextAppearance"/>
 
             <TextView android:id="@+id/message_from"
                 android:layout_width="wrap_content"
@@ -98,7 +82,7 @@
             android:layout_marginBottom="15sp"
             android:text="@string/message_cc"
             android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance"/>
 
         <TextView android:id="@+id/message_cc"
             android:layout_width="wrap_content"
@@ -119,7 +103,7 @@
             android:layout_marginBottom="15sp"
             android:text="@string/message_bcc"
             android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance"/>
 
         <TextView android:id="@+id/message_bcc"
             android:layout_width="wrap_content"
@@ -133,7 +117,7 @@
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginStart="15sp"
             android:layout_marginLeft="15sp"
             android:layout_marginTop="15sp"
@@ -144,12 +128,11 @@
             <TextView android:id="@+id/message_date_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="5sp"
                 android:layout_marginEnd="5sp"
                 android:layout_marginBottom="5sp"
                 android:text="@string/message_date"
                 android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+                android:textAppearance="@android:style/TextAppearance"/>
 
             <TextView android:id="@+id/message_date"
                 android:layout_width="wrap_content"
@@ -157,10 +140,32 @@
                 android:padding="2sp"/>
         </LinearLayout>
 
+        <TextView android:id="@+id/message_subject_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15sp"
+            android:layout_marginLeft="15sp"
+            android:layout_marginTop="15sp"
+            android:layout_marginEnd="15sp"
+            android:layout_marginRight="15sp"
+            android:layout_marginBottom="15sp"
+            android:text="@string/message_subject"
+            android:textColor="@color/color_message_headers"
+            android:textAppearance="@android:style/TextAppearance"/>
+
+        <TextView android:id="@+id/message_subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20sp"
+            android:layout_marginLeft="20sp"
+            android:layout_marginEnd="20sp"
+            android:layout_marginRight="20sp"
+            android:textIsSelectable="true"/>
+
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -170,21 +175,36 @@
                 android:layout_marginTop="15sp"
                 android:layout_marginEnd="15sp"
                 android:layout_marginRight="15sp"
-                android:layout_marginBottom="15sp"
+                android:layout_marginBottom="5sp"
                 android:text="@string/message_contents"
                 android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"/>
+                android:textAppearance="@android:style/TextAppearance"/>
 
             <TextView android:id="@+id/message_loop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="17sp"
-                android:layout_marginLeft="17sp"
-                android:layout_marginBottom="2sp"
+                android:layout_marginTop="15sp"
                 android:text="@string/message_contents_loop_no"
                 android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+                android:textAppearance="@android:style/TextAppearance.Small"/>
 
+            <ImageView android:id="@+id/iv_gpg_crypto"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_marginTop="13sp"
+                android:layout_marginStart="5sp"
+                android:contentDescription="@string/send_encrypt"
+                android:src="@drawable/padlock_closed_inverse"
+                android:visibility="gone"/>
+
+            <ImageView android:id="@+id/iv_gpg_signature"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_marginTop="13sp"
+                android:layout_marginStart="5sp"
+                android:contentDescription="@string/open_pgp_message_signature"
+                android:src="@drawable/signature"
+                android:visibility="gone"/>
         </LinearLayout>
 
         <TextView android:id="@+id/message_contents"

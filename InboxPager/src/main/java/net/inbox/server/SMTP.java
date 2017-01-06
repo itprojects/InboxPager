@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 
+import net.inbox.InboxSend;
 import net.inbox.Pager;
 import net.inbox.R;
 import net.inbox.db.Attachment;
@@ -107,7 +108,7 @@ public class SMTP extends Handler {
             sleep(1000);
         } catch (InterruptedException e) {
             System.out.println("Exception: " + e.getMessage());
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
+            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
 
         if (!excepted) {
@@ -119,7 +120,7 @@ public class SMTP extends Handler {
                         sleep(3000);
                     } catch (InterruptedException e) {
                         System.out.println("Exception: " + e.getMessage());
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
+                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
 
                     if (current_inbox.get_smtp_extensions() != null
@@ -242,8 +243,10 @@ public class SMTP extends Handler {
 
     @Override
     public void cancel_action() {
-        write("RSET");
-        write("QUIT");
+        if (!io_sock.closed_already()) {
+            write("RSET");
+            write("QUIT");
+        }
         over = true;
     }
 
@@ -421,7 +424,8 @@ public class SMTP extends Handler {
         if (sp != null) on_ui_thread("-1", ctx.getString(R.string.progress_authenticated));
 
         // Prepare certificate information
-        last_connection_data = io_sock.printSocket();
+        last_connection_data_id = current_inbox.get_id();
+        last_connection_data = io_sock.print();
 
         // Make a full RCPT list
         if (data.msg_current.get_to() != null && !data.msg_current.get_to().isEmpty()) {
@@ -561,31 +565,26 @@ public class SMTP extends Handler {
             String st = "From: " + user_name;
             if (!data.smtp_utf_8) st = Utils.to_ascii(st);
             write(st);
-            sleep(100);
             st = "To: " + data.msg_current.get_to();
             if (!data.smtp_utf_8) st = Utils.to_ascii(st);
             write_limited(st.toCharArray(), 500);
-            sleep(100);
             if (data.msg_current.get_cc() != null && !data.msg_current.get_cc().isEmpty()) {
                 st = "Cc: " + data.msg_current.get_cc();
                 if (!data.smtp_utf_8) st = Utils.to_ascii(st);
                 write_limited(st.toCharArray(), 500);
             }
-            sleep(100);
             if (data.msg_current.get_bcc() != null && !data.msg_current.get_bcc().isEmpty()) {
                 st = "Bcc: " + data.msg_current.get_bcc();
                 if (!data.smtp_utf_8) st = Utils.to_ascii(st);
                 write_limited(st.toCharArray(), 500);
             }
             // Message-ID
-            sleep(100);
             st = "Message-ID: <" + String.valueOf(Math.random() * 1000);
             st += String.valueOf(System.currentTimeMillis()) + ">";
             write(st);
-            sleep(100);
-            st = "Subject: ";
             if (data.msg_current.get_subject() != null
                     && !data.msg_current.get_subject().isEmpty()) {
+                st = "Subject: ";
                 if (!Utils.all_ascii(data.msg_current.get_subject())) {
                     st += Utils.to_base64_utf8(data.msg_current.get_subject()).trim();
                 } else {
@@ -595,21 +594,31 @@ public class SMTP extends Handler {
             write_limited(st.toCharArray(), 500);
             if (sp != null) on_ui_thread("-1", ctx.getString(R.string.send_headers_sent));
             sleep(100);
-            if (data.msg_current_attachments.size() > 0) {
+            if (data.msg_current.get_contents_crypto() != null) {
+                // PGP/MIME
+                System.gc();
                 write("MIME-Version: 1.0");
-                double n_tag = 100000 + Math.random() * 1000000;
-                String bounds = "=_" + "_" + String.valueOf(n_tag);
-
-                // Check if boundary is already in the text
-                if (data.msg_current.get_contents_plain() != null
-                        && !data.msg_current.get_contents_plain().isEmpty()) {
-                    while ( data.msg_current.get_contents_plain().contains(String.valueOf(n_tag))) {
-                        n_tag = 1000 + Math.random() * 1000000;
+                String dat = data.msg_current.get_contents_crypto();
+                StringBuilder sb_write_out = new StringBuilder();
+                for (int ii = 0;ii < dat.length();++ii) {
+                    if (dat.charAt(ii) == '\n') {
+                        write(sb_write_out.toString());
+                        sb_write_out.setLength(0);
+                    } else {
+                        sb_write_out.append(dat.charAt(ii));
+                        if (sb_write_out.length() > 997) {
+                            write(sb_write_out.toString());
+                            sb_write_out.setLength(0);
+                        }
                     }
-                    // Second underscore is for attachments error, skips B64
-                    bounds = "=_" + "_" + String.valueOf(n_tag);
                 }
-
+                if (sb_write_out.length() > 0) {
+                    write(sb_write_out.toString());
+                    sb_write_out.setLength(0);
+                }
+            } else if (data.msg_current_attachments.size() > 0) {
+                write("MIME-Version: 1.0");
+                String bounds = Utils.boundary();
                 write("Content-type: multipart/mixed; boundary=" + "\"" + bounds + "\"");
 
                 // Message textual contents
@@ -645,17 +654,15 @@ public class SMTP extends Handler {
                     write("\n");
                     ByteArrayOutputStream b_stream = new ByteArrayOutputStream();
                     try {
-                        InputStream instream = new FileInputStream(ff);
+                        InputStream in_stream = new FileInputStream(ff);
                         byte[] bfr = new byte[(int)ff.length()];
                         if ((int)ff.length() > 0) {
                             int t;
-                            while ((t = instream.read(bfr)) != -1) {
-                                b_stream.write(bfr, 0, t);
-                            }
+                            while ((t = in_stream.read(bfr)) != -1) { b_stream.write(bfr, 0, t); }
                         }
                     } catch (IOException e) {
                         System.out.println("Exception: " + e.getMessage());
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
+                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
                     byte[] a_bytes =  Base64.encode(b_stream.toByteArray(), Base64.DEFAULT);
                     boolean cr = false;
@@ -693,11 +700,20 @@ public class SMTP extends Handler {
             if (sp != null) {
                 on_ui_thread("-1", ctx.getString(R.string.send_sent));
                 sp.unblock = true;
+                Dialogs.toaster(false, ctx.getString(R.string.send_sent), (AppCompatActivity) ctx);
             }
             Pager.notify_update();
+            final InboxSend inb = (InboxSend) ctx;
+            ((InboxSend) ctx).runOnUiThread(new Runnable() {
+
+                @Override
+                public void run() {
+                    inb.connection_security();
+                }
+            });
         } catch (InterruptedException e) {
             System.out.println("Exception: " + e.getMessage());
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
+            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
     }
 

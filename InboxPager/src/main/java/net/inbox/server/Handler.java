@@ -19,6 +19,8 @@ package net.inbox.server;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 
+import net.inbox.InboxMessage;
+import net.inbox.InboxSend;
 import net.inbox.Pager;
 import net.inbox.R;
 import net.inbox.db.Attachment;
@@ -35,45 +37,45 @@ import java.util.regex.Pattern;
 
 public abstract class Handler extends Thread {
 
-    public Context ctx;
+    protected Context ctx;
 
-    public DBAccess db;
+    protected DBAccess db;
 
     public SpinningStatus sp;
 
     // Exception has happened
-    public boolean excepted;
+    boolean excepted;
 
     // Multiple refresh
-    public boolean multiple;
+    boolean multiple;
 
     // True, when waiting for login
-    public boolean ready = false;
+    boolean ready = false;
 
     // True, when exchange ends
     public boolean over = false;
 
     // Command ID tag
-    public String tag = "";
+    String tag = "";
 
     /**
      * Command return status codes.
      *
      * IMAP OK = 1, NO = 2, BAD = 3
      **/
-    public int stat = 0;
+    int stat = 0;
 
     // Regular Expressions
-    public Pattern pat;
-    public Matcher mat;
+    Matcher mat;
+    Pattern pat;
 
-    public SocketIO io_sock;
+    SocketIO io_sock;
 
-    public Thread io_sock_thread;
+    Thread io_sock_thread;
 
     public Data data;
 
-    public abstract class Data {
+    abstract class Data {
         // Command response returned by server
         String cmd_return = "";
 
@@ -93,7 +95,10 @@ public abstract class Handler extends Thread {
         ArrayList<String> delegation = new ArrayList<>();
 
         // Commands are delegated
-        public boolean delegate = false;
+        boolean delegate = false;
+
+        // Current message is encrypted
+        boolean crypto_contents = false;
 
         // Current message
         Message msg_current = new Message();
@@ -112,9 +117,14 @@ public abstract class Handler extends Thread {
         ArrayList<String> general = new ArrayList<>();
     }
 
-    public Inbox current_inbox;
+    Inbox current_inbox;
 
-    public String last_connection_data;
+    // Last session state variables
+    boolean last_connection_hostname = true;
+
+    int last_connection_data_id = -1;
+
+    ArrayList<String[]> last_connection_data;
 
     public Handler(Context ct) {
         // Get the database
@@ -192,7 +202,7 @@ public abstract class Handler extends Thread {
      * Command Line or Reply Line = 512 (with \r\n).
      * Text Line = 1000 (with \r\n).
      **/
-    public void write_limited(char[] arr, int limit) {
+    void write_limited(char[] arr, int limit) {
         boolean cr = false;
         StringBuilder sb_write_out = new StringBuilder();
         for (char b : arr) {
@@ -214,7 +224,7 @@ public abstract class Handler extends Thread {
         }
     }
 
-    public void socket_start_imap(IMAP hand) {
+    void socket_start_imap(IMAP hand) {
         // Starting communication on socket
         io_sock = new SocketIO(current_inbox.get_imap_or_pop_server(),
                 current_inbox.get_imap_or_pop_port(), hand, ctx);
@@ -222,7 +232,7 @@ public abstract class Handler extends Thread {
         io_sock_thread.start();
     }
 
-    public void socket_start_pop(POP hand) {
+    void socket_start_pop(POP hand) {
         // Starting communication on socket
         io_sock = new SocketIO(current_inbox.get_imap_or_pop_server(),
                 current_inbox.get_imap_or_pop_port(), hand, ctx);
@@ -230,7 +240,7 @@ public abstract class Handler extends Thread {
         io_sock_thread.start();
     }
 
-    public void socket_start_smtp(SMTP hand) {
+    void socket_start_smtp(SMTP hand) {
         // Starting communication on socket
         io_sock = new SocketIO(current_inbox.get_smtp_server(),
                current_inbox.get_smtp_port(), hand, ctx);
@@ -238,26 +248,43 @@ public abstract class Handler extends Thread {
         io_sock_thread.start();
     }
 
-    public void error_dialog(Exception e) {
+    void error_dialog(Exception e) {
         // Stop the current actions
         cancel_action();
 
         // Dismiss the spinning dialog
-        if (multiple) {
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
-        } else {
+        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+        if (!multiple) {
             sp.unblock = true;
             Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
+
+            // Connection icon update
+            ((AppCompatActivity) ctx).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (ctx.getClass().toString().endsWith(".InboxMessage")) {
+                        // Set server certificate details
+                        ((InboxMessage) ctx).connection_security();
+                    } else if (ctx.getClass().toString().endsWith(".InboxSend")) {
+                        // Set server certificate details
+                        ((InboxSend) ctx).connection_security();
+                    }
+                }
+            });
+        } else {
+            // Flag errors
+            Dialogs.toaster(true, ctx.getString(R.string.err_refresh) + " " +
+                    current_inbox.get_email(), (AppCompatActivity) ctx);
         }
     }
 
-    public void error_dialog(String s) {
+    void error_dialog(String s) {
         // Stop the current actions
         cancel_action();
 
         // Dismiss the spinning dialog
         if (multiple) {
-            Pager.log += ctx.getString(R.string.ex_field) + s + "\n";
+            Pager.log += ctx.getString(R.string.ex_field) + s + "\n\n";
         } else {
             sp.unblock = true;
             Dialogs.dialog_error_line(s, (AppCompatActivity) ctx);
@@ -268,7 +295,7 @@ public abstract class Handler extends Thread {
      * Android requires only UI Thread change the UI.
      * Updates the spinning status dialog.
      **/
-    public void on_ui_thread(final String title, final String msg) {
+    void on_ui_thread(final String title, final String msg) {
         ((AppCompatActivity) ctx).runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -281,7 +308,7 @@ public abstract class Handler extends Thread {
      * Android requires only UI Thread change the UI.
      * Continue mass-refresh.
      **/
-    public void on_ui_thread_continue_refresh() {
+    void on_ui_thread_continue_refresh() {
         final Pager page = (Pager) ctx;
         page.runOnUiThread(new Runnable() {
             @Override
@@ -291,7 +318,15 @@ public abstract class Handler extends Thread {
         });
     }
 
-    public String get_certificates() {
+    public boolean get_hostname_verify() {
+        return last_connection_hostname;
+    }
+
+    public int get_last_connection_data_id() {
+        return last_connection_data_id;
+    }
+
+    public ArrayList<String[]> get_last_connection_data() {
         return last_connection_data;
     }
 }

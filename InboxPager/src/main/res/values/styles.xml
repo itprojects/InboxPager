@@ -2,18 +2,19 @@
 
     <style name="PagerTheme" parent="Theme.AppCompat.Light.NoActionBar"/>
 
-    <style name="shadow_button">
-        <item name="android:paddingTop">3sp</item>
-        <item name="android:paddingBottom">3sp</item>
-        <item name="android:paddingLeft">6sp</item>
-        <item name="android:paddingRight">6sp</item>
+    <style name="action_button">
+        <item name="android:paddingTop">0sp</item>
+        <item name="android:paddingBottom">0sp</item>
+        <item name="android:paddingLeft">4sp</item>
+        <item name="android:paddingRight">4sp</item>
         <item name="android:textColor">#ffffffff</item>
         <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:shadowColor">#000000</item>
+        <item name="android:shadowColor">#000ab12f</item>
         <item name="android:shadowDx">0.1</item>
         <item name="android:shadowDy">0.1</item>
         <item name="android:shadowRadius">1</item>
+        <item name="android:fontFamily">sans-serif-condensed-light</item>
     </style>
 
     <style name="PWEditText" parent="Theme.AppCompat.Light.DarkActionBar">

@@ -2,7 +2,7 @@
 <item android:id="@android:id/background">
     <shape>
         <corners android:radius="3sp" />
-        <solid android:color="@color/color_send"/>
+        <solid android:color="@color/color_green"/>
     </shape>
 </item>
 </layer-list>

@@ -29,6 +29,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -37,7 +38,9 @@ import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
 import net.inbox.dialogs.Dialogs;
+import net.inbox.dialogs.DialogsCerts;
 import net.inbox.dialogs.SpinningStatus;
+import net.inbox.server.Handler;
 import net.inbox.server.IMAP;
 import net.inbox.server.POP;
 
@@ -46,6 +49,7 @@ import java.util.ArrayList;
 public class InboxUI extends AppCompatActivity {
 
     private DBAccess db;
+    private Handler handler;
 
     private TextView tv_page_counter;
     private TextView tv_no_account;
@@ -105,6 +109,16 @@ public class InboxUI extends AppCompatActivity {
         tv_no_account = (TextView) findViewById(R.id.no_messages);
         tv_no_account.setTypeface(Pager.tf);
 
+        // Refresh mailbox button
+        ImageButton ib_refresh = (ImageButton) findViewById(R.id.refresh);
+        ib_refresh.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                refresh_mailbox();
+            }
+        });
+
         // Setting up the SSL authentication application
         iv_ssl_auth = (ImageView) findViewById(R.id.ssl_auth_img_vw);
         iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
@@ -135,23 +149,6 @@ public class InboxUI extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.inbox_action_refresh_btn:
-                // Starting a spinning animation dialog
-                SpinningStatus sp = new SpinningStatus(true, this);
-                sp.execute();
-                sp.onProgressUpdate(getString(R.string.progress_title),
-                        getString(R.string.progress_refreshing));
-
-                // Starting refresh INBOX
-                if (current.get_imap_or_pop()) {
-                    Pager.handler = new IMAP(this);
-                } else {
-                    Pager.handler = new POP(this);
-                }
-                Pager.handler.sp = sp;
-                Pager.handler.start();
-                Pager.handler.default_action(false, current, this);
-                break;
             case R.id.mark_all_seen_menu:
                 db.mark_all_seen(current.get_id());
                 populate_list_view();
@@ -205,6 +202,8 @@ public class InboxUI extends AppCompatActivity {
             b.putString("reply-to", data.getStringExtra("reply-to"));
             b.putString("subject", data.getStringExtra("subject"));
             startActivityForResult(send_intent.putExtras(b), 10001);
+        } else if (resultCode == 1010101) {
+            populate_list_view();
         }
     }
 
@@ -232,11 +231,11 @@ public class InboxUI extends AppCompatActivity {
             // Adding messages backwards, to save on sort by date
             for (int i = al_messages.size() - 1; i >= 0; --i) {
                 Message nfo = al_messages.get(i);
-                al_messages_items.add(new InboxMessageListItem(nfo.get_id(), nfo.get_subject(),
-                        nfo.get_from(), nfo.get_attachments(), nfo.get_seen()));
+                al_messages_items.add(new InboxMessageListItem(nfo.get_id(), nfo.get_account(),
+                        nfo.get_subject(), nfo.get_from(), nfo.get_attachments(), nfo.get_seen()));
             }
-            InboxMessageList adapter = new InboxMessageList(this, al_messages_items);
-            msg_list_view.setAdapter(adapter);
+            InboxMessageList msg_list_adapter = new InboxMessageList(this, al_messages_items);
+            msg_list_view.setAdapter(msg_list_adapter);
             msg_list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
                 @Override
@@ -250,6 +249,7 @@ public class InboxUI extends AppCompatActivity {
                     Intent i = new Intent(getApplicationContext(), InboxMessage.class);
                     Bundle b = new Bundle();
                     b.putInt("db_id", itm_new.get_id());
+                    b.putInt("db_inbox", itm_new.get_inbox());
                     b.putString("title", current.get_email());
                     b.putBoolean("no_send", current.get_smtp_server().isEmpty());
                     b.putBoolean("imap_or_pop", current.get_imap_or_pop());
@@ -266,7 +266,7 @@ public class InboxUI extends AppCompatActivity {
         connection_security();
     }
 
-    public void set_count() {
+    private void set_count() {
         int i = current.get_unseen();
         String str = "000";
         if (i < 1) {
@@ -291,10 +291,28 @@ public class InboxUI extends AppCompatActivity {
         }
     }
 
+    private void refresh_mailbox() {
+        // Starting a spinning animation dialog
+        SpinningStatus sp = new SpinningStatus(true, this, handler);
+        sp.execute();
+        sp.onProgressUpdate(getString(R.string.progress_title),
+                getString(R.string.progress_refreshing));
+
+        // Starting refresh INBOX
+        if (current.get_imap_or_pop()) {
+            handler = new IMAP(this);
+        } else {
+            handler = new POP(this);
+        }
+        handler.sp = sp;
+        handler.start();
+        handler.default_action(false, current, this);
+    }
+
     /**
      * Dialog account information - i.e. # messages, # unread.
      **/
-    public void dialog_statistical() {
+    private void dialog_statistical() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.stats_title));
         String msg = current.get_messages() + " " + getString(R.string.stats_messages) + ", "
@@ -321,36 +339,44 @@ public class InboxUI extends AppCompatActivity {
         builder.show();
     }
 
-    public void connection_security() {
-        if (Pager.handler != null && Pager.handler.get_certificates() != null) {
-            good_incoming_server = Pager.handler.get_certificates().length() > 0;
-            iv_ssl_auth.setVisibility(View.VISIBLE);
-            if (good_incoming_server) {
-                good_incoming_server = true;
-                iv_ssl_auth.setImageResource(R.drawable.ssl_auth);
+    private void connection_security() {
+        if (handler == null) return;
+        good_incoming_server = handler.get_hostname_verify();
+        if (good_incoming_server) {
+            if (handler != null && handler.get_last_connection_data() != null
+                    && (handler.get_last_connection_data_id() == current.get_id())) {
+                good_incoming_server = handler.get_last_connection_data().size() > 0;
+                iv_ssl_auth.setVisibility(View.VISIBLE);
+                if (good_incoming_server) {
+                    good_incoming_server = true;
+                    iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
+                } else {
+                    good_incoming_server = false;
+                    iv_ssl_auth.setImageResource(R.drawable.padlock_error);
+                }
             } else {
                 good_incoming_server = false;
-                iv_ssl_auth.setImageResource(R.drawable.ssl_no_auth);
+                iv_ssl_auth.setVisibility(View.GONE);
             }
         } else {
-            good_incoming_server = false;
-            iv_ssl_auth.setVisibility(View.GONE);
+            iv_ssl_auth.setVisibility(View.VISIBLE);
+            iv_ssl_auth.setImageResource(R.drawable.padlock_error);
+            Dialogs.toaster(true, getString(R.string.err_action_failed), this);
         }
     }
 
     /**
      * Intermediaries' SSL certificates of the last live connection.
      **/
-    public void dialog_servers() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.ssl_auth_popup_title));
+    private void dialog_servers() {
         if (good_incoming_server) {
-            builder.setMessage(getString(R.string.ssl_auth_popup_you)
-                    + Pager.handler.get_certificates());
+            DialogsCerts.dialog_certs(this, handler.get_last_connection_data());
         } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.ssl_auth_popup_title));
             builder.setMessage(getString(R.string.ssl_auth_popup_bad_connection));
+            builder.setPositiveButton(getString(android.R.string.ok), null);
+            builder.show();
         }
-        builder.setPositiveButton(getString(android.R.string.ok), null);
-        builder.show();
     }
 }

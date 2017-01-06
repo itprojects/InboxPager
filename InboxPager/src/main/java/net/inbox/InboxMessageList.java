@@ -22,30 +22,31 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class InboxMessageList extends BaseAdapter {
+class InboxMessageList extends BaseAdapter {
 
-    private ArrayList<InboxMessageListItem> msgs;
+    private ArrayList<InboxMessageListItem> msg_s;
     private Context ctx;
     private Typeface tf;
 
-    public InboxMessageList(Context ctx, ArrayList<InboxMessageListItem> msgs) {
-        this.ctx = ctx;
-        this.msgs = msgs;
-        this.tf = Pager.tf;
+    InboxMessageList(Context ct, ArrayList<InboxMessageListItem> messages) {
+        ctx = ct;
+        msg_s = messages;
+        tf = Pager.tf;
     }
 
     @Override
     public int getCount() {
-        return msgs.size();
+        return msg_s.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return msgs.get(position);
+        return msg_s.get(position);
     }
 
     @Override
@@ -59,21 +60,25 @@ public class InboxMessageList extends BaseAdapter {
             v = (LayoutInflater.from(this.ctx)).inflate(R.layout.message_list_row, parent, false);
         }
 
-        InboxMessageListItem itm = msgs.get(position);
+        InboxMessageListItem itm = msg_s.get(position);
         TextView tv_title = (TextView) v.findViewById(R.id.message_list_title);
         if (itm.get_seen()) {
             (v.findViewById(R.id.message_list_title_unseen_mark)).setVisibility(View.GONE);
         } else {
             (v.findViewById(R.id.message_list_title_unseen_mark)).setVisibility(View.VISIBLE);
         }
-        tv_title.setText(itm.get_subject());tv_title.invalidate();
+        tv_title.setText(itm.get_subject());
+        tv_title.invalidate();
         TextView tv_subtitle = (TextView) v.findViewById(R.id.message_list_subtitle);
         tv_subtitle.setText(itm.get_subtitle());
+        ImageView iv_att = (ImageView) v.findViewById(R.id.message_list_attachments_img);
         TextView tv_att = (TextView) v.findViewById(R.id.message_list_attachments);
         tv_att.setTypeface(tf);
         if (itm.get_attachments() < 1) {
+            iv_att.setVisibility(View.GONE);
             tv_att.setVisibility(View.GONE);
         } else {
+            iv_att.setVisibility(View.VISIBLE);
             tv_att.setVisibility(View.VISIBLE);
         }
         tv_att.setText(String.valueOf(itm.get_attachments()));
@@ -85,56 +90,42 @@ public class InboxMessageList extends BaseAdapter {
 class InboxMessageListItem {
 
     private int id;
+    private int inbox;
     private String subject;
     private String sender;
     private int attachments;
     private boolean seen;
 
-    public InboxMessageListItem(int i, String si, String sii, int ic, boolean sn) {
-        this.id = i;
-        this.subject = si;
-        this.sender = sii;
-        this.attachments = ic;
-        this.seen = sn;
+    InboxMessageListItem(int i, int ia, String si, String sii, int ic, boolean sn) {
+        id = i;
+        inbox = ia;
+        subject = si;
+        sender = sii;
+        attachments = ic;
+        seen = sn;
     }
 
     public int get_id() {
         return id;
     }
 
-    public String get_subject() {
+    int get_inbox() {
+        return inbox;
+    }
+
+    String get_subject() {
         return subject;
     }
 
-    public String get_subtitle() {
+    String get_subtitle() {
         return sender;
     }
 
-    public int get_attachments() {
+    int get_attachments() {
         return attachments;
     }
 
-    public boolean get_seen() {
+    boolean get_seen() {
         return seen;
-    }
-
-    public void set_id(int i) {
-        id = i;
-    }
-
-    public void set_subject(String s) {
-        subject = s;
-    }
-
-    public void set_subtitle(String s) {
-        sender = s;
-    }
-
-    public void set_attachments(int i) {
-        attachments = i;
-    }
-
-    public void set_seen(boolean b) {
-        seen = b;
     }
 }

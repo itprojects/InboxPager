@@ -71,6 +71,7 @@
     <string name="folder_title">Select Folder (long-press)</string>
 
     <!-- Error Dialogs -->
+    <string name="err_error">Error:</string>
     <string name="err_title_write_perms">Writing Prohibited</string>
     <string name="err_msg_write_perms">You do not have the folder permission to save your file in your chosen folder.</string>
     <string name="err_title_no_space">No space</string>
@@ -94,7 +95,6 @@
     <string name="err_no_ehlo">Server does not support the EHLO extensions listing command.</string>
     <string name="err_no_capability">Server does not support the CAPABILITY abilities listing command.</string>
     <string name="err_no_capa">Server does not support the CAPA extensions listing command.</string>
-    <string name="err_unknown_transfer_encoding">Unknown data transfer encoding. Unable to save!</string>
     <string name="err_no_extension">Server does not support: AUTH/SASL, or UIDL extension!</string>
     <string name="err_pop_immediate">Server deletes emails after reading!</string>
     <string name="err_pop_expiration">Server deletes emails after %s days!</string>
@@ -102,6 +102,11 @@
     <string name="err_no_full_msg">Full message not found in database!\nDownload from server, first.</string>
     <string name="err_not_saved">Could not complete save action.</string>
     <string name="err_imap_attachment_saving">Offline IMAP attachment file saving failed. Download attachment online, delete full message from database.</string>
+    <string name="err_action_failed">Action failed, see log file.</string>
+    <string name="err_refresh">Errors in</string>
+    <string name="err_pick_signing_key">Pick a signing key!</string>
+    <string name="err_pick_rcpt_keys">Pick recipient keys!</string>
+    <string name="err_missing_crypto_mime">Missing message cryptographic data!</string>
 
     <!-- Pager activity -->
     <string name="activity_pw">PASSWORD</string>
@@ -131,15 +136,15 @@
     <string name="menu_switch_pop_imap_dialog">Switching between IMAP and POP requires all local messages to be deleted and then added from the server. Continue?</string>
     <string name="ssl_auth_popup_title">Connection INFO</string>
     <string name="ssl_auth_popup_you">You, this device.</string>
-    <string name="ssl_auth_popup_transport">Security:</string>
-    <string name="ssl_auth_popup_key_size">Key Size:</string>
-    <string name="ssl_auth_popup_cn">Name:</string>
-    <string name="ssl_auth_popup_o">Organization:</string>
-    <string name="ssl_auth_popup_ou">Type:</string>
-    <string name="ssl_auth_popup_l">Location:</string>
-    <string name="ssl_auth_popup_st">State:</string>
-    <string name="ssl_auth_popup_c">Country:</string>
-    <string name="ssl_auth_popup_bad_connection">None or bad remote TLS certificates.\nYou may be experiencing NO SECURITY AT ALL!</string>
+    <string name="ssl_auth_popup_transport">SECURITY</string>
+    <string name="ssl_auth_popup_key_size">KEY SIZE</string>
+    <string name="ssl_auth_popup_cn">NAME</string>
+    <string name="ssl_auth_popup_o">ORGANIZATION</string>
+    <string name="ssl_auth_popup_ou">TYPE</string>
+    <string name="ssl_auth_popup_l">LOCATION</string>
+    <string name="ssl_auth_popup_st">STATE</string>
+    <string name="ssl_auth_popup_c">COUNTRY</string>
+    <string name="ssl_auth_popup_bad_connection">You may be experiencing NO SECURITY AT ALL! Remote server had bad or missing SSL/TLS certificates, or the host\'s name cannot be verified.</string>
     <string name="no_messages">Empty Inbox</string>
 
     <!-- InboxPreferences activity -->
@@ -199,6 +204,7 @@
     <string name="menu_delete_full_messages">Delete Full Messages</string>
     <string name="menu_see_full_message">View Full Message</string>
     <string name="menu_see_full_message_title">Full Message</string>
+    <string name="message_action_done">Done</string>
     <string name="message_dialog">Received FROM</string>
     <string name="message_from">FROM</string>
     <string name="message_to">TO</string>
@@ -220,13 +226,19 @@
     <string name="send_send">SEND</string>
     <string name="send_sent">Sent.</string>
     <string name="send_spin">Sending</string>
-    <string name="send_addresses_hint">first@foo.com, second@foo.net, ..</string>
+    <string name="send_addresses_hint">A@foo.com, B@foo.net,</string>
     <string name="send_attachments">Attachments</string>
     <string name="send_remove_attachment">Remove attachment</string>
     <string name="send_wait">Wait a few seconds.</string>
     <string name="send_headers_sent">Headers sent. Sending Contents.</string>
     <string name="send_upload_attachment">Uploading attachment:</string>
     <string name="send_folder_not_file">Your file manager has selected something other than a file.</string>
+    <string name="send_missing_rcpt_to">Missing primary recipient.</string>
+    <string name="send_cleartext_subject">Cleartext Subject</string>
+    <string name="send_cleartext_content">The subject of the message WILL NOT be encrypted. Would you like to remove the subject of the message, for more privacy?</string>
+    <string name="send_cleartext_delete">Remove</string>
+    <string name="send_cleartext_keep">Keep</string>
+    <string name="send_encrypt">Encrypt</string>
 
     <!-- Settings -->
     <string name="sett_auto_check_title">Mass refresh</string>
@@ -243,5 +255,29 @@
     <string name="sett_change_pw_new">NEW PASSWORD</string>
     <string name="sett_change_pw_visible">VISIBLE PASSWORD</string>
     <string name="sett_change_pw_text">Minimum 12 characters long.</string>
+
+    <!-- GPG -->
+    <string name="open_pgp_dialog_title">Cryptography</string>
+    <string name="open_pgp_reset">RESET</string>
+    <string name="open_pgp_ready">READY</string>
+    <string name="open_pgp_start">START</string>
+    <string name="open_pgp_none_found">OpenKeychain not found!\nNo encryption/decryption!!</string>
+    <string name="open_pgp_list_items_encrypt">Encrypt message</string>
+    <string name="open_pgp_list_items_sign_encrypt">Sign and encrypt message</string>
+    <string name="open_pgp_list_items_detach_sign">Sign clear text message</string>
+    <string name="open_pgp_list_items_decrypt_and_verify">Decrypt and verify</string>
+    <string name="open_pgp_signing_key_check">&#10003; Signing key</string>
+    <string name="open_pgp_signing_key_cross">&#10060; Signing key</string>
+    <string name="open_pgp_rcpt_key_check">&#10003; Recipient keys</string>
+    <string name="open_pgp_rcpt_key_cross">&#10060; Recipient keys</string>
+    <string name="open_pgp_recipients_pick">pick</string>
+    <string name="open_pgp_recipients">RECIPIENTS</string>
+    <string name="open_pgp_message">CLEAR MESSAGE</string>
+    <string name="open_pgp_message_encrypted_block">ENCRYPTED MESSAGE</string>
+    <string name="open_pgp_message_signature">SIGNATURE</string>
+    <string name="open_pgp_success">SUCCESS!</string>
+    <string name="open_pgp_failure">FAILURE!</string>
+    <string name="open_pgp_bad_signature">Bad signature, or transmission error.</string>
+    <string name="open_pgp_encrypt_to_self">Also encrypt to signing key</string>
 
 </resources>

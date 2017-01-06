@@ -17,11 +17,9 @@
 package net.inbox.server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 
 import net.inbox.Pager;
 import net.inbox.R;
-import net.inbox.dialogs.Dialogs;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,14 +27,17 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.security.cert.X509Certificate;
 
-public class SocketIO implements Runnable {
+class SocketIO implements Runnable {
 
     private Context ctx;
 
@@ -48,21 +49,21 @@ public class SocketIO implements Runnable {
     private String server;
     private Handler handler;
 
-    public SocketIO(String srv, int prt, IMAP hand, Context ct) {
+    SocketIO(String srv, int prt, IMAP hand, Context ct) {
         server = srv;
         port = prt;
         handler = hand;
         ctx = ct;
     }
 
-    public SocketIO(String srv, int prt, POP hand, Context ct) {
+    SocketIO(String srv, int prt, POP hand, Context ct) {
         server = srv;
         port = prt;
         handler = hand;
         ctx = ct;
     }
 
-    public SocketIO(String srv, int prt, SMTP hand, Context ct) {
+    SocketIO(String srv, int prt, SMTP hand, Context ct) {
         server = srv;
         port = prt;
         handler = hand;
@@ -73,49 +74,60 @@ public class SocketIO implements Runnable {
         try {
             SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
             s = (SSLSocket) sf.createSocket(server, port);
-            try {
-                StringBuilder sb = new StringBuilder();
-                w = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
-                r = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                int i;
-                boolean cr = false;
-                while ((i = r.read()) != -1) {
-                    if (i == 10 && cr) {
-                        sb.append((char)i);
-                        sb.deleteCharAt(sb.length() - 1);
-                        sb.deleteCharAt(sb.length() - 1);
-                        handler.reply(sb.toString());
-                        sb.setLength(0);
-                    } else if (i == 13) {
-                        cr = true;
-                        sb.append((char)i);
-                    } else {
-                        cr = false;
-                        sb.append((char)i);
+            HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
+            if (hv.verify(server, s.getSession())) {
+                try {
+                    StringBuilder sb = new StringBuilder();
+                    w = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
+                    r = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                    int i;
+                    boolean cr = false;
+                    while ((i = r.read()) != -1) {
+                        if (i == 10 && cr) {
+                            sb.append((char) i);
+                            sb.deleteCharAt(sb.length() - 1);
+                            sb.deleteCharAt(sb.length() - 1);
+                            handler.reply(sb.toString());
+                            sb.setLength(0);
+                        } else if (i == 13) {
+                            cr = true;
+                            sb.append((char) i);
+                        } else {
+                            cr = false;
+                            sb.append((char) i);
+                        }
                     }
+                } catch (IOException ee) {
+                    //System.out.println("Socket closed already.");
+                    if (r != null) r.close();
                 }
-            } catch (IOException ee) {
-                //System.out.println("Socket closed already.");
-            } finally {
+                if (w != null) w.close();
                 if (r != null) r.close();
+                if (s != null && !s.isClosed()) s.close();
+            } else {
+                closing();
+                handler.last_connection_hostname = false;
+                throw new javax.net.ssl.SSLException("'"+ server + "' != '"
+                        + s.getSession().getPeerHost() + "'");
             }
-            if (w != null) w.close();
-            if (r != null) r.close();
-            if (s != null && !s.isClosed()) s.close();
         } catch (Exception e) {
+            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
             handler.excepted = true;
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
-            Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
+            handler.error_dialog(e);
         }
     }
 
-    public void closing() {
+    void closing() {
         try {
             if (s != null && !s.isClosed()) s.close();
         } catch (IOException e) {
             System.out.println("Socket closed already. No closing().");
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n";
+            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
+    }
+
+    boolean closed_already() {
+        return (s == null || s.isClosed());
     }
 
     public boolean write(String l) {
@@ -125,7 +137,7 @@ public class SocketIO implements Runnable {
         return true;
     }
 
-    public String printSocket() {
+    ArrayList<String[]> print() {
         SSLSession session_0 = s.getSession();
         X509Certificate[] certs = new X509Certificate[1];
 
@@ -133,50 +145,44 @@ public class SocketIO implements Runnable {
             certs = session_0.getPeerCertificateChain();
         } catch (SSLPeerUnverifiedException ee) {
             System.out.println("Peer Unverified Exception: " + ee);
-            Pager.log += ctx.getString(R.string.ex_field) + ee.getMessage() + "\n";
+            Pager.log += ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n";
         }
 
-        String list = "";
+        ArrayList<String[]> list = new ArrayList<>();
+        list.add(new String[]{ "-" });
         for (X509Certificate cert : certs) {
             String[] aa = cert.getIssuerDN().getName().split(",");
-
-            String name = "\n\n";
-            String ssl;
-            String str = "";
-
+            String[] lst = new String[] { "", "", "", "", "", "", "", ""};
             for (String aaa : aa) {
                 if (aaa != null) {
                     String[] bb = aaa.split("=");
                     String cc = bb[0].trim();
                     switch (cc) {
                         case "CN":
-                            name += ctx.getString(R.string.ssl_auth_popup_cn) + "\n" + bb[1].trim();
+                            lst[0] = bb[1].trim();
                             break;
                         case "O":
-                            str += ctx.getString(R.string.ssl_auth_popup_o) + "    " + bb[1].trim();
+                            lst[1] = bb[1].trim();
                             break;
                         case "OU":
-                            str += ctx.getString(R.string.ssl_auth_popup_ou) + "    " + bb[1].trim();
+                            lst[2] = bb[1].trim();
                             break;
                         case "L":
-                            str += ctx.getString(R.string.ssl_auth_popup_l) + "    " + bb[1].trim();
+                            lst[3] = bb[1].trim();
                             break;
                         case "ST":
-                            str += ctx.getString(R.string.ssl_auth_popup_st) + "    " + bb[1].trim();
+                            lst[4] = bb[1].trim();
                             break;
                         case "C":
-                            str += ctx.getString(R.string.ssl_auth_popup_c) + "    " + bb[1].trim();
+                            lst[5] = bb[1].trim();
                             break;
                     }
-                    str += "\n";
                 }
             }
 
-            ssl = "\n" + ctx.getString(R.string.ssl_auth_popup_transport) + "    "
-                    + cert.getSigAlgName() + "\n" + ctx.getString(R.string.ssl_auth_popup_key_size)
-                    + "    " + ((RSAPublicKey)cert.getPublicKey()).getModulus().bitLength();
-
-            list += (name + ssl + str);
+            lst[6] = cert.getSigAlgName();
+            lst[7] = String.valueOf(((RSAPublicKey)cert.getPublicKey()).getModulus().bitLength());
+            list.add(lst);
         }
         return list;
     }

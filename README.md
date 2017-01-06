@@ -12,7 +12,7 @@ Alternatively you can find [InboxPager](https://f-droid.org/repository/browse/?f
 
 # Usage
 
-In order to use this application you have to enable application-email-checking through your server's web interface. Some email servers may have this feature already turned on (NOT GMAIL!, see below). If your account's server does not support this feature, it won't work.
+In order to use this application you have to enable SSL/TLS application-email-checking through your email account's web interface. Some email servers may have this feature already turned on (NOT GMAIL!, see below). If your account's server does not support this feature, it won't work.
 
 Setting up an account in InboxPager happens through "Settings" > "Add Account". There, you have to enter your account's credentials, server parameters. If you don't know what your email account's server parameters are - try the automatic tools provided, otherwise enter and test your own configuration. Optionally, if you'd like to receive a sound or vibration notification tick those settings. If you wish to only refresh a specific account, when you individually choose to, then untick the "Allow in all-accounts-refresh".
 
@@ -38,6 +38,10 @@ The app can:
 
 - Notify with device vibration of new messages, per user choice.
 
+- Work with OpenPGP messages.
+
+- Verify hostnames, if not self-signed certificates.
+
 ## WON'T FIX
 
 - Automatically, on a cloud server, Save/Restore interrnal database. If a backup of the local device is necessary, then close the app and copy/paste the database from "/data/data/...".
@@ -60,7 +64,7 @@ InboxPager uses android permissions on the local device for the following reason
 
 ACCESS_NETWORK_STATE, INTERNET:
 
-Communication with message server defined by user. Downloading/Uploading messages.
+Communication with user defined message servers. Downloading/Uploading messages.
 
 VIBRATE:
 
@@ -117,6 +121,62 @@ Port for SSL: 465
 
 Sometimes checking GMAIL too ofter (<10 minutes) may or may not block application access to account.
 
+# OpenPGP Usage
+
+In order to use cryptographic services you need to install an app called OpenKeychain and make, or import, some pgp-keys. OpenKeychain applies OpenPGP privacy/security to a given message,  and the process is described below, or (better) just look at the screenshots. Sending inline messages in non-pgp/mime standard is not supported, but third party apps exist that can do that, through the system clipboard buffer.
+
+## Signed Clear Text
+
+Signing a clear, unencrypted message with a pgp key, that will be sent using pgp/mime. This option is for those want to be sure that a message was produced with a certain pgp key, the message contents are not encrypted. Can include attachments.
+
+1. Click the padlock icon, this starts the pgp implementation.
+
+2. Choose "Sign clear text message" spinner.
+
+3. Pick a signing key by pressing on the text button.
+
+4. Ignore recipient keys.
+
+5. Click "START", that produces the pgp/mime.
+
+6. Click "READY", that returns you to the sending activity.
+
+7. Press "SEND".
+
+Some email clients may complain of a "bad signature", i.e. Thunderbird with Enigmail. Manually checking the signature against the firts pgp/mime part with "gpg --verify signature.asc message.txt" is one solution.
+
+## Encrypt Message
+
+Encrypting a message, or signing and encrypting a message. This option is for those that desire more privacy for their content, for example commercial organizations. Messages produced with this option will be encrypted, and they can optionally be signed. [Extra: If one wishes to be able to decrypt their own messages for posterity, use the option to add the signing key to the recipients. Can include attachments.
+
+1. Click the padlock icon, this starts the pgp implementation.
+
+2. Choose "Encrypt" or "Sing and encrypt" from spinner.
+
+3. Pick a signing key by pressing on the text button.
+
+4. Pick the recipient keys by pressing on the text button.
+
+5. Click "START", that produces the pgp/mime.
+
+6. Click "READY", that returns you to the sending activity.
+
+7. Press "SEND".
+
+## Decrypt or Verify Message
+
+Decrypt a pgp/mime message and/or only verifying the signature validity. Can save attachemnts.
+
+1. Click the padlock icon, this starts the pgp implementation.
+
+2. Click "START", that produces the pgp/mime.
+
+3. Click "READY", that returns you to the message activity.
+
+4. Clicking on the icon near the padlock displays signature verification.
+
+5. Clicking on the attachment image button from the top now produces decrypted attachments.
+
 # LICENSES
 
 Application Overall, GPL3
@@ -124,6 +184,8 @@ Application Overall, GPL3
 Artwork, CC BY-SA 4.0 License
 
 Font, SIL OPEN FONT LICENSE 1.1
+
+OpenKeychain(Java), Apache 2.0
 
 SQLCipher, Permissive, see file
 
@@ -147,4 +209,7 @@ SQLCipher(Java), Apache 2.0
   <img src="https://github.com/itprojects/InboxPager/raw/master/img/14.png" width="250"/>
   <img src="https://github.com/itprojects/InboxPager/raw/master/img/15.png" width="250"/>
   <img src="https://github.com/itprojects/InboxPager/raw/master/img/16.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/img/cleartext.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/img/encryption.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/img/verification.png" width="250"/>
 </p>

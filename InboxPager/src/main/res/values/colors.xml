@@ -3,7 +3,10 @@
     <color name="color_title">#F6F38C</color>
     <color name="color_home_bar_background">#1D2412</color>
     <color name="color_white">#FFFFFF</color>
-    <color name="color_message_headers">#499C4A</color>
-    <color name="color_send">#03C68B</color>
-    <color name="color_delete">#F60</color>
+    <color name="color_message_headers">#499c4a</color>
+    <color name="color_green">#0ab12f</color>
+    <color name="color_green_pressed">#0fd63b</color>
+    <color name="color_orange">#F60</color>
+    <color name="color_orange_pressed">#ffa366</color>
+    <color name="color_error">#f50c08</color>
 </resources>

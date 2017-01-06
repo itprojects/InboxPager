@@ -25,6 +25,7 @@ public class Message {
     private String bcc;
     private String from;
     private String content_type;
+    private String content_transfer_encoding;
     private String charset_plain;
     private String charset_html;
     private String subject;
@@ -36,6 +37,7 @@ public class Message {
     private String contents_plain;
     private String contents_html;
     private String contents_other;
+    private String contents_crypto;
     private String full_msg;
     private int size = 0;// octets = 8 bits
     private int attachments = -2;
@@ -67,6 +69,10 @@ public class Message {
 
     public String get_content_type() {
         return content_type;
+    }
+
+    public String get_content_transfer_encoding() {
+        return content_transfer_encoding;
     }
 
     public String get_charset_plain() {
@@ -113,6 +119,10 @@ public class Message {
         return contents_other;
     }
 
+    public String get_contents_crypto() {
+        return contents_crypto;
+    }
+
     public String get_full_msg() {
         return full_msg;
     }
@@ -157,6 +167,10 @@ public class Message {
         content_type = s;
     }
 
+    public void set_content_transfer_encoding(String s) {
+        content_transfer_encoding = s;
+    }
+
     public void set_charset_plain(String s) {
         charset_plain = s;
     }
@@ -199,6 +213,10 @@ public class Message {
 
     public void set_contents_other(String s) {
         contents_other = s;
+    }
+
+    public void set_contents_crypto(String s) {
+        contents_crypto = s;
     }
 
     public void set_full_msg(String s) {
