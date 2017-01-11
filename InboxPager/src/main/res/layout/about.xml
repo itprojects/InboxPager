@@ -106,13 +106,23 @@
             android:textStyle="bold"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-        <TextView
+        <TextView android:id="@+id/tv_font"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20sp"
             android:layout_marginTop="20sp"
             android:layout_marginRight="20sp"
             android:text="@string/license_font"
+            android:textStyle="bold"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+        <TextView android:id="@+id/tv_open_keychain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20sp"
+            android:layout_marginTop="20sp"
+            android:layout_marginRight="20sp"
+            android:text="@string/license_open_keychain"
             android:textStyle="bold"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
 

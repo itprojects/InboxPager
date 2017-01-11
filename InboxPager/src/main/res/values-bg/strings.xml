@@ -223,11 +223,12 @@
     <string name="err_missing_crypto_mime">Липсват шифровъчни сведения за съобщението!</string>
     <string name="open_pgp_success">УСПЕХ!</string>
     <string name="open_pgp_failure">ПРОВАЛ!</string>
-    <string name="open_pgp_bad_signature">Лош подпис, или преносна грешка.</string>
+    <string name="open_pgp_bad_signature">Няма подпис, лош подпис, или преносна грешка.</string>
     <string name="open_pgp_encrypt_to_self">Шифровай и за шифровачния ключ</string>
     <string name="err_error">Грешка:</string>
     <string name="open_pgp_recipients_pick">избери</string>
     <string name="err_pick_rcpt_keys">Изберете получателски ключове!</string>
     <string name="open_pgp_rcpt_key_check">&#10003; Получателски ключове</string>
     <string name="open_pgp_rcpt_key_cross">&#10060; Получателски ключове</string>
+    <string name="license_open_keychain">ОпенКийчейн (Джава) Разрешително Апачи, Версия 2.0</string>
 </resources>

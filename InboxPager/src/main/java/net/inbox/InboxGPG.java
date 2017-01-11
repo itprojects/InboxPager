@@ -1,6 +1,6 @@
 /**
  * InboxGPG interacts with OpenKeychain encryption package.
- * Copyright (C) 2017  ITPROJECTS
+ * Copyright (C) 2016-2017  ITPROJECTS
  * Copyright (C) 2013-2015 Dominik Schürmann <dominik@dominikschuermann.de>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -581,7 +581,7 @@ public class InboxGPG extends AppCompatActivity {
         try {
             if (mime) {
                 if (clear) {
-                    msg_crypto = mime_serialization();
+                    msg_crypto = mime_serialization().replaceAll("\n", "\r\n");
                     is = new ByteArrayInputStream(msg_crypto.getBytes("UTF-8"));
                 } else {
                     is = new ByteArrayInputStream(mime_serialization().getBytes("UTF-8"));
@@ -668,7 +668,7 @@ public class InboxGPG extends AppCompatActivity {
                     + " boundary=" + "\"" + bounds + "\"\n";
             pgp_mime += "\n--" + bounds + "\n";
             pgp_mime += msg_crypto;
-            pgp_mime += "--" + bounds + "\n";
+            pgp_mime += "\n--" + bounds + "\n";
             pgp_mime += "Content-Type: application/pgp-signature\n";
             pgp_mime += "Content-Description: OpenPGP digital signature\n";
             pgp_mime += "Content-Disposition: attachment\n\n";

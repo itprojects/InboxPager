@@ -1138,7 +1138,7 @@ public class InboxMessage extends AppCompatActivity {
             }
             split_index = msg_contents.indexOf(ct_bonds[1]);
             if (split_index != -1) {
-                msg_contents = msg_contents.substring(0, split_index - 1);
+                msg_contents = msg_contents.substring(0, split_index - 1).trim() + "\r\n";
             }
 
             msg_signature = Utils.mime_part_section(current.get_contents_crypto(), "2", ct_bonds[1]);

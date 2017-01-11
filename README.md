@@ -125,6 +125,10 @@ Sometimes checking GMAIL too ofter (<10 minutes) may or may not block applicatio
 
 In order to use cryptographic services you need to install an app called OpenKeychain and make, or import, some pgp-keys. OpenKeychain applies OpenPGP privacy/security to a given message,  and the process is described below, or (better) just look at the screenshots. Sending inline messages in non-pgp/mime standard is not supported, but third party apps exist that can do that, through the system clipboard buffer.
 
+IMPORTANT, for BCC messages:
+
+Encrypted blocks may show the recipients' encryption keys' id's. This may leak data, if you're using the blind carbon copy (BCC) message property. For example: a message is encrypted, Alice sends to Bob and Carol; Carol is a BCC, but Carol may also see the key id of Bob.
+
 ## Signed Clear Text
 
 Signing a clear, unencrypted message with a pgp key, that will be sent using pgp/mime. This option is for those want to be sure that a message was produced with a certain pgp key, the message contents are not encrypted. Can include attachments.

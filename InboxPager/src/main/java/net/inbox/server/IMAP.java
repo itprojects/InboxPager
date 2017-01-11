@@ -1151,25 +1151,28 @@ public class IMAP extends Handler {
 
             if (crypto) {
                 // Boundary search
-                String bounds = data.msg_current.get_content_type();
-                pat = Pattern.compile(".*boundary=(.*)", Pattern.CASE_INSENSITIVE);
-                mat = pat.matcher(bounds);
-                if (mat.matches()) {
-                    bounds = "--" + mat.group(1).replaceAll("\"", "");
-                } else {
-                    pat = Pattern.compile(".*boundary=(.*);", Pattern.CASE_INSENSITIVE);
-                    mat = pat.matcher(bounds);
-                    if (mat.matches()) {
-                        bounds = "--" + mat.group(1).replaceAll("\"", "");
+                String bounds = data.msg_current.get_content_type()
+                        .replaceAll("\r", "").replaceAll("\n", "");
+                int nn = bounds.toLowerCase().indexOf("boundary=");
+                if (nn != -1) {
+                    bounds = bounds.substring(nn + 9);
+                    int n_semi = 0;
+                    for (int k = 0;k < bounds.length();++k) {
+                        if (bounds.charAt(k) == ';') {
+                            n_semi = k;
+                            break;
+                        }
                     }
-                }
-                pat = Pattern.compile(bounds);
-                mat = pat.matcher(data.sbuffer);
-                int cut_off = data.sbuffer.indexOf(bounds);
-                if (cut_off > 0) {
-                    // Reduction to MIME
-                    data.sbuffer = data.sbuffer.delete(0, cut_off);
-                    data.msg_current.set_contents_crypto(data.sbuffer.toString().trim());
+                    bounds = bounds.substring(0, n_semi).replaceAll("\"", "");
+                    int cut_off = data.sbuffer.indexOf("--" + bounds);
+                    if (cut_off > 0) {
+                        // Reduction to MIME
+                        data.sbuffer = data.sbuffer.delete(0, cut_off);
+                        data.msg_current.set_contents_crypto(data.sbuffer.toString().trim());
+                    } else {
+                        // On error - save full message
+                        data.msg_current.set_full_msg(data.sbuffer.toString());
+                    }
                 } else {
                     // On error - save full message
                     data.msg_current.set_full_msg(data.sbuffer.toString());

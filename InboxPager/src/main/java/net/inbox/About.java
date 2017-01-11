@@ -53,6 +53,24 @@ public class About extends AppCompatActivity {
         TextView tv_ver = (TextView) findViewById(R.id.about_ver);
         tv_ver.setText(String.valueOf(BuildConfig.VERSION_NAME));
 
+        TextView tv_font = (TextView) findViewById(R.id.tv_font);
+        tv_font.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialog_license(4);
+            }
+        });
+
+        TextView tv_open_keychain = (TextView) findViewById(R.id.tv_open_keychain);
+        tv_open_keychain.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                dialog_license(3);
+            }
+        });
+
         TextView tv_sql_cipher_java = (TextView) findViewById(R.id.tv_sql_cipher_java);
         tv_sql_cipher_java.setOnClickListener(new View.OnClickListener() {
 
@@ -88,6 +106,12 @@ public class About extends AppCompatActivity {
                 break;
             case 2:
                 builder.setMessage(getString(R.string.license_long_sql_cipher_other));
+                break;
+            case 3:
+                builder.setMessage(getString(R.string.license_long_open_keychain));
+                break;
+            case 4:
+                builder.setMessage(getString(R.string.license_long_font));
                 break;
         }
         builder.setPositiveButton(getString(android.R.string.ok), null);

@@ -1,7 +1,7 @@
 <resources>
 
     <string name="app_name">Inbox Pager</string>
-    <string name="author">Copyright &#169; 2016  ITPROJECTS</string>
+    <string name="author">Copyright &#169; 2016 &#8211; 2017  ITPROJECTS</string>
     <string name="disclaimer">DISCLAIMER:\n</string>
     <string name="disclaimer_text">The author(s) of this software are not liable for ANY damages that this software may cause - accidental or otherwise, under ANY and EVERY law or regulation, and in ANY and EVERY country or territory of the world.
     </string>
@@ -13,6 +13,34 @@
     </string>
     <string name="license_media_files">Application Icon, CC-BY-SA: Creative Commons Attribution Share Alike 4.0 International Public License </string>
     <string name="license_font">Dottz Font, SIL-OFL 1.1 License, ITPROJECTS</string>
+    <string name="license_long_font" translatable="false">Copyright (&#169;) 2016 &#8211; 2017 ITPROJECTS\n\nSIL OPEN FONT LICENSE\n\nVersion 1.1 - 26 February 2007\nPREAMBLE\n\nThe goals of the Open Font License (OFL) are to stimulate worldwide development of collaborative font projects,
+        to support the font creation efforts of academic and linguistic communities, and to provide a free and open framework in which fonts may be shared and improved in partnership with others.\n\n
+        The OFL allows the licensed fonts to be used, studied, modified and redistributed freely as long as they are not sold by themselves. The fonts, including any derivative works, can be bundled, embedded,
+        redistributed and/or sold with any software provided that any reserved names are not used by derivative works. The fonts and derivatives, however, cannot be released under any other type of license.
+        The requirement for fonts to remain under this license does not apply to any document created using the fonts or their derivatives.\n\n
+        DEFINITIONS\n\n
+        "Font Software" refers to the set of files released by the Copyright Holder(s) under this license and clearly marked as such. This may include source files, build scripts and documentation.\n\n"Reserved Font Name" refers to any names specified as such after the copyright statement(s).\n\n
+        "Original Version" refers to the collection of Font Software components as distributed by the Copyright Holder(s).\n\n"Modified Version" refers to any derivative made by adding to, deleting, or substituting — in part or in whole — any of the components of the
+        Original Version, by changing formats or by porting the Font Software to a new environment.\n\n"Author" refers to any designer, engineer, programmer, technical writer or other person who contributed to the Font Software.\n\nPERMISSION and CONDITIONS\n\n
+        Permission is hereby granted, free of charge, to any person obtaining a copy of the Font Software, to use, study, copy, merge, embed, modify, redistribute, and sell modified and unmodified copies of the Font Software, subject to the following conditions:\n\n
+        1) Neither the Font Software nor any of its individual components, in Original or Modified Versions, may be sold by itself.\n\n
+        2) Original or Modified Versions of the Font Software may be bundled, redistributed and/or sold with any software, provided that each copy contains the above copyright notice and this license. These can be included either as stand-alone text files, human-readable headers or in the appropriate
+        machine-readable metadata fields within text or binary files as long as those fields can be easily viewed by the user.\n\n
+        3) No Modified Version of the Font Software may use the Reserved Font Name(s) unless explicit written permission is granted by the corresponding Copyright Holder. This restriction only applies to the primary font name as presented to the users.\n\n
+        4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font Software shall not be used to promote, endorse or advertise any Modified Version, except to acknowledge the contribution(s) of the Copyright Holder(s) and the Author(s) or with their explicit written permission.\n\n
+        5) The Font Software, modified or unmodified, in part or in whole, must be distributed entirely under this license, and must not be distributed under any other license. The requirement for fonts to remain under this license does not apply to any document created using the Font Software.\n\n
+        TERMINATION\n\nThis license becomes null and void if any of the above conditions are not met.\n
+        DISCLAIMER\n\n
+        THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT.
+        IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.</string>
+    <string name="license_open_keychain">OpenKeychain (Java) Apache License, Version 2.0.</string>
+    <string name="license_long_open_keychain" translatable="false">Copyright (&#169;) Copyright (C) 2016 &#8211; 2017  ITPROJECTS\nCopyright (&#169;) 2013 &#8211; 2015 Dominik Schürmann dominik@dominikschuermann.de\n\nLicensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.You may obtain a copy of the License at\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\n
+        Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+        "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and limitations under the License.\n
+    </string>
     <string name="license_sql_cipher_java">SQLCipher (Java) Apache License, Version 2.0.</string>
     <string name="license_long_sql_cipher_java" translatable="false">Copyright (&#169;) 2006 The Android Open Source Project\n\nLicensed under the Apache License, Version 2.0 (the "License");
         you may not use this file except in compliance with the License.You may obtain a copy of the License at\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\n
@@ -277,7 +305,7 @@
     <string name="open_pgp_message_signature">SIGNATURE</string>
     <string name="open_pgp_success">SUCCESS!</string>
     <string name="open_pgp_failure">FAILURE!</string>
-    <string name="open_pgp_bad_signature">Bad signature, or transmission error.</string>
+    <string name="open_pgp_bad_signature">No signature, bad signature, or a transmission error.</string>
     <string name="open_pgp_encrypt_to_self">Also encrypt to signing key</string>
 
 </resources>
