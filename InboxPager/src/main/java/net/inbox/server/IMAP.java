@@ -192,7 +192,6 @@ public class IMAP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
             Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
 
@@ -204,7 +203,6 @@ public class IMAP extends Handler {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        System.out.println(e.getMessage());
                         Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
 
@@ -1095,9 +1093,12 @@ public class IMAP extends Handler {
 
                     // Convert to text from BASE64 or QUOTED-PRINTABLE
                     if (data.msg_text_plain[3].equalsIgnoreCase("BASE64")) {
-                        str_plain = Utils.parse_BASE64(str_plain);
+                        str_plain = Utils.parse_BASE64_encoding(str_plain,
+                                data.msg_current.get_charset_plain());
+                        data.msg_current.set_content_transfer_encoding("BASE64");
                     } else if (data.msg_text_plain[3].equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                        str_plain = Utils.parse_quoted_printable(str_plain, "UTF-8");
+                        str_plain = Utils.parse_quoted_printable(str_plain, data.msg_current.get_charset_plain());
+                        data.msg_current.set_content_transfer_encoding("QUOTED-PRINTABLE");
                     }
                     data.msg_current.set_contents_plain(str_plain);
                     data.msg_text_plain = null;
@@ -1110,9 +1111,12 @@ public class IMAP extends Handler {
 
                     // Convert to text from BASE64 or QUOTED-PRINTABLE
                     if (data.msg_text_html[3].equalsIgnoreCase("BASE64")) {
-                        str_html = Utils.parse_BASE64(str_html);
+                        str_html = Utils.parse_BASE64_encoding(str_html,
+                                data.msg_current.get_charset_html());
+                        data.msg_current.set_content_transfer_encoding("BASE64");
                     } else if (data.msg_text_html[3].equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                        str_html = Utils.parse_quoted_printable(str_html, "UTF-8");
+                        str_html = Utils.parse_quoted_printable(str_html, data.msg_current.get_charset_html());
+                        data.msg_current.set_content_transfer_encoding("QUOTED-PRINTABLE");
                     }
                     data.msg_current.set_contents_html(str_html);
                     data.msg_text_html = null;

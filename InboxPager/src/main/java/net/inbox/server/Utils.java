@@ -829,8 +829,27 @@ public class Utils {
         String ret = "";
         String[] st = s.split("\r\n");
         for (String tmp : st) {
-            ret += new String(Base64.decode(tmp.replaceAll("\r", "").replaceAll("\n", "")
+            ret += new String(Base64.decode(tmp.replaceAll("\r", "")
+                    .replaceAll("\n", "")
                     .replaceAll("=", ""), Base64.DEFAULT));
+        }
+        return ret;
+    }
+
+    static String parse_BASE64_encoding(String s, String enc) {
+        String ret = "";
+        try {
+            if (enc.equalsIgnoreCase("UTF-8") || enc.equals("-1")) {
+                ret = new String(Base64.decode(s.replaceAll("\r", "")
+                        .replaceAll("\n", "")
+                        .replaceAll("=", ""), Base64.DEFAULT));
+            } else {
+                ret = new String(Base64.decode(s.replaceAll("\r", "")
+                        .replaceAll("\n", "")
+                        .replaceAll("=", ""), Base64.DEFAULT), enc);
+            }
+        } catch (UnsupportedEncodingException e) {
+            Pager.log += "!!:" + e.getMessage() + "\n\n";
         }
         return ret;
     }
@@ -855,7 +874,6 @@ public class Utils {
                 try {
                     return new String((new String(arr_bytes, mat.group(1))).getBytes(), "UTF-8");
                 } catch (UnsupportedEncodingException e) {
-                    System.out.println("Exception: " + e.getMessage());
                     Pager.log += "!!:" + e.getMessage() + "\n\n";
                     return s;
                 }
@@ -883,7 +901,6 @@ public class Utils {
         try {
             s_tmp = new String(s.getBytes(), encoding);
         } catch (UnsupportedEncodingException e) {
-            System.out.println("Exception: " + e.getMessage());
             Pager.log += "!!:" + e.getMessage() + "\n\n";
             return s;
         }
@@ -918,7 +935,6 @@ public class Utils {
             System.arraycopy(ascii_bytes, 0, reduced, 0, count);
             return new String(reduced, encoding);
         } catch (UnsupportedEncodingException e) {
-            System.out.println("Exception: " + e.getMessage());
             Pager.log += "!!:" + e.getMessage() + "\n\n";
             return s;
         }
@@ -951,11 +967,6 @@ public class Utils {
                     return filename;
                 }
             } catch (UnsupportedEncodingException e) {
-                System.out.println("Exception: " + e.getMessage());
-                Pager.log += "!!:" + e.getMessage() + "\n\n";
-                return filename;
-            } catch (Exception e) {
-                System.out.println("Exception: " + e.getMessage());
                 Pager.log += "!!:" + e.getMessage() + "\n\n";
                 return filename;
             }
@@ -966,7 +977,6 @@ public class Utils {
         try {
             return new String(s.getBytes("US-ASCII"));
         } catch (UnsupportedEncodingException enc) {
-            System.out.println("Exception: " + enc.getMessage());
             Pager.log += "!!:" + enc.getMessage() + "\n\n";
         }
         return s;

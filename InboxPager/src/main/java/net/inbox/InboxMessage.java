@@ -43,8 +43,8 @@ import android.widget.TextView;
 import net.inbox.db.Attachment;
 import net.inbox.db.DBAccess;
 import net.inbox.db.Message;
-import net.inbox.dialogs.DialogsCerts;
 import net.inbox.dialogs.Dialogs;
+import net.inbox.dialogs.DialogsCerts;
 import net.inbox.dialogs.SpinningStatus;
 import net.inbox.server.Handler;
 import net.inbox.server.IMAP;
@@ -54,7 +54,6 @@ import net.inbox.server.Utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -394,17 +393,6 @@ public class InboxMessage extends AppCompatActivity {
                 break;
             case "1":
                 if (current.get_contents_plain() != null) {
-                    if (!current.get_charset_plain().isEmpty()
-                            && !current.get_charset_plain().equalsIgnoreCase("UTF-8")
-                            && !current.get_charset_plain().equalsIgnoreCase("NIL")) {
-                        try {
-                            current.set_contents_plain(new String(current.get_contents_plain()
-                                    .getBytes(current.get_charset_plain())));
-                        } catch (UnsupportedEncodingException e) {
-                            System.out.println("Exception: " + e.getMessage());
-                            Pager.log += getString(R.string.ex_field) + e.getMessage() + "\n\n";
-                        }
-                    }
                     tv_contents.setText(current.get_contents_plain());
                 } else {
                     tv_contents.setText("");
@@ -413,17 +401,6 @@ public class InboxMessage extends AppCompatActivity {
                 break;
             case "2":
                 if (current.get_contents_html() != null) {
-                    if (!current.get_charset_html().isEmpty()
-                            && !current.get_charset_html().equalsIgnoreCase("UTF-8")
-                            && !current.get_charset_html().equalsIgnoreCase("NIL")) {
-                        try {
-                            html_text(new String(current.get_contents_html()
-                                    .getBytes(current.get_charset_html())));
-                        } catch (UnsupportedEncodingException e) {
-                            System.out.println("Exception: " + e.getMessage());
-                            Pager.log += getString(R.string.ex_field) + e.getMessage() + "\n\n";
-                        }
-                    }
                     html_text(current.get_contents_html());
                 } else {
                     tv_contents.setText("");
@@ -515,7 +492,7 @@ public class InboxMessage extends AppCompatActivity {
                 } else {
                     if (bytes < 1024) {
                         str_temp[i] += bytes + " " + getString(R.string.attch_bytes);
-                    } else if (bytes >= 1024 && bytes < 1048576) {
+                    } else if (bytes < 1048576) {
                         str_temp[i] += (bytes/1024) + " " + getString(R.string.attch_kilobytes);
                     } else {
                         str_temp[i] += (bytes/1048576) + " " + getString(R.string.attch_megabytes);
@@ -848,8 +825,7 @@ public class InboxMessage extends AppCompatActivity {
     }
 
     private boolean check_writable() {
-        String permission = "android.permission.WRITE_EXTERNAL_STORAGE";
-        int res = checkCallingOrSelfPermission(permission);
+        int res = checkCallingOrSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE");
         return (res == PackageManager.PERMISSION_GRANTED);
     }
 
@@ -1186,7 +1162,7 @@ public class InboxMessage extends AppCompatActivity {
 
                 // Inner attachments assignment
                 attachments = new ArrayList<>();
-                if (msg_structure != null && msg_structure.size() > 0) {
+                if (msg_structure.size() > 0) {
                     for (int ii = 0;ii < msg_structure.size();++ii) {
                         // Mime part, i.e. - BODY[1], BODY[1.1], ...
                         Attachment att = new Attachment();

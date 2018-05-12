@@ -98,7 +98,6 @@ class SocketIO implements Runnable {
                         }
                     }
                 } catch (IOException ee) {
-                    //System.out.println("Socket closed already.");
                     if (r != null) r.close();
                 }
                 if (w != null) w.close();
@@ -121,7 +120,6 @@ class SocketIO implements Runnable {
         try {
             if (s != null && !s.isClosed()) s.close();
         } catch (IOException e) {
-            System.out.println("Socket closed already. No closing().");
             Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
     }
@@ -144,7 +142,6 @@ class SocketIO implements Runnable {
         try {
             certs = session_0.getPeerCertificateChain();
         } catch (SSLPeerUnverifiedException ee) {
-            System.out.println("Peer Unverified Exception: " + ee);
             Pager.log += ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n";
         }
 

@@ -153,7 +153,6 @@ public class DBAccess extends SQLiteOpenHelper {
             System.gc();
             return true;
         } catch (SQLException e) {
-            System.out.println("Exception: " + e.getMessage());
             return false;
         }
     }
@@ -279,9 +278,7 @@ public class DBAccess extends SQLiteOpenHelper {
                 count = cursor.getInt(0);
             }
             cursor.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        } catch (Exception e) { }
 
         int current_count = -1;
 

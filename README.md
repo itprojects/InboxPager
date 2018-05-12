@@ -121,6 +121,8 @@ Port for SSL: 465
 
 Sometimes checking GMAIL too ofter (<10 minutes) may or may not block application access to account.
 
+If you are using POP with gmail, make sure to first enable it from gmail's settings web interface via browser.
+
 # OpenPGP Usage
 
 In order to use cryptographic services you need to install an app called OpenKeychain and make, or import, some pgp-keys. OpenKeychain applies OpenPGP privacy/security to a given message,  and the process is described below, or (better) just look at the screenshots. Sending inline messages in non-pgp/mime standard is not supported, but third party apps exist that can do that, through the system clipboard buffer.

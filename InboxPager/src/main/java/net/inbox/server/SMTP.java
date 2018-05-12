@@ -107,7 +107,6 @@ public class SMTP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            System.out.println("Exception: " + e.getMessage());
             Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
 
@@ -119,7 +118,6 @@ public class SMTP extends Handler {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        System.out.println("Exception: " + e.getMessage());
                         Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
 
@@ -661,7 +659,6 @@ public class SMTP extends Handler {
                             while ((t = in_stream.read(bfr)) != -1) { b_stream.write(bfr, 0, t); }
                         }
                     } catch (IOException e) {
-                        System.out.println("Exception: " + e.getMessage());
                         Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
                     byte[] a_bytes =  Base64.encode(b_stream.toByteArray(), Base64.DEFAULT);
@@ -712,7 +709,6 @@ public class SMTP extends Handler {
                 }
             });
         } catch (InterruptedException e) {
-            System.out.println("Exception: " + e.getMessage());
             Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
     }

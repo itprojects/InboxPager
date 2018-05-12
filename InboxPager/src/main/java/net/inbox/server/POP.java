@@ -193,7 +193,6 @@ public class POP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
             Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
 
@@ -205,7 +204,6 @@ public class POP extends Handler {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        System.out.println(e.getMessage());
                         Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
 

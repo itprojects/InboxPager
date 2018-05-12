@@ -152,16 +152,12 @@ public class Test extends AsyncTask<Void, Integer, Void> {
                     if (s != null && !s.isClosed()) s.close();
                     if (!sn.isClosed()) sn.close();
                 } catch (SSLPeerUnverifiedException ssl_pue) {
-                    System.out.println("SSLPeerUnverifiedException: " + ssl_pue.getMessage());
                     Pager.log += ctx.getString(R.string.ex_field) + ssl_pue.getMessage() + "\n\n";
                 } catch (java.net.ConnectException ce) {
-                    System.out.println("ConnectException: " + ce.getMessage());
                     Pager.log += ctx.getString(R.string.ex_field) + ce.getMessage() + "\n\n";
                 } catch (java.net.UnknownHostException uh) {
-                    System.out.println("UnknownHostException: " + uh.getMessage());
                     Pager.log += ctx.getString(R.string.ex_field) + uh.getMessage() + "\n\n";
                 } catch (IOException e) {
-                    System.out.println("IOException: " + e.getMessage());
                     Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                 }
             }

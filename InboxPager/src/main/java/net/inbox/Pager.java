@@ -47,7 +47,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
@@ -246,24 +245,10 @@ public class Pager extends AppCompatActivity {
             }
             unlocked = true;
         } catch (Exception e) {
-            System.out.println("Exception: " + e.getMessage());
             String ex = e.getMessage().toLowerCase();
-            if (ex.contains("file is encrypted")) {
-                unlocked = false;
-                et_pw.setBackgroundColor(Color.parseColor("#BA0C0C"));
-                et_pw.setHintTextColor(Color.WHITE);
-            } else {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(e.getMessage());
-                builder.setPositiveButton(getString(android.R.string.ok),
-                        new AlertDialog.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                unlocked = false;
-                                finish();
-                            }
-                        });
-                builder.show();
-            }
+            unlocked = false;
+            et_pw.setBackgroundColor(Color.parseColor("#BA0C0C"));
+            et_pw.setHintTextColor(Color.WHITE);
         }
     }
 
