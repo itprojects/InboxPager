@@ -54,9 +54,9 @@ The app can:
 
 - Full IMAP folders. The app is more "lite", than complete all-features gmail-replacement.
 
-- Ordinary non-SSL/TLS.
+- Ordinary non-SSL/TLS. This includes (STARTTLS).
 
-- Printing messages on papaer. You can save them to file, and print them manually.
+- Printing messages on paper. You can save them to file, and print them manually.
 
 # Permissions
 
