@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -33,13 +33,12 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 
 import javax.net.SocketFactory;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 public class Test extends AsyncTask<Void, Integer, Void> {
 
-    public String[] test_results = new String[] { ".", ".", ".", ".", ".", ".", "."};
+    private String[] test_results = new String[] { ".", ".", ".", ".", ".", ".", "."};
     private String server_name;
     private int[] ports = new int[] { 25, 110, 143, 465, 587, 993, 995 };
     private BufferedReader r = null;
@@ -151,13 +150,7 @@ public class Test extends AsyncTask<Void, Integer, Void> {
                     if (r != null) r.close();
                     if (s != null && !s.isClosed()) s.close();
                     if (!sn.isClosed()) sn.close();
-                } catch (SSLPeerUnverifiedException ssl_pue) {
-                    Pager.log += ctx.getString(R.string.ex_field) + ssl_pue.getMessage() + "\n\n";
-                } catch (java.net.ConnectException ce) {
-                    Pager.log += ctx.getString(R.string.ex_field) + ce.getMessage() + "\n\n";
-                } catch (java.net.UnknownHostException uh) {
-                    Pager.log += ctx.getString(R.string.ex_field) + uh.getMessage() + "\n\n";
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                 }
             }

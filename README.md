@@ -54,9 +54,9 @@ The app can:
 
 - Full IMAP folders. The app is more "lite", than complete all-features gmail-replacement.
 
-- Ordinary non-SSL/TLS.
+- Ordinary non-SSL/TLS. This includes (STARTTLS).
 
-- Printing messages on papaer. You can save them to file, and print them manually.
+- Printing messages on paper. You can save them to file, and print them manually.
 
 # Permissions
 
@@ -96,6 +96,8 @@ If there are any errors in the application they should be available in the Event
 - POP has no way to know if a message has been previously seen.
 
 - Sent messages are not saved locally, most servers save those automatically.
+
+- Sending messages with attachments works with OI File Manager, not all other file managers supported.
 
 ## Bug Reporting
 

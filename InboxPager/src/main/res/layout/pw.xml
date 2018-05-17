@@ -6,22 +6,12 @@
     android:layout_centerHorizontal="true"
     android:padding="10sp">
 
-    <LinearLayout
+    <Switch
+        android:id="@+id/sw_pw_enable"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <CheckBox android:id="@+id/cb_pw_enable"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="false"
-            android:focusable="false"
-            android:focusableInTouchMode="false"/>
-
-        <TextView android:id="@+id/tv_enabled"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sett_change_pw_enable"/>
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:layoutDirection="rtl"
+        android:text="@string/sett_change_pw_enable"/>
 
     <CheckBox android:id="@+id/cb_pw"
         android:layout_width="wrap_content"
@@ -33,9 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="20sp"
-        android:paddingLeft="7sp"
         android:paddingStart="7sp"
-        android:paddingRight="0sp"
         android:paddingEnd="0sp"
         android:text="@string/sett_change_pw_text"/>
 

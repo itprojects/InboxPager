@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -47,8 +47,11 @@ import net.inbox.server.SMTP;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class InboxSend extends AppCompatActivity {
+
+    private Handler handler;
 
     private ImageView iv_ssl_auth;
     private EditText et_subject;
@@ -71,12 +74,11 @@ public class InboxSend extends AppCompatActivity {
     private ArrayList<String> attachment_paths = new ArrayList<>();
     private long attachments_size = 0;
 
-    private Handler handler;
     private Message current = new Message();
     private Inbox current_inbox;
 
     private boolean warned_8_bit_absent = false;
-    private boolean sending_active;
+    private boolean sending_active = false;
     private boolean good_incoming_server = false;
 
     @Override
@@ -84,131 +86,157 @@ public class InboxSend extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.send);
 
-        // Get the database
-        DBAccess db = Pager.get_db();
+        try {
+            // Get the database
+            DBAccess db = Pager.get_db();
 
-        current_inbox = db.get_account(getIntent().getExtras().getInt("db_id"));
-
-        Toolbar tb = (Toolbar) findViewById(R.id.send_toolbar);
-        setSupportActionBar(tb);
-
-        // Find the title
-        TextView tv_t;
-        for (int i = 0; i < tb.getChildCount(); ++i) {
-            int idd = tb.getChildAt(i).getId();
-            if (idd == -1) {
-                tv_t = (TextView) tb.getChildAt(i);
-                tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
-                tv_t.setTypeface(Pager.tf);
-                break;
-            }
-        }
-
-        if (getSupportActionBar() != null) {
-            String s_title = getIntent().getExtras().getString("title");
-            if (s_title != null) getSupportActionBar().setTitle(s_title.toUpperCase());
-        }
-
-        TextView tv_send = (TextView) findViewById(R.id.tv_send);
-        tv_send.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if (sending_active) {
-                    toaster(false, "");
+            // Restore existing state
+            if (savedInstanceState != null) {
+                crypto_locked = savedInstanceState.getBoolean("sv_crypto_locked");
+                msg_contents = savedInstanceState.getString("sv_msg_contents");
+                String[] att_paths = savedInstanceState.getStringArray("sv_attachment_paths");
+                if (att_paths != null && att_paths.length > 0) {
+                    attachment_paths = new ArrayList<>(Arrays.asList(att_paths));
                 } else {
-                    send();
+                    attachment_paths = new ArrayList<>();
+                }
+                attachments_size = savedInstanceState.getLong("sv_attachments_size");
+                warned_8_bit_absent = savedInstanceState.getBoolean("sv_warned_8_bit_absent");
+                sending_active = savedInstanceState.getBoolean("sv_sending_active");
+                good_incoming_server = savedInstanceState.getBoolean("sv_good_incoming_server");
+            }
+
+            current_inbox = db.get_account(getIntent().getExtras().getInt("db_id"));
+
+            Toolbar tb = findViewById(R.id.send_toolbar);
+            setSupportActionBar(tb);
+
+            // Find the title
+            TextView tv_t;
+            for (int i = 0; i < tb.getChildCount(); ++i) {
+                int idd = tb.getChildAt(i).getId();
+                if (idd == -1) {
+                    tv_t = (TextView) tb.getChildAt(i);
+                    tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
+                    tv_t.setTypeface(Pager.tf);
+                    break;
                 }
             }
-        });
 
-        et_to = (EditText) findViewById(R.id.send_to);
-        sw_cc = (Switch) findViewById(R.id.send_cc_check);
-        et_cc = (EditText) findViewById(R.id.send_cc);
-        sw_bcc = (Switch) findViewById(R.id.send_bcc_check);
-        et_bcc = (EditText) findViewById(R.id.send_bcc);
-        et_subject = (EditText) findViewById(R.id.send_subject);
-        et_contents = (EditText) findViewById(R.id.send_contents);
-        tv_attachments = (TextView) findViewById(R.id.send_attachments_count);
+            if (getSupportActionBar() != null) {
+                String s_title = getIntent().getExtras().getString("title");
+                if (s_title != null) getSupportActionBar().setTitle(s_title.toUpperCase());
+            }
 
-        et_cc.setVisibility(View.GONE);
-        et_bcc.setVisibility(View.GONE);
-        sw_cc.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            TextView tv_send = findViewById(R.id.tv_send);
+            tv_send.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                if (isChecked) {
-                    et_cc.setVisibility(View.VISIBLE);
-                } else {
-                    et_cc.setVisibility(View.GONE);
+                @Override
+                public void onClick(View v) {
+                    if (sending_active) {
+                        toaster(false, "");
+                    } else {
+                        send();
+                    }
                 }
-            }
-        });
-        sw_bcc.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            });
 
-            @Override
-            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                if (isChecked) {
-                    et_bcc.setVisibility(View.VISIBLE);
-                } else {
-                    et_bcc.setVisibility(View.GONE);
+            et_to = findViewById(R.id.send_to);
+            sw_cc = findViewById(R.id.send_cc_check);
+            et_cc = findViewById(R.id.send_cc);
+            sw_bcc = findViewById(R.id.send_bcc_check);
+            et_bcc = findViewById(R.id.send_bcc);
+            et_subject = findViewById(R.id.send_subject);
+            et_contents = findViewById(R.id.send_contents);
+            tv_attachments = findViewById(R.id.send_attachments_count);
+
+            et_cc.setVisibility(View.GONE);
+            et_bcc.setVisibility(View.GONE);
+            sw_cc.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+                @Override
+                public void onCheckedChanged(CompoundButton v, boolean isChecked) {
+                    if (isChecked) {
+                        et_cc.setVisibility(View.VISIBLE);
+                    } else {
+                        et_cc.setVisibility(View.GONE);
+                    }
                 }
+            });
+            sw_bcc.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+                @Override
+                public void onCheckedChanged(CompoundButton v, boolean isChecked) {
+                    if (isChecked) {
+                        et_bcc.setVisibility(View.VISIBLE);
+                    } else {
+                        et_bcc.setVisibility(View.GONE);
+                    }
+                }
+            });
+            tv_attachments.setTypeface(Pager.tf);
+            if (attachment_paths.size() > 0) {
+                tv_attachments.setText(String.valueOf(attachment_paths.size()));
+            } else {
+                tv_attachments.setText("");
             }
-        });
-        tv_attachments.setTypeface(Pager.tf);
 
-        ImageView iv_attachments = (ImageView) findViewById(R.id.send_attachments_img);
-        iv_attachments.setOnClickListener(new View.OnClickListener() {
+            ImageView iv_attachments = findViewById(R.id.send_attachments_img);
+            iv_attachments.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                dialog_attachments();
+                @Override
+                public void onClick(View v) {
+                    dialog_attachments();
+                }
+            });
+
+            // Setting up the SSL authentication application
+            iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
+            iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    dialog_servers();
+                }
+            });
+
+            // Starts encryption
+            iv_encryption = findViewById(R.id.iv_encryption);
+            iv_encryption.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    gpg_crypto_tests();
+                }
+            });
+
+            tv_encryption_reset = findViewById(R.id.tv_encryption_reset);
+            tv_encryption_reset.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    tv_encryption_reset.setVisibility(View.GONE);
+                    current.set_contents_crypto(null);
+                    et_contents.setText(msg_contents);
+                    crypto_locked = false;
+                    crypto_padlock();
+                }
+            });
+
+            // If replying to a message
+            String reply_to;
+            String subject_of = "";
+            if (getIntent().getExtras().containsKey("subject")) {
+                subject_of = getIntent().getExtras().getString("subject");
             }
-        });
-
-        // Setting up the SSL authentication application
-        iv_ssl_auth = (ImageView) findViewById(R.id.ssl_auth_img_vw);
-        iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_servers();
+            if (getIntent().getExtras().containsKey("reply-to")) {
+                reply_to = getIntent().getExtras().getString("reply-to");
+                et_to.setText(reply_to);
+                et_subject.setText(subject_of);
             }
-        });
-
-        // Starts encryption
-        iv_encryption = (ImageView) findViewById(R.id.iv_encryption);
-        iv_encryption.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                gpg_crypto_tests();
-            }
-        });
-
-        tv_encryption_reset = (TextView) findViewById(R.id.tv_encryption_reset);
-        tv_encryption_reset.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                tv_encryption_reset.setVisibility(View.GONE);
-                current.set_contents_crypto(null);
-                et_contents.setText(msg_contents);
-                crypto_locked = false;
-                crypto_padlock();
-            }
-        });
-
-        // If replying to a message
-        String reply_to;
-        String subject_of = "";
-        if (getIntent().getExtras().containsKey("subject")) {
-            subject_of = getIntent().getExtras().getString("subject");
-        }
-        if (getIntent().getExtras().containsKey("reply-to")) {
-            reply_to = getIntent().getExtras().getString("reply-to");
-            et_to.setText(reply_to);
-            et_subject.setText(subject_of);
+        } catch (Exception e) {
+            Pager.log += e.getMessage() + "\n\n";
+            finish();
         }
     }
 
@@ -250,37 +278,59 @@ public class InboxSend extends AppCompatActivity {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle save) {
+        super.onSaveInstanceState(save);
+        save.putBoolean("sv_crypto_locked", crypto_locked);
+        save.putString("sv_msg_contents", msg_contents);
+        save.putStringArray("sv_attachment_paths", attachment_paths.toArray
+                (new String[attachment_paths.size()]));
+        save.putLong("sv_attachments_size", attachments_size);
+        save.putBoolean("sv_warned_8_bit_absent", warned_8_bit_absent);
+        save.putBoolean("sv_sending_active", sending_active);
+        save.putBoolean("sv_good_incoming_server", good_incoming_server);
+    }
+
+    @Override
     public void finish() {
         super.finish();
         overridePendingTransition(R.anim.right_in, R.anim.right_out);
     }
 
     private void dialog_attachments() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.send_attachments));
-        populate_list_view();
-        builder.setView(attachments_list);
-        builder.setCancelable(true);
-        builder.setPositiveButton(getString(R.string.attch_add_attachment),
-                new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("file:///*");
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                try {
-                    startActivityForResult(Intent.createChooser(intent, "Pick Attachment"), 0);
-                } catch (android.content.ActivityNotFoundException e) {
-                    dialog_no_fm();
-                }
+        if (check_readable()) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.send_attachments));
+            populate_list_view();
+            builder.setView(attachments_list);
+            builder.setCancelable(true);
+            builder.setPositiveButton(getString(R.string.attch_add_attachment),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                            intent.setType("*/*");
+                            intent.addCategory(Intent.CATEGORY_OPENABLE);
+                            try {
+                                startActivityForResult(Intent.createChooser(intent, ""), 0);
+                            } catch (android.content.ActivityNotFoundException e) {
+                                dialog_no_fm();
+                            }
+                        }
+                    });
+
+            attachments_dialog = builder.show();
+
+            if (!warned_8_bit_absent && !current_inbox.get_smtp_extensions().equals("-1")
+                    && !current_inbox.smtp_check_extension("8BITMIME")) {
+                warned_8_bit_absent = true;
+                Dialogs.dialog_error_line(getString(R.string.err_no_8_bit_mime), this);
             }
-        });
-
-        attachments_dialog = builder.show();
-
-        if (!warned_8_bit_absent && !current_inbox.get_smtp_extensions().equals("-1")
-                && !current_inbox.smtp_check_extension("8BITMIME")) {
-            warned_8_bit_absent = true;
-            Dialogs.dialog_error_line(getString(R.string.err_no_8_bit_mime), this);
+        } else {
+            // Permission to read file missing
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.err_title_android_permission));
+            builder.setMessage(getString(R.string.err_msg_android_permission));
+            builder.setPositiveButton(getString(android.R.string.ok), null);
+            builder.show();
         }
     }
 
@@ -294,7 +344,7 @@ public class InboxSend extends AppCompatActivity {
             attachments_size += sz;
             if (sz < 1024) {
                 val += sz + " " + getString(R.string.attch_bytes);
-            } else if (sz >= 1024 && sz < 1048576) {
+            } else if (sz < 1048576) {
                 val += (sz/1024) + " " + getString(R.string.attch_kilobytes);
             } else {
                 val += (sz/1048576) + " " + getString(R.string.attch_megabytes);
@@ -383,7 +433,7 @@ public class InboxSend extends AppCompatActivity {
                 if (i == (new_to.size() - 1)) {
                     s_to += new_to.get(i);
                 } else {
-                    s_to += new_to.get(i) + ",";
+                    s_to = s_to.concat(new_to.get(i) + ",");
                 }
             }
         }
@@ -408,7 +458,7 @@ public class InboxSend extends AppCompatActivity {
                     if (i == (new_to.size() - 1)) {
                         s_cc += new_to.get(i);
                     } else {
-                        s_cc += new_to.get(i) + ",";
+                        s_cc = s_cc.concat(new_to.get(i) + ",");
                     }
                 }
             }
@@ -434,7 +484,7 @@ public class InboxSend extends AppCompatActivity {
                     if (i == (new_to.size() - 1)) {
                         s_bcc += new_to.get(i);
                     } else {
-                        s_bcc += new_to.get(i) + ",";
+                        s_bcc = s_bcc.concat(new_to.get(i) + ",");
                     }
                 }
             }
@@ -503,7 +553,7 @@ public class InboxSend extends AppCompatActivity {
         handler.sp = spt;
         if (attachment_paths.size() > 0) {
             String str = "";
-            for (String st: attachment_paths) { str += st + "\uD83D\uDCCE"; }
+            for (String st: attachment_paths) { str = str.concat(st + "\uD83D\uDCCE"); }
             handler.msg_action(current_inbox.get_id(), current, str, false, this);
         } else {
             handler.msg_action(current_inbox.get_id(), current, null, false, this);
@@ -672,6 +722,11 @@ public class InboxSend extends AppCompatActivity {
             tv_attachments.setEnabled(true);
             iv_encryption.setImageResource(R.drawable.padlock_open);
         }
+    }
+
+    private boolean check_readable() {
+        return (checkCallingOrSelfPermission("android.permission.READ_EXTERNAL_STORAGE")
+                == PackageManager.PERMISSION_GRANTED);
     }
 
     private void toaster(boolean use_s, String s) {

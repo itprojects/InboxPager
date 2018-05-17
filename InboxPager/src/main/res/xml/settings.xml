@@ -22,7 +22,8 @@
     <!-- Password: change password -->
     <Preference android:key="change_pw"
         android:title="@string/sett_change_pw_title"
-        android:summary="@string/sett_change_pw_summary"/>
+        android:summary="@string/sett_change_pw_summary"
+        android:defaultValue="false"/>
 
     <!-- Default: font size in message view. -->
     <EditTextPreference android:key="sett_msg_font_size"

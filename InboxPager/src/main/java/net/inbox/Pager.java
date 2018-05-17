@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -66,6 +66,9 @@ public class Pager extends AppCompatActivity {
     public static boolean refresh;
     public static String log;
 
+    // Show first use help
+    private boolean show_help = false;
+
     public static Typeface tf;
     public static String open_key_chain = "org.sufficientlysecure.keychain";
 
@@ -95,8 +98,14 @@ public class Pager extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Show first use help
-        boolean show_help = false;
+        // Restore existing state
+        if (savedInstanceState != null) {
+            refresh = savedInstanceState.getBoolean("sv_refresh");
+            log = savedInstanceState.getString("sv_log");
+            unlocked = savedInstanceState.getBoolean("sv_unlocked");
+            over = savedInstanceState.getInt("sv_over");
+            show_help = savedInstanceState.getBoolean("sv_show_help");
+        }
 
         // Init SharedPreferences
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -111,7 +120,23 @@ public class Pager extends AppCompatActivity {
             show_help = true;
         }
 
-        if (show_help || !prefs.getBoolean("enable_pw", false)) {
+        if (unlocked && prefs.getBoolean("enable_pw", false)) {
+            // Initial entry view
+            View v = View.inflate(this, R.layout.pager, null);
+            setContentView(v);
+
+            rv_main = findViewById(R.id.app_main);
+            rv_main.setVisibility(View.VISIBLE);
+            rv_main.setAlpha(0.01f);
+            rv_main.animate().alpha(1f).setListener(new AnimatorListenerAdapter() {
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    activity_load();
+                }
+            });
+        } else if (show_help || !prefs.getBoolean("enable_pw", false)) {
             init_db("cleartext");
 
             // Initial entry view
@@ -119,7 +144,7 @@ public class Pager extends AppCompatActivity {
             v.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in));
             setContentView(v);
 
-            rv_main = (RelativeLayout) findViewById(R.id.app_main);
+            rv_main = findViewById(R.id.app_main);
             rv_main.setVisibility(View.VISIBLE);
             rv_main.setAlpha(0.01f);
             rv_main.animate().alpha(1f).setListener(new AnimatorListenerAdapter() {
@@ -137,10 +162,10 @@ public class Pager extends AppCompatActivity {
             setContentView(v);
 
             // Entry text edit
-            llay_pw = (LinearLayout) findViewById(R.id.llay_pw);
+            llay_pw = findViewById(R.id.llay_pw);
             llay_pw.setVisibility(View.VISIBLE);
-            rv_main = (RelativeLayout) findViewById(R.id.app_main);
-            et_pw = (EditText) findViewById(R.id.pw);
+            rv_main = findViewById(R.id.app_main);
+            et_pw = findViewById(R.id.pw);
             et_pw.setOnKeyListener(new View.OnKeyListener() {
                 public boolean onKey(View v, int key, KeyEvent event) {
                     if (event.getAction() == KeyEvent.ACTION_DOWN
@@ -230,6 +255,16 @@ public class Pager extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle save) {
+        super.onSaveInstanceState(save);
+        save.putBoolean("sv_refresh", refresh);
+        save.putString("sv_log", log);
+        save.putBoolean("sv_unlocked", unlocked);
+        save.putInt("sv_over", over);
+        save.putBoolean("sv_show_help", show_help);
+    }
+
     private void init_db(String s) {
         boolean db_exists = getDatabasePath("pages").exists();
 
@@ -245,7 +280,7 @@ public class Pager extends AppCompatActivity {
             }
             unlocked = true;
         } catch (Exception e) {
-            String ex = e.getMessage().toLowerCase();
+            log += e.getMessage() + "\n\n";
             unlocked = false;
             et_pw.setBackgroundColor(Color.parseColor("#BA0C0C"));
             et_pw.setHintTextColor(Color.WHITE);
@@ -280,7 +315,7 @@ public class Pager extends AppCompatActivity {
         // Init vibrations
         vvv = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        Toolbar tb = (Toolbar) findViewById(R.id.home_toolbar);
+        Toolbar tb = findViewById(R.id.home_toolbar);
         setSupportActionBar(tb);
 
         tf = Typeface.createFromAsset(getAssets(), "fonts/Dottz.ttf");
@@ -302,11 +337,11 @@ public class Pager extends AppCompatActivity {
         }
 
         // Unread Messages Counter
-        tv_page_counter = (TextView) findViewById(R.id.page_counter);
+        tv_page_counter = findViewById(R.id.page_counter);
         tv_page_counter.setTypeface(tf);
 
         // Mass Refresh Button
-        ImageButton iv_refresh = (ImageButton) findViewById(R.id.refresh);
+        ImageButton iv_refresh = findViewById(R.id.refresh);
         iv_refresh.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -316,11 +351,11 @@ public class Pager extends AppCompatActivity {
         });
 
         // No accounts message is visible if the user has not init-ed the app
-        tv_no_account = (TextView) findViewById(R.id.no_accounts);
+        tv_no_account = findViewById(R.id.no_accounts);
         tv_no_account.setTypeface(tf);
 
         // Filling the ListView of the home window
-        inbox_list_view = (ListView) findViewById(R.id.accounts_list_view);
+        inbox_list_view = findViewById(R.id.accounts_list_view);
         populate_list_view();
     }
 

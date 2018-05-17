@@ -1,6 +1,6 @@
-/**
+/*
  * InboxGPG interacts with OpenKeychain encryption package.
- * Copyright (C) 2016-2017  ITPROJECTS
+ * Copyright (C) 2016-2018  ITPROJECTS
  * Copyright (C) 2013-2015 Dominik Schürmann <dominik@dominikschuermann.de>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class InboxGPG extends AppCompatActivity {
 
@@ -62,14 +63,15 @@ public class InboxGPG extends AppCompatActivity {
     public static final int REQUEST_CODE_DECRYPT_AND_VERIFY_DETACHED = 9917;
     public static final int REQUEST_CODE_KEY_PREFERENCE = 9999;
 
-    private static long l_sign_key_id;
+    private static long l_sign_key_id = 0;
     private static long[] rcpt_keys = null;
 
     private int intent_request_code = 0;
 
-    private boolean msg_ready;
-    private boolean msg_encrypted;
-    private boolean msg_signed;
+    private boolean msg_ready = false;
+    private boolean msg_encrypted = false;
+    private boolean msg_signed = false;
+
     private String msg_contents;// given message
     private String msg_crypto;// encrypted/decrypted message
     private String msg_signature;// signature for verification or return
@@ -78,7 +80,7 @@ public class InboxGPG extends AppCompatActivity {
     private String open_pgp_provider = "org.sufficientlysecure.keychain";
     private String[] gpg_actions = null;
     private String[] rcpt_mailboxes = null;
-    private ArrayList<String> attachment_paths = null;
+    private ArrayList<String> attachment_paths = new ArrayList<>();
 
     private CheckBox cb_sign_to_self;
     private TextView tv_signing_key;
@@ -97,80 +99,130 @@ public class InboxGPG extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.openpgp);
 
-        Toolbar tb = (Toolbar) findViewById(R.id.send_toolbar);
-        setSupportActionBar(tb);
-
-        // Find the title
-        TextView tv_t;
-        for (int i = 0; i < tb.getChildCount(); ++i) {
-            int idd = tb.getChildAt(i).getId();
-            if (idd == -1) {
-                tv_t = (TextView) tb.getChildAt(i);
-                tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
-                tv_t.setTypeface(Pager.tf);
-                break;
-            }
-        }
-
-        if (getSupportActionBar() != null) {
-            String s_title = getString(R.string.open_pgp_dialog_title);
-            getSupportActionBar().setTitle(s_title.toUpperCase());
-        }
-
-        TextView tv_reset = (TextView) findViewById(R.id.tv_reset);
-        tv_reset.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                l_sign_key_id = 0;
-                tv_signing_key.setText(getString(R.string.open_pgp_signing_key_cross));
-                rcpt_keys = null;
-                tv_recipients_pick.setText(getString(R.string.open_pgp_rcpt_key_cross));
-                reset_activity();
-            }
-        });
-
-        TextView tv_ready = (TextView) findViewById(R.id.tv_ready);
-        tv_ready.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if (msg_ready) {
-                    Intent intent_a = getIntent();
-                    Bundle b = new Bundle();
-                    b.putInt("ret-code", intent_request_code);
-                    switch (intent_request_code) {
-                        case 91:// encrypt and/or sign
-                            msg_crypto = pgp_mime_serialization();
-                            b.putString("message-crypto", msg_crypto);
-                            break;
-                        case 92:// decrypted and verified
-                            if (msg_crypto != null) { b.putString("message-crypto", msg_crypto); }
-                            b.putString("msg-signature", msg_signature);
-                            break;
-                        case 93:// verified clear text signature
-                            b.putString("msg-signature", msg_signature);
-                            break;
-                    }
-                    intent_a.putExtras(b);
-                    setResult(19091, intent_a);
-                    finish();
+        try {
+            // Restore existing state
+            if (savedInstanceState != null) {
+                l_sign_key_id = savedInstanceState.getLong("sv_l_sign_key_id");
+                rcpt_keys = savedInstanceState.getLongArray("sv_rcpt_keys");
+                intent_request_code = savedInstanceState.getInt("sv_intent_request_code");
+                msg_ready = savedInstanceState.getBoolean("sv_msg_ready");
+                msg_encrypted = savedInstanceState.getBoolean("sv_msg_encrypted");
+                msg_signed = savedInstanceState.getBoolean("sv_msg_signed");
+                msg_contents = savedInstanceState.getString("sv_msg_contents");
+                msg_crypto = savedInstanceState.getString("sv_msg_crypto");
+                msg_signature = savedInstanceState.getString("sv_msg_signature");
+                msg_integrity = savedInstanceState.getString("sv_msg_integrity");
+                gpg_actions = savedInstanceState.getStringArray("sv_gpg_actions");
+                rcpt_mailboxes = savedInstanceState.getStringArray("sv_rcpt_mailboxes");
+                String[] att_paths = savedInstanceState.getStringArray("sv_attachment_paths");
+                if (att_paths != null && att_paths.length > 0) {
+                    attachment_paths = new ArrayList<>(Arrays.asList(att_paths));
+                } else {
+                    attachment_paths = new ArrayList<>();
                 }
             }
-        });
 
-        tv_signing_key = (TextView) findViewById(R.id.tv_pick_sign_key);
-        tv_recipients_pick = (TextView) findViewById(R.id.tv_recipients_pick);
-        tv_recipients_count = (TextView) findViewById(R.id.tv_recipients_count);
-        tv_recipients_list = (TextView) findViewById(R.id.tv_recipients_list);
-        tv_message = (TextView) findViewById(R.id.tv_message);
-        tv_cipher_text = (TextView) findViewById(R.id.tv_encrypted);
-        tv_signature = (TextView) findViewById(R.id.tv_signature);
+            Toolbar tb = findViewById(R.id.send_toolbar);
+            setSupportActionBar(tb);
 
-        // Obtain request code
-        intent_request_code = getIntent().getIntExtra("request-code", 0);
+            // Find the title
+            TextView tv_t;
+            for (int i = 0; i < tb.getChildCount(); ++i) {
+                int idd = tb.getChildAt(i).getId();
+                if (idd == -1) {
+                    tv_t = (TextView) tb.getChildAt(i);
+                    tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
+                    tv_t.setTypeface(Pager.tf);
+                    break;
+                }
+            }
 
-        init_ui();
+            if (getSupportActionBar() != null) {
+                String s_title = getString(R.string.open_pgp_dialog_title);
+                getSupportActionBar().setTitle(s_title.toUpperCase());
+            }
+
+            TextView tv_reset = findViewById(R.id.tv_reset);
+            tv_reset.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    l_sign_key_id = 0;
+                    tv_signing_key.setText(getString(R.string.open_pgp_signing_key_cross));
+                    rcpt_keys = null;
+                    tv_recipients_pick.setText(getString(R.string.open_pgp_rcpt_key_cross));
+                    reset_activity();
+                }
+            });
+
+            TextView tv_ready = findViewById(R.id.tv_ready);
+            tv_ready.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (msg_ready) {
+                        Intent intent_a = getIntent();
+                        Bundle b = new Bundle();
+                        b.putInt("ret-code", intent_request_code);
+                        switch (intent_request_code) {
+                            case 91:// encrypt and/or sign
+                                msg_crypto = pgp_mime_serialization();
+                                b.putString("message-crypto", msg_crypto);
+                                break;
+                            case 92:// decrypted and verified
+                                if (msg_crypto != null) { b.putString("message-crypto", msg_crypto); }
+                                b.putString("msg-signature", msg_signature);
+                                break;
+                            case 93:// verified clear text signature
+                                b.putString("msg-signature", msg_signature);
+                                break;
+                        }
+                        intent_a.putExtras(b);
+                        setResult(19091, intent_a);
+                        finish();
+                    }
+                }
+            });
+
+            tv_signing_key = findViewById(R.id.tv_pick_sign_key);
+            tv_recipients_pick = findViewById(R.id.tv_recipients_pick);
+            tv_recipients_count = findViewById(R.id.tv_recipients_count);
+            tv_recipients_list = findViewById(R.id.tv_recipients_list);
+            tv_message = findViewById(R.id.tv_message);
+            tv_cipher_text = findViewById(R.id.tv_encrypted);
+            tv_signature = findViewById(R.id.tv_signature);
+
+            // Obtain request code
+            intent_request_code = getIntent().getIntExtra("request-code", 0);
+
+            init_ui();
+        } catch (Exception e) {
+            Pager.log += e.getMessage() + "\n\n";
+            finish();
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle save) {
+        super.onSaveInstanceState(save);
+        save.putLong("sv_l_sign_key_id", l_sign_key_id);
+        save.putLongArray("sv_rcpt_keys", rcpt_keys);
+        save.putInt("sv_intent_request_code", intent_request_code);
+        save.putBoolean("sv_msg_ready", msg_ready);
+        save.putBoolean("sv_msg_encrypted", msg_encrypted);
+        save.putBoolean("sv_msg_signed", msg_signed);
+        save.putString("sv_msg_contents", msg_contents);
+        save.putString("sv_msg_crypto", msg_crypto);
+        save.putString("sv_msg_signature", msg_signature);
+        save.putString("sv_msg_integrity", msg_integrity);
+        save.putStringArray("sv_gpg_actions", gpg_actions);
+        save.putStringArray("sv_rcpt_mailboxes", rcpt_mailboxes);
+        if (attachment_paths != null) {
+            save.putStringArray("sv_attachment_paths", attachment_paths.toArray
+                    (new String[attachment_paths.size()]));
+        } else {
+            save.putStringArray("sv_attachment_paths", null);
+        }
     }
 
     @Override
@@ -251,13 +303,15 @@ public class InboxGPG extends AppCompatActivity {
                 };
 
                 // Obtaining recipients
-                String rcpt_s = getIntent().getExtras().getString("recipients");
-                if (rcpt_s != null && !rcpt_s.isEmpty()) {
-                    rcpt_mailboxes = rcpt_s.split(",");
-                    for (int i = 0;i < rcpt_mailboxes.length;++i) {
-                        rcpt_mailboxes[i] = rcpt_mailboxes[i].trim();
+                if (getIntent().getExtras() != null) {
+                    String rcpt_s = getIntent().getExtras().getString("recipients");
+                    if (rcpt_s != null && !rcpt_s.isEmpty()) {
+                        rcpt_mailboxes = rcpt_s.split(",");
+                        for (int i = 0;i < rcpt_mailboxes.length;++i) {
+                            rcpt_mailboxes[i] = rcpt_mailboxes[i].trim();
+                        }
+                        tv_recipients_list.setText(rcpt_s);
                     }
-                    tv_recipients_list.setText(rcpt_s);
                 }
 
                 // Message data
@@ -306,26 +360,26 @@ public class InboxGPG extends AppCompatActivity {
             }
         }
 
-        cb_sign_to_self = (CheckBox) findViewById(R.id.cb_sign_to_self);
+        cb_sign_to_self = findViewById(R.id.cb_sign_to_self);
         if (msg_encrypted || msg_signed) {
             // Free visual space
             cb_sign_to_self.setVisibility(View.GONE);
             tv_recipients_pick.setVisibility(View.GONE);
-            TextView tv_1 = (TextView) findViewById(R.id.tv_pick_sign_key);
-            TextView tv_2 = (TextView) findViewById(R.id.tv_recipients);
-            TextView tv_3 = (TextView) findViewById(R.id.tv_recipients_list);
+            TextView tv_1 = findViewById(R.id.tv_pick_sign_key);
+            TextView tv_2 = findViewById(R.id.tv_recipients);
+            TextView tv_3 = findViewById(R.id.tv_recipients_list);
             tv_1.setVisibility(View.GONE);
             tv_2.setVisibility(View.GONE);
             tv_3.setVisibility(View.GONE);
         }
 
-        spinner_gpg_action = (Spinner) findViewById(R.id.spinner_gpg_action);
+        spinner_gpg_action = findViewById(R.id.spinner_gpg_action);
         ArrayAdapter<String> adapt = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, gpg_actions);
         adapt.setDropDownViewResource(android.R.layout.simple_list_item_checked);
         spinner_gpg_action.setAdapter(adapt);
 
-        TextView tv_start = (TextView) findViewById(R.id.tv_start);
+        TextView tv_start = findViewById(R.id.tv_start);
         tv_start.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -609,13 +663,13 @@ public class InboxGPG extends AppCompatActivity {
         msg_mime += "Content-Type: text/plain; charset=\"utf-8\"\n";
         msg_mime += "Content-Transfer-Encoding: 8bit\n\n";
         if (msg_contents != null) msg_mime += msg_contents + "\n--" + bounds;
-        if (attachment_paths == null) {
+        if (attachment_paths == null || attachment_paths.size() < 1) {
             msg_mime += "--\n";
         } else {
             // Message attachments
             for (int i = 0;i < attachment_paths.size();++i) {
                 File ff = new File(attachment_paths.get(i));
-                msg_mime += "\n--" + bounds + "\n";
+                msg_mime = msg_mime.concat("\n--" + bounds + "\n");
                 if (Utils.all_ascii(ff.getName())) {
                     msg_mime += "Content-Type: application/octet-stream; name=\"" + ff.getName() + "\"\n";
                     msg_mime += "Content-Transfer-Encoding: base64\n";
@@ -637,7 +691,8 @@ public class InboxGPG extends AppCompatActivity {
                         while ((t = in_stream.read(bfr)) != -1) { b_stream.write(bfr, 0, t); }
                     }
                 } catch (IOException e) {
-                    Pager.log += getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                    Pager.log = Pager.log.concat(getString
+                            (R.string.ex_field) + e.getMessage() + "\n\n");
                     Dialogs.toaster(true, e.getMessage(), this);
                 }
                 msg_mime += new String(Base64.encode(b_stream.toByteArray(), Base64.DEFAULT));

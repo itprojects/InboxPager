@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -150,7 +150,7 @@ public class SMTP extends Handler {
                                 if (i == (data.auths.size() - 1)) {
                                     tested += data.auths.get(i).toUpperCase();
                                 } else {
-                                    tested += data.auths.get(i).toUpperCase() + ", ";
+                                    tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
                                 }
                             }
                             tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
@@ -158,7 +158,7 @@ public class SMTP extends Handler {
                                 if (i == (data.general.size() - 1)) {
                                     tested += data.general.get(i).toUpperCase();
                                 } else {
-                                    tested += data.general.get(i).toUpperCase() + ", ";
+                                    tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
                                 }
                             }
                         }
@@ -487,7 +487,7 @@ public class SMTP extends Handler {
                     String[] arr_ext = temp.split("\n");
                     temp = "";
                     for (String t : arr_ext) {
-                        if (!t.contains(data.smtp_host)) temp += t + "\n";
+                        if (!t.contains(data.smtp_host)) temp = temp.concat(t + "\n");
                     }
                     temp = temp.trim();
                 }
@@ -535,7 +535,7 @@ public class SMTP extends Handler {
                 } else {
                     str = Base64.encodeToString(str.getBytes(), Base64.DEFAULT).trim();
                     if (str.length() > 500) {
-                        write_limited(str.toCharArray(), 500);
+                        write_limited(str.toCharArray());
                     } else {
                         write(str);
                     }
@@ -546,7 +546,7 @@ public class SMTP extends Handler {
             String str = Base64.encodeToString(("\0"+ current_inbox.get_username() + "\0"
                     + current_inbox.get_pass()).getBytes(), Base64.DEFAULT);
             if (str.length() > 500) {
-                write_limited(str.toCharArray(), 500);
+                write_limited(str.toCharArray());
             } else {
                 write(str);
             }
@@ -565,16 +565,16 @@ public class SMTP extends Handler {
             write(st);
             st = "To: " + data.msg_current.get_to();
             if (!data.smtp_utf_8) st = Utils.to_ascii(st);
-            write_limited(st.toCharArray(), 500);
+            write_limited(st.toCharArray());
             if (data.msg_current.get_cc() != null && !data.msg_current.get_cc().isEmpty()) {
                 st = "Cc: " + data.msg_current.get_cc();
                 if (!data.smtp_utf_8) st = Utils.to_ascii(st);
-                write_limited(st.toCharArray(), 500);
+                write_limited(st.toCharArray());
             }
             if (data.msg_current.get_bcc() != null && !data.msg_current.get_bcc().isEmpty()) {
                 st = "Bcc: " + data.msg_current.get_bcc();
                 if (!data.smtp_utf_8) st = Utils.to_ascii(st);
-                write_limited(st.toCharArray(), 500);
+                write_limited(st.toCharArray());
             }
             // Message-ID
             st = "Message-ID: <" + String.valueOf(Math.random() * 1000);
@@ -589,7 +589,7 @@ public class SMTP extends Handler {
                     st += data.msg_current.get_subject().trim();
                 }
             }
-            write_limited(st.toCharArray(), 500);
+            write_limited(st.toCharArray());
             if (sp != null) on_ui_thread("-1", ctx.getString(R.string.send_headers_sent));
             sleep(100);
             if (data.msg_current.get_contents_crypto() != null) {
@@ -626,7 +626,7 @@ public class SMTP extends Handler {
                     write("Content-Type: text/plain; charset=\"utf-8\"");
                     write("Content-Transfer-Encoding: 8bit");
                     write("\n");
-                    write_limited(data.msg_current.get_contents_plain().toCharArray(), 500);
+                    write_limited(data.msg_current.get_contents_plain().toCharArray());
                 }
 
                 // Message attachments
@@ -659,7 +659,8 @@ public class SMTP extends Handler {
                             while ((t = in_stream.read(bfr)) != -1) { b_stream.write(bfr, 0, t); }
                         }
                     } catch (IOException e) {
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                        Pager.log = Pager.log.concat(ctx.getString
+                                (R.string.ex_field) + e.getMessage() + "\n\n");
                     }
                     byte[] a_bytes =  Base64.encode(b_stream.toByteArray(), Base64.DEFAULT);
                     boolean cr = false;
@@ -688,7 +689,7 @@ public class SMTP extends Handler {
                     write("Content-Type: text/plain; charset=utf-8");
                     write("Content-Transfer-Encoding: 8bit");
                     write("\n");
-                    write_limited(data.msg_current.get_contents_plain().toCharArray(), 500);
+                    write_limited(data.msg_current.get_contents_plain().toCharArray());
                 }
             }
             sleep(100);

@@ -6,9 +6,10 @@
     android:gravity="center">
 
     <ImageView android:id="@+id/tv_this_device_img"
-        android:layout_width="match_parent"
-        android:layout_height="150sp"
+        android:layout_width="130sp"
+        android:layout_height="130sp"
         android:gravity="center_horizontal"
+        android:scaleType="fitXY"
         android:src="@drawable/device"
         android:contentDescription="@string/ssl_auth_popup_you"/>
 

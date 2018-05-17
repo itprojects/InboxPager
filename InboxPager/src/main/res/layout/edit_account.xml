@@ -66,8 +66,9 @@
                     android:layout_marginStart="10sp"
                     android:layout_marginRight="10sp"
                     android:layout_marginEnd="10sp"
-                    android:inputType="textEmailAddress|textNoSuggestions"
-                    android:hint="@string/edit_account_email_hint"/>
+                    android:labelFor="@string/edit_account_email"
+                    android:hint="@string/edit_account_email_hint"
+                    android:inputType="textEmailAddress|textNoSuggestions"/>
 
                 <TextView android:id="@+id/tv_username"
                     android:layout_width="wrap_content"
@@ -87,6 +88,8 @@
                     android:layout_marginStart="10sp"
                     android:layout_marginRight="10sp"
                     android:layout_marginEnd="10sp"
+                    android:labelFor="@string/edit_account_username"
+                    android:hint="@string/edit_account_email_hint"
                     android:inputType="text|textNoSuggestions"/>
 
                 <TextView android:id="@+id/tv_pass"
@@ -106,14 +109,16 @@
                     android:layout_marginStart="10sp"
                     android:layout_marginRight="10sp"
                     android:layout_marginEnd="10sp"
+                    android:labelFor="@string/edit_account_pass"
+                    android:hint="@string/edit_account_pass"
                     android:inputType="textPassword|textNoSuggestions"/>
 
                 <Switch android:id="@+id/sw_imap_or_pop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="15sp"
+                    android:layout_marginEnd="10sp"
                     android:layout_marginTop="5sp"
-                    android:text="@string/edit_account_imap_or_pop_switch"/>
+                    android:layoutDirection="rtl"/>
 
                 <LinearLayout android:orientation="horizontal"
                     android:layout_width="match_parent"
@@ -133,8 +138,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
+                        android:hint="@string/edit_account_incoming_server_port_hint_imap"
                         android:inputType="number|textNoSuggestions"
-                        android:ems="4"/>
+                        android:ems="4"
+                        android:digits="0123456789"
+                        android:maxLength="5"/>
 
                     <EditText android:id="@+id/et_imap_or_pop_server"
                         android:layout_width="match_parent"
@@ -142,6 +150,7 @@
                         android:layout_marginStart="5sp"
                         android:layout_marginEnd="10sp"
                         android:gravity="center_horizontal"
+                        android:hint="@string/edit_account_incoming_server_hint_imap"
                         android:inputType="textNoSuggestions"
                         android:ems="13"/>
                 </LinearLayout>
@@ -168,7 +177,9 @@
                     android:gravity="center_horizontal"
                     android:inputType="number|textNoSuggestions"
                     android:hint="@string/edit_account_smtp_server_port_hint"
-                    android:ems="4"/>
+                    android:ems="4"
+                    android:digits="0123456789"
+                    android:maxLength="5"/>
 
                 <EditText android:id="@+id/et_smtp_server"
                     android:layout_width="match_parent"

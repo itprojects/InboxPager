@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -73,17 +73,15 @@ public class InboxMessage extends AppCompatActivity {
     private ImageView iv_ssl_auth;
     private ImageView iv_gpg_crypto;
 
-    private int current_inbox = -2;
-
     // GPG variables
     private boolean crypto_locked = false;
-    private boolean msg_encrypted;
-    private boolean msg_signed;
+    private boolean msg_encrypted = false;
+    private boolean msg_signed = false;
     private String msg_contents;
     private String msg_signature;
 
-    private boolean imap_or_pop;
-    private boolean no_send;
+    private boolean imap_or_pop = false;
+    private boolean no_send = false;
 
     private boolean good_incoming_server = false;
 
@@ -91,9 +89,11 @@ public class InboxMessage extends AppCompatActivity {
     private int btn_texts_state = 0;
     private ArrayList<String[]> btn_texts_states;
 
+    private int current_inbox = -2;
+
     private Message current;
     private Attachment chosen_att;
-    private List<Attachment> attachments;
+    private List<Attachment> attachments = new ArrayList<>();
 
     // Folder picker variables
     private boolean save_in_db;
@@ -110,155 +110,176 @@ public class InboxMessage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.message);
 
-        // Get the database
-        db = Pager.get_db();
+        try {
+            // Get the database
+            db = Pager.get_db();
 
-        current = db.get_message(getIntent().getExtras().getInt("db_id"));
-        current_inbox = getIntent().getExtras().getInt("db_inbox");
-        imap_or_pop = getIntent().getExtras().getBoolean("imap_or_pop");
-        no_send = getIntent().getExtras().getBoolean("no_send");
-
-        // Crypto information
-        if (current.get_contents_crypto() != null) {
-            // GPG Encrypted
-            msg_encrypted = current.get_content_type().toLowerCase()
-                    .contains("application/pgp-encrypted");
-
-            // GPG Signed
-            msg_signed = current.get_content_type().toLowerCase()
-                    .contains("application/pgp-signature");
-        }
-
-        Toolbar tb = (Toolbar) findViewById(R.id.message_toolbar);
-        setSupportActionBar(tb);
-
-        // Find the title
-        TextView tv_t;
-        for (int i = 0; i < tb.getChildCount(); ++i) {
-            int idd = tb.getChildAt(i).getId();
-            if (idd == -1) {
-                tv_t = (TextView) tb.getChildAt(i);
-                tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
-                tv_t.setTypeface(Pager.tf);
-                break;
+            // Restore existing state
+            if (savedInstanceState != null) {
+                current_inbox = savedInstanceState.getInt("sv_current_inbox");
+                crypto_locked = savedInstanceState.getBoolean("sv_crypto_locked");
+                msg_encrypted = savedInstanceState.getBoolean("sv_msg_encrypted");
+                msg_signed = savedInstanceState.getBoolean("sv_msg_signed");
+                msg_contents = savedInstanceState.getString("sv_msg_contents");
+                msg_signature = savedInstanceState.getString("sv_msg_signature");
+                imap_or_pop = savedInstanceState.getBoolean("sv_imap_or_pop");
+                no_send = savedInstanceState.getBoolean("sv_no_send");
+                good_incoming_server = savedInstanceState.getBoolean("sv_good_incoming_server");
+                btn_texts_ready = savedInstanceState.getBoolean("sv_btn_texts_ready");
+                btn_texts_state = savedInstanceState.getInt("sv_btn_texts_state");
+                save_in_db = savedInstanceState.getBoolean("sv_save_in_db");
             }
-        }
 
-        if (getSupportActionBar() != null) {
-            String s_title = getIntent().getExtras().getString("title");
-            if (s_title != null) getSupportActionBar().setTitle(s_title.toUpperCase());
-        }
+            current = db.get_message(getIntent().getExtras().getInt("db_id"));
+            current_inbox = getIntent().getExtras().getInt("db_inbox");
+            imap_or_pop = getIntent().getExtras().getBoolean("imap_or_pop");
+            no_send = getIntent().getExtras().getBoolean("no_send");
 
-        // Message Attachments Counter
-        tv_page_attachments = (TextView) findViewById(R.id.message_attachments);
-        tv_page_attachments.setTypeface(Pager.tf);
-        tv_page_attachments.setOnClickListener(new View.OnClickListener() {
+            // Crypto information
+            if (current.get_contents_crypto() != null) {
+                // GPG Encrypted
+                msg_encrypted = current.get_content_type().toLowerCase()
+                        .contains("application/pgp-encrypted");
 
-            @Override
-            public void onClick(View v) {
-                dialog_list_attachments();
+                // GPG Signed
+                msg_signed = current.get_content_type().toLowerCase()
+                        .contains("application/pgp-signature");
             }
-        });
 
-        // Setting the number of attachments
-        if (current.get_attachments() > 0) {
-            tv_page_attachments.setVisibility(View.VISIBLE);
-        } else {
-            tv_page_attachments.setVisibility(View.GONE);
-        }
+            Toolbar tb = findViewById(R.id.message_toolbar);
+            setSupportActionBar(tb);
 
-        TextView tv_from = (TextView) findViewById(R.id.message_from);
-        TextView tv_cc = (TextView) findViewById(R.id.message_cc);
-        TextView tv_bcc = (TextView) findViewById(R.id.message_bcc);
-        TextView tv_subject = (TextView) findViewById(R.id.message_subject);
-        TextView tv_date = (TextView) findViewById(R.id.message_date);
-        tv_contents = (TextView) findViewById(R.id.message_contents);
-        tv_texts = (TextView) findViewById(R.id.message_loop);
+            // Find the title
+            TextView tv_t;
+            for (int i = 0; i < tb.getChildCount(); ++i) {
+                int idd = tb.getChildAt(i).getId();
+                if (idd == -1) {
+                    tv_t = (TextView) tb.getChildAt(i);
+                    tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
+                    tv_t.setTypeface(Pager.tf);
+                    break;
+                }
+            }
 
-        // Setting the correct size
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        float sz = Float.parseFloat(prefs.getString("sett_msg_font_size", "100"));
-        tv_from.setTextSize(sz);
-        tv_cc.setTextSize(sz);
-        tv_bcc.setTextSize(sz);
-        tv_subject.setTextSize(sz);
-        tv_date.setTextSize(sz);
-        tv_contents.setTextSize(sz);
-        tv_texts.setOnClickListener(new View.OnClickListener() {
+            if (getSupportActionBar() != null) {
+                String s_title = getIntent().getExtras().getString("title");
+                if (s_title != null) getSupportActionBar().setTitle(s_title.toUpperCase());
+            }
 
-            @Override
-            public void onClick(View v) {
-                if (btn_texts_states.size() > 1 && btn_texts_ready) {
-                    btn_texts_ready = false;
-                    if (btn_texts_state == (btn_texts_states.size() - 1)) {
-                        btn_texts_state = 0;
-                    } else {
-                        ++btn_texts_state;
+            // Message Attachments Counter
+            tv_page_attachments = findViewById(R.id.message_attachments);
+            tv_page_attachments.setTypeface(Pager.tf);
+            tv_page_attachments.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    dialog_list_attachments();
+                }
+            });
+
+            // Setting the number of attachments
+            if (current.get_attachments() > 0) {
+                tv_page_attachments.setVisibility(View.VISIBLE);
+            } else {
+                tv_page_attachments.setVisibility(View.GONE);
+            }
+
+            TextView tv_from = findViewById(R.id.message_from);
+            TextView tv_cc = findViewById(R.id.message_cc);
+            TextView tv_bcc = findViewById(R.id.message_bcc);
+            TextView tv_subject = findViewById(R.id.message_subject);
+            TextView tv_date = findViewById(R.id.message_date);
+            tv_contents = findViewById(R.id.message_contents);
+            tv_texts = findViewById(R.id.message_loop);
+
+            // Setting the correct size
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            float sz = Float.parseFloat(prefs.getString("sett_msg_font_size", "100"));
+            tv_from.setTextSize(sz);
+            tv_cc.setTextSize(sz);
+            tv_bcc.setTextSize(sz);
+            tv_subject.setTextSize(sz);
+            tv_date.setTextSize(sz);
+            tv_contents.setTextSize(sz);
+            tv_texts.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (btn_texts_states.size() > 1 && btn_texts_ready) {
+                        btn_texts_ready = false;
+                        if (btn_texts_state == (btn_texts_states.size() - 1)) {
+                            btn_texts_state = 0;
+                        } else {
+                            ++btn_texts_state;
+                        }
+                        populate_contents();
                     }
-                    populate_contents();
                 }
-            }
-        });
+            });
 
-        TextView tv_from_title = (TextView) findViewById(R.id.message_from_title);
-        tv_from_title.setOnClickListener(new View.OnClickListener() {
+            TextView tv_from_title = findViewById(R.id.message_from_title);
+            tv_from_title.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                dialog_originating();
-            }
-        });
-
-        // Insert the data
-        tv_from.setText(current.get_from());
-        if (current.get_cc() == null) {
-            tv_cc.setVisibility(View.GONE);
-            findViewById(R.id.message_cc_title).setVisibility(View.GONE);
-        } else {
-            tv_cc.setText(current.get_cc());
-        }
-        if (current.get_bcc() == null) {
-            tv_bcc.setVisibility(View.GONE);
-            findViewById(R.id.message_bcc_title).setVisibility(View.GONE);
-        } else {
-            tv_bcc.setText(current.get_bcc());
-        }
-        tv_subject.setText(current.get_subject());
-        tv_date.setText(current.get_date());
-
-        // Counting the states of the texts' button
-        set_btn_texts();
-
-        // Setting up the SSL authentication application
-        iv_ssl_auth = (ImageView) findViewById(R.id.ssl_auth_img_vw);
-        iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_servers();
-            }
-        });
-
-        // Set unseen -> seen
-        if (!(current.get_seen())) {
-            db.seen_unseen_message(current.get_account(), current.get_uid(), true);
-        }
-
-        // GPG crypto activity
-        iv_gpg_crypto = (ImageView) findViewById(R.id.iv_gpg_crypto);
-        iv_gpg_crypto.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if (!crypto_locked && crypto_package()) {
-                    gpg_crypto_start();
+                @Override
+                public void onClick(View v) {
+                    dialog_originating();
                 }
+            });
+
+            // Insert the data
+            tv_from.setText(current.get_from());
+            if (current.get_cc() == null) {
+                tv_cc.setVisibility(View.GONE);
+                findViewById(R.id.message_cc_title).setVisibility(View.GONE);
+            } else {
+                tv_cc.setText(current.get_cc());
             }
-        });
-        if (current.get_contents_crypto() != null) {
-            iv_gpg_crypto.setVisibility(View.VISIBLE);
-        } else {
-            iv_gpg_crypto.setVisibility(View.GONE);
+            if (current.get_bcc() == null) {
+                tv_bcc.setVisibility(View.GONE);
+                findViewById(R.id.message_bcc_title).setVisibility(View.GONE);
+            } else {
+                tv_bcc.setText(current.get_bcc());
+            }
+            tv_subject.setText(current.get_subject());
+            tv_date.setText(current.get_date());
+
+            // Counting the states of the texts' button
+            set_btn_texts();
+
+            // Setting up the SSL authentication application
+            iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
+            iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    dialog_servers();
+                }
+            });
+
+            // Set unseen -> seen
+            if (!(current.get_seen())) {
+                db.seen_unseen_message(current.get_account(), current.get_uid(), true);
+            }
+
+            // GPG crypto activity
+            iv_gpg_crypto = findViewById(R.id.iv_gpg_crypto);
+            iv_gpg_crypto.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (!crypto_locked && crypto_package()) {
+                        gpg_crypto_start();
+                    }
+                }
+            });
+            if (current.get_contents_crypto() != null) {
+                iv_gpg_crypto.setVisibility(View.VISIBLE);
+            } else {
+                iv_gpg_crypto.setVisibility(View.GONE);
+            }
+        } catch (Exception e) {
+            Pager.log += e.getMessage() + "\n\n";
+            finish();
         }
     }
 
@@ -335,7 +356,7 @@ public class InboxMessage extends AppCompatActivity {
             }
             if (msg_signature != null && msg_signature.length() > 0) {
                 final AppCompatActivity ct = this;
-                ImageView iv_gpg_signature = (ImageView) findViewById(R.id.iv_gpg_signature);
+                ImageView iv_gpg_signature = findViewById(R.id.iv_gpg_signature);
                 iv_gpg_signature.setVisibility(View.VISIBLE);
                 iv_gpg_signature.setOnClickListener(new View.OnClickListener() {
 
@@ -347,6 +368,23 @@ public class InboxMessage extends AppCompatActivity {
                 });
             }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle save) {
+        super.onSaveInstanceState(save);
+        save.putInt("sv_current_inbox", current_inbox);
+        save.putBoolean("sv_crypto_locked", crypto_locked);
+        save.putBoolean("sv_msg_encrypted", msg_encrypted);
+        save.putBoolean("sv_msg_signed", msg_signed);
+        save.putString("sv_msg_contents", msg_contents);
+        save.putString("sv_msg_signature", msg_signature);
+        save.putBoolean("sv_imap_or_pop", imap_or_pop);
+        save.putBoolean("sv_no_send", no_send);
+        save.putBoolean("sv_good_incoming_server", good_incoming_server);
+        save.putBoolean("sv_btn_texts_ready", btn_texts_ready);
+        save.putInt("sv_btn_texts_state", btn_texts_state);
+        save.putBoolean("sv_save_in_db", save_in_db);
     }
 
     @Override
@@ -760,31 +798,31 @@ public class InboxMessage extends AppCompatActivity {
      **/
     private void full_message_tests() {
         // Cannot write to this folder, android permissions not set to enabled
-        if (!check_writable()) {
+        if (check_writable()) {
+            // Cannot write to this folder, permissions on the device
+            if (!chosen_folder.canWrite()) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getString(R.string.err_title_write_perms));
+                builder.setMessage(getString(R.string.err_msg_write_perms));
+                builder.setPositiveButton(getString(android.R.string.ok), null);
+                builder.show();
+                return;
+            }
+
+            // Not enough space, and also not an exact calculation
+            int file_size = current.get_size();
+            if (chosen_folder.getUsableSpace() < file_size) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getString(R.string.err_title_no_space));
+                builder.setMessage(getString(R.string.err_msg_no_space));
+                builder.setPositiveButton(getString(android.R.string.ok), null);
+                builder.show();
+                return;
+            }
+        } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(getString(R.string.err_title_android_permission));
             builder.setMessage(getString(R.string.err_msg_android_permission));
-            builder.setPositiveButton(getString(android.R.string.ok), null);
-            builder.show();
-            return;
-        }
-
-        // Cannot write to this folder, permissions on the device
-        if (!chosen_folder.canWrite()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.err_title_write_perms));
-            builder.setMessage(getString(R.string.err_msg_write_perms));
-            builder.setPositiveButton(getString(android.R.string.ok), null);
-            builder.show();
-            return;
-        }
-
-        // Not enough space, and also not an exact calculation
-        int file_size = current.get_size();
-        if (chosen_folder.getUsableSpace() < file_size) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.err_title_no_space));
-            builder.setMessage(getString(R.string.err_msg_no_space));
             builder.setPositiveButton(getString(android.R.string.ok), null);
             builder.show();
             return;
@@ -825,8 +863,8 @@ public class InboxMessage extends AppCompatActivity {
     }
 
     private boolean check_writable() {
-        int res = checkCallingOrSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE");
-        return (res == PackageManager.PERMISSION_GRANTED);
+        return (checkCallingOrSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE")
+                == PackageManager.PERMISSION_GRANTED);
     }
 
     private void start_saving_attachment() {

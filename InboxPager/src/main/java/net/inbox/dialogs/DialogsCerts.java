@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -54,12 +54,12 @@ public class DialogsCerts {
     }
 
     private static void build_certs_info(final AppCompatActivity act, View layout) {
-        ViewPager v_pager = (ViewPager) layout.findViewById(R.id.v_pager);
+        ViewPager v_pager = layout.findViewById(R.id.v_pager);
 
         NodeAdapter nd_adapter = new NodeAdapter(hops, act.getLayoutInflater());
         v_pager.setAdapter(nd_adapter);
         v_pager.setCurrentItem(0);
-        v_pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        v_pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
             @Override
             public void onPageSelected(int position) {
@@ -76,7 +76,7 @@ public class DialogsCerts {
             public void onPageScrollStateChanged(int arg0) {}
         });
 
-        LinearLayout llay_hops = (LinearLayout) layout.findViewById(R.id.v_pager_dots);
+        LinearLayout llay_hops = layout.findViewById(R.id.v_pager_dots);
         nd_num = nd_adapter.getCount();
         tv_nd = new TextView[nd_num];
 
@@ -107,25 +107,25 @@ class NodeAdapter extends PagerAdapter {
 
         View view = lay_inflate.inflate(R.layout.session_info_row, vg, false);
 
-        ImageView tv_01 = (ImageView) view.findViewById(R.id.tv_this_device_img);
-        TextView tv_02 = (TextView) view.findViewById(R.id.tv_this_device_title);
+        ImageView tv_01 = view.findViewById(R.id.tv_this_device_img);
+        TextView tv_02 = view.findViewById(R.id.tv_this_device_title);
 
-        TextView tv_03 = (TextView) view.findViewById(R.id.tv_name_title);
-        TextView tv_04 = (TextView) view.findViewById(R.id.tv_name);
-        TextView tv_05 = (TextView) view.findViewById(R.id.tv_organization_title);
-        TextView tv_06 = (TextView) view.findViewById(R.id.tv_organization);
-        TextView tv_07 = (TextView) view.findViewById(R.id.tv_type_title);
-        TextView tv_08 = (TextView) view.findViewById(R.id.tv_type);
-        TextView tv_09 = (TextView) view.findViewById(R.id.tv_location_title);
-        TextView tv_10 = (TextView) view.findViewById(R.id.tv_location);
-        TextView tv_11 = (TextView) view.findViewById(R.id.tv_state_title);
-        TextView tv_12 = (TextView) view.findViewById(R.id.tv_state);
-        TextView tv_13 = (TextView) view.findViewById(R.id.tv_country_title);
-        TextView tv_14 = (TextView) view.findViewById(R.id.tv_country);
-        TextView tv_15 = (TextView) view.findViewById(R.id.tv_security_title);
-        TextView tv_16 = (TextView) view.findViewById(R.id.tv_security);
-        TextView tv_17 = (TextView) view.findViewById(R.id.tv_key_size_title);
-        TextView tv_18 = (TextView) view.findViewById(R.id.tv_key_size);
+        TextView tv_03 = view.findViewById(R.id.tv_name_title);
+        TextView tv_04 = view.findViewById(R.id.tv_name);
+        TextView tv_05 = view.findViewById(R.id.tv_organization_title);
+        TextView tv_06 = view.findViewById(R.id.tv_organization);
+        TextView tv_07 = view.findViewById(R.id.tv_type_title);
+        TextView tv_08 = view.findViewById(R.id.tv_type);
+        TextView tv_09 = view.findViewById(R.id.tv_location_title);
+        TextView tv_10 = view.findViewById(R.id.tv_location);
+        TextView tv_11 = view.findViewById(R.id.tv_state_title);
+        TextView tv_12 = view.findViewById(R.id.tv_state);
+        TextView tv_13 = view.findViewById(R.id.tv_country_title);
+        TextView tv_14 = view.findViewById(R.id.tv_country);
+        TextView tv_15 = view.findViewById(R.id.tv_security_title);
+        TextView tv_16 = view.findViewById(R.id.tv_security);
+        TextView tv_17 = view.findViewById(R.id.tv_key_size_title);
+        TextView tv_18 = view.findViewById(R.id.tv_key_size);
 
         if (position == 0) {
             tv_01.setVisibility(View.VISIBLE);

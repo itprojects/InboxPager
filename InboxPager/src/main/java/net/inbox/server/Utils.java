@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -303,10 +303,10 @@ public class Utils {
         for (int i = 0;i < str_attach[1].length();++i) {
             if (str_attach[1].charAt(i) == '\"') {
                 ++ii;
-                if (ii == 2) type += "/";
+                if (ii == 2) type = type.concat("/");
             } else {
                 if (ii == 1 || ii == 3) {
-                    type += Character.toString(str_attach[1].charAt(i));
+                    type = type.concat(Character.toString(str_attach[1].charAt(i)));
                 }
             }
         }
@@ -506,15 +506,18 @@ public class Utils {
                             multiline = item.type.endsWith(";");
                             break;
                         case 2:
-                            item.transfer_encoding += t.replaceAll("\r", "").trim();
+                            item.transfer_encoding = item.transfer_encoding.concat(
+                                    t.replaceAll("\r", "").trim());
                             multiline = item.transfer_encoding.endsWith(";");
                             break;
                         case 3:
-                            item.disposition += t.replaceAll("\r", "").trim();
+                            item.disposition = item.disposition.concat(
+                                    t.replaceAll("\r", "").trim());
                             multiline = item.disposition.endsWith(";");
                             break;
                         case 4:
-                            item.description += t.replaceAll("\r", "").trim();
+                            item.description = item.description.concat(
+                                    t.replaceAll("\r", "").trim());
                             multiline = item.description.endsWith(";");
                             break;
                     }
@@ -552,9 +555,9 @@ public class Utils {
                         p.sequence[l] = null;
                     } else {
                         if (l == 0) {
-                            p.index += String.valueOf(p.sequence[l]);
+                            p.index = p.index.concat(String.valueOf(p.sequence[l]));
                         } else {
-                            p.index += "." + String.valueOf(p.sequence[l]);
+                            p.index = p.index.concat("." + String.valueOf(p.sequence[l]));
                         }
                     }
                 }
@@ -716,7 +719,7 @@ public class Utils {
                 if (arr[4].equalsIgnoreCase("BASE64")) {
                     for (int j = 0;j < txt_tmp.length();++j) {
                         if (txt_tmp.charAt(j) == '\n') {
-                            str += Utils.parse_BASE64(hold);
+                            str = str.concat(Utils.parse_BASE64(hold));
                         } else if (txt_tmp.charAt(j) != '\r' && txt_tmp.charAt(j) != '\t') {
                             hold += Character.toString(txt_tmp.charAt(j));
                         }
@@ -750,7 +753,7 @@ public class Utils {
                     semi_col = true;
                 } else break;
             } else if (semi_col) {
-                ct += st;
+                ct = ct.concat(st);
                 if (ct.endsWith(";")) {
                     semi_col = true;
                 } else break;
@@ -765,7 +768,7 @@ public class Utils {
         str_arr = ct.split(";");
         for (String t : str_arr) {
             if (t.toLowerCase().contains("boundary=")) {
-                boundary += t.trim().substring(9).replaceAll("\"", "");
+                boundary = boundary.concat(t.trim().substring(9).replaceAll("\"", ""));
             }
         }
 
@@ -789,7 +792,7 @@ public class Utils {
                 if (s.charAt(i + 1) == '=') continue;
                 if (s.charAt(i + 1) == '?' && !in_bracket) {
                     if (sb.length() > 0) {
-                        ret += parse_line_B64_QP(sb.toString());
+                        ret = ret.concat(parse_line_B64_QP(sb.toString()));
                         sb.setLength(0);
                     }
                     sb.append(s.charAt(i));
@@ -803,7 +806,7 @@ public class Utils {
                 if (s.charAt(i + 1) == '=') {
                     sb.append(s.charAt(++i));
                     in_bracket = false;
-                    ret += parse_line_B64_QP(sb.toString());
+                    ret = ret.concat(parse_line_B64_QP(sb.toString()));
                     sb.setLength(0);
                 } else if (s.charAt(i + 1) == 'B' || s.charAt(i + 1) == 'b'
                         || s.charAt(i + 1) == 'Q' || s.charAt(i + 1) == 'q') {
@@ -829,9 +832,9 @@ public class Utils {
         String ret = "";
         String[] st = s.split("\r\n");
         for (String tmp : st) {
-            ret += new String(Base64.decode(tmp.replaceAll("\r", "")
+            ret = ret.concat(new String(Base64.decode(tmp.replaceAll("\r", "")
                     .replaceAll("\n", "")
-                    .replaceAll("=", ""), Base64.DEFAULT));
+                    .replaceAll("=", ""), Base64.DEFAULT)));
         }
         return ret;
     }

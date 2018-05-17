@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  I.T.
  * <p/>
@@ -220,7 +220,7 @@ public class IMAP extends Handler {
                                 if (i == (data.auths.size() - 1)) {
                                     tested += data.auths.get(i).toUpperCase();
                                 } else {
-                                    tested += data.auths.get(i).toUpperCase() + ", ";
+                                    tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
                                 }
                             }
                             tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
@@ -228,7 +228,7 @@ public class IMAP extends Handler {
                                 if (i == (data.general.size() - 1)) {
                                     tested += data.general.get(i).toUpperCase();
                                 } else {
-                                    tested += data.general.get(i).toUpperCase() + ", ";
+                                    tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
                                 }
                             }
                         }
@@ -959,7 +959,7 @@ public class IMAP extends Handler {
                     pat = Pattern.compile("Received:(.*)",
                             Pattern.CASE_INSENSITIVE);
                     mat = pat.matcher(rows[i]);
-                    if (mat.matches()) received += rows[i].trim() + "\n";
+                    if (mat.matches()) received = received.concat(rows[i].trim() + "\n");
                 } else if (sto.startsWith("to:")) {
                     str_tmp = rows[i].substring(3).trim();
                     if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
@@ -1064,9 +1064,9 @@ public class IMAP extends Handler {
                     cmd_tmp = "(";
                     for (int k = 0;k < arr_tmp.length;++k) {
                         if ((k + 1) == arr_tmp.length) {
-                            cmd_tmp += "BODY[" + arr_tmp[k] + "])";
+                            cmd_tmp = cmd_tmp.concat("BODY[" + arr_tmp[k] + "])");
                         } else {
-                            cmd_tmp += "BODY[" + arr_tmp[k] + "] ";
+                            cmd_tmp = cmd_tmp.concat("BODY[" + arr_tmp[k] + "] ");
                         }
                     }
                     write(tag + " UID FETCH " + data.msg_current.get_uid() + " " +  cmd_tmp);

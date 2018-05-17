@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -61,7 +61,7 @@ class InboxMessageList extends BaseAdapter {
         }
 
         InboxMessageListItem itm = msg_s.get(position);
-        TextView tv_title = (TextView) v.findViewById(R.id.message_list_title);
+        TextView tv_title = v.findViewById(R.id.message_list_title);
         if (itm.get_seen()) {
             (v.findViewById(R.id.message_list_title_unseen_mark)).setVisibility(View.GONE);
         } else {
@@ -69,10 +69,10 @@ class InboxMessageList extends BaseAdapter {
         }
         tv_title.setText(itm.get_subject());
         tv_title.invalidate();
-        TextView tv_subtitle = (TextView) v.findViewById(R.id.message_list_subtitle);
+        TextView tv_subtitle = v.findViewById(R.id.message_list_subtitle);
         tv_subtitle.setText(itm.get_subtitle());
-        ImageView iv_att = (ImageView) v.findViewById(R.id.message_list_attachments_img);
-        TextView tv_att = (TextView) v.findViewById(R.id.message_list_attachments);
+        ImageView iv_att = v.findViewById(R.id.message_list_attachments_img);
+        TextView tv_att = v.findViewById(R.id.message_list_attachments);
         tv_att.setTypeface(tf);
         if (itm.get_attachments() < 1) {
             iv_att.setVisibility(View.GONE);

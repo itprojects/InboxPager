@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -37,7 +37,6 @@ import android.widget.TextView;
 public class SettingsFragment extends PreferenceFragment {
 
     private boolean dialog_choice = false;
-    private boolean dialog_start = true;
     private AlertDialog dialog_pw;
     private SharedPreferences prefs;
 
@@ -47,15 +46,17 @@ public class SettingsFragment extends PreferenceFragment {
         addPreferencesFromResource(R.xml.settings);
 
         Preference p1 = getPreferenceManager().findPreference("change_pw");
-        p1.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        if (p1 != null) {
+            p1.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
 
-            @Override
-            public boolean onPreferenceClick(Preference p2) {
-                prefs = PreferenceManager.getDefaultSharedPreferences(p2.getContext());
-                dialog_pw(p2.getContext());
-                return true;
-            }
-        });
+                @Override
+                public boolean onPreferenceClick(Preference p2) {
+                    prefs = PreferenceManager.getDefaultSharedPreferences(p2.getContext());
+                    dialog_pw(p2.getContext());
+                    return true;
+                }
+            });
+        }
     }
 
     private void dialog_pw(final Context ctx) {
@@ -64,11 +65,11 @@ public class SettingsFragment extends PreferenceFragment {
         final ViewGroup vg = (ViewGroup) ((ViewGroup) getActivity()
                 .findViewById(android.R.id.content)).getChildAt(0);
         View v = (LayoutInflater.from(ctx)).inflate(R.layout.pw, vg, false);
-        final CheckBox cb_enabled = (CheckBox) v.findViewById(R.id.cb_pw_enable);
-        final TextView tv_description = (TextView) v.findViewById(R.id.tv_description);
-        final EditText et_pw = (EditText) v.findViewById(R.id.et_pw);
+        final Switch sw_enabled = v.findViewById(R.id.sw_pw_enable);
+        final TextView tv_description = v.findViewById(R.id.tv_description);
+        final EditText et_pw = v.findViewById(R.id.et_pw);
         et_pw.setHint(getString(R.string.sett_change_pw_new));
-        final CheckBox cb_pw = (CheckBox) v.findViewById(R.id.cb_pw);
+        final CheckBox cb_pw = v.findViewById(R.id.cb_pw);
         cb_pw.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
 
             @Override
@@ -81,31 +82,25 @@ public class SettingsFragment extends PreferenceFragment {
                 }
             }
         });
-        final TextView tv_enabled = (TextView) v.findViewById(R.id.tv_enabled);
-        tv_enabled.setOnClickListener(new TextView.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if (dialog_start) {
-                    if (prefs.getBoolean("enable_pw", false)) {
-                        tv_description.setVisibility(View.GONE);
-                        et_pw.setVisibility(View.GONE);
-                        cb_pw.setVisibility(View.GONE);
-                        prefs.edit().putBoolean("enable_pw", false).apply();
-                        Pager.get_db().rekey_db("cleartext");
-                        et_pw.setText("");
-                        cb_pw.setChecked(false);
-                        dialog_pw.dismiss();
-                    } else {
-                        tv_description.setVisibility(View.VISIBLE);
-                        et_pw.setVisibility(View.VISIBLE);
-                        cb_pw.setVisibility(View.VISIBLE);
-                        dialog_choice = true;
-                    }
-                    dialog_start = false;
+        sw_enabled.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton cb, boolean isChecked) {
+                if (isChecked) {
+                    tv_description.setVisibility(View.VISIBLE);
+                    et_pw.setVisibility(View.VISIBLE);
+                    cb_pw.setVisibility(View.VISIBLE);
+                    dialog_choice = true;
+                } else {
+                    tv_description.setVisibility(View.GONE);
+                    et_pw.setVisibility(View.GONE);
+                    cb_pw.setVisibility(View.GONE);
+                    prefs.edit().putBoolean("enable_pw", false).apply();
+                    Pager.get_db().rekey_db("cleartext");
+                    et_pw.setText("");
+                    cb_pw.setChecked(false);
                 }
             }
         });
+
         builder.setView(v);
         builder.setCancelable(false);
         builder.setPositiveButton(getString(android.R.string.ok), null);
@@ -113,12 +108,12 @@ public class SettingsFragment extends PreferenceFragment {
 
         // Set initial conditions
         if (prefs.getBoolean("enable_pw", false)) {
-            cb_enabled.setChecked(true);
+            sw_enabled.setChecked(true);
             tv_description.setVisibility(View.VISIBLE);
             et_pw.setVisibility(View.VISIBLE);
             cb_pw.setVisibility(View.VISIBLE);
         } else {
-            cb_enabled.setChecked(false);
+            sw_enabled.setChecked(false);
             tv_description.setVisibility(View.GONE);
             et_pw.setVisibility(View.GONE);
             cb_pw.setVisibility(View.GONE);
@@ -133,15 +128,20 @@ public class SettingsFragment extends PreferenceFragment {
 
                 //dialog_choice = 0;1 - true , 2 - false
                 if (dialog_choice) {
-                    if (et_pw.getText().toString().length() < 12) {
+                    if (!sw_enabled.isChecked()) {
+                        prefs.edit().putBoolean("enable_pw", false).apply();
+                        Pager.get_db().rekey_db("cleartext");
+                        if (dialog_pw != null) dialog_pw.dismiss();
+                    } else if (et_pw.getText().toString().length() < 12) {
                         et_pw.setTextColor(Color.parseColor("#BA0C0C"));
                         et_pw.setHintTextColor(Color.parseColor("#BA0C0C"));
+                        tv_description.setTextColor(Color.parseColor("#BA0C0C"));
                     } else {
                         prefs.edit().putBoolean("enable_pw", true).apply();
                         Pager.get_db().rekey_db(et_pw.getText().toString());
                         et_pw.setText("");
                         cb_pw.setChecked(true);
-                        dialog_pw.dismiss();
+                        if (dialog_pw != null) dialog_pw.dismiss();
                     }
                 }
             }

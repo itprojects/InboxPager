@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -56,11 +56,13 @@ public class InboxUI extends AppCompatActivity {
     private ListView msg_list_view;
     private ImageView iv_ssl_auth;
 
-    private boolean good_incoming_server = false;
-
     // Reflect new unseen count changes
     private boolean change_unseen = false;
     private boolean msg_item_unseen = false;
+
+    private boolean good_incoming_server = false;
+
+    private int current_inbox = -2;
 
     private Inbox current;
 
@@ -69,69 +71,77 @@ public class InboxUI extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.inbox);
 
-        // Get the database
-        db = Pager.get_db();
+        try {
+            // Get the database
+            db = Pager.get_db();
 
-        current = db.get_account(getIntent().getExtras().getInt("db_id"));
-
-        Toolbar tb = (Toolbar) findViewById(R.id.inbox_toolbar);
-        setSupportActionBar(tb);
-
-        // Find the title
-        TextView tv_t;
-        for (int i = 0; i < tb.getChildCount(); ++i) {
-            int idd = tb.getChildAt(i).getId();
-            if (idd == -1) {
-                tv_t = (TextView) tb.getChildAt(i);
-                tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
-                tv_t.setTypeface(Pager.tf);
-                tv_t.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        dialog_statistical();
-                    }
-                });
-                break;
+            // Restore existing state
+            if (savedInstanceState != null) {
+                change_unseen = savedInstanceState.getBoolean("sv_change_unseen");
+                msg_item_unseen = savedInstanceState.getBoolean("sv_msg_item_unseen");
+                good_incoming_server = savedInstanceState.getBoolean("sv_good_incoming_server");
+                current_inbox = savedInstanceState.getInt("sv_current_inbox");
+            } else {
+                current_inbox = getIntent().getExtras().getInt("db_id");
             }
+
+            current = db.get_account(current_inbox);
+
+            Toolbar tb = findViewById(R.id.inbox_toolbar);
+            setSupportActionBar(tb);
+
+            // Find the title
+            TextView tv_t;
+            for (int i = 0; i < tb.getChildCount(); ++i) {
+                int idd = tb.getChildAt(i).getId();
+                if (idd == -1) {
+                    tv_t = (TextView) tb.getChildAt(i);
+                    tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
+                    tv_t.setTypeface(Pager.tf);
+                    break;
+                }
+            }
+
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle(current.get_email().toUpperCase());
+            }
+
+            // Unread Messages Counter
+            tv_page_counter = findViewById(R.id.inbox_page_counter);
+            tv_page_counter.setTypeface(Pager.tf);
+            tv_page_counter.setVisibility(View.GONE);
+
+            // No accounts message is visible if the user has not init-ed the app
+            tv_no_account = findViewById(R.id.no_messages);
+            tv_no_account.setTypeface(Pager.tf);
+
+            // Refresh mailbox button
+            ImageButton ib_refresh = findViewById(R.id.refresh);
+            ib_refresh.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    refresh_mailbox();
+                }
+            });
+
+            // Setting up the SSL authentication application
+            iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
+            iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    dialog_servers();
+                }
+            });
+
+            // Filling the ListView of the current inbox window
+            msg_list_view = findViewById(R.id.msg_list_view);
+            populate_list_view();
+        } catch (Exception e) {
+            Pager.log += e.getMessage() + "\n\n";
+            finish();
         }
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(current.get_email().toUpperCase());
-        }
-
-        // Unread Messages Counter
-        tv_page_counter = (TextView) findViewById(R.id.inbox_page_counter);
-        tv_page_counter.setTypeface(Pager.tf);
-        tv_page_counter.setVisibility(View.GONE);
-
-        // No accounts message is visible if the user has not init-ed the app
-        tv_no_account = (TextView) findViewById(R.id.no_messages);
-        tv_no_account.setTypeface(Pager.tf);
-
-        // Refresh mailbox button
-        ImageButton ib_refresh = (ImageButton) findViewById(R.id.refresh);
-        ib_refresh.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                refresh_mailbox();
-            }
-        });
-
-        // Setting up the SSL authentication application
-        iv_ssl_auth = (ImageView) findViewById(R.id.ssl_auth_img_vw);
-        iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_servers();
-            }
-        });
-
-        // Filling the ListView of the current inbox window
-        msg_list_view = (ListView) findViewById(R.id.msg_list_view);
-        populate_list_view();
     }
 
     @Override
@@ -163,6 +173,9 @@ public class InboxUI extends AppCompatActivity {
                 break;
             case R.id.log_menu:
                 Dialogs.dialog_view_log(this);
+                break;
+            case R.id.status_menu:
+                dialog_statistical();
                 break;
             case R.id.defaults_menu:
                 Intent i = new Intent(getApplicationContext(), InboxPreferences.class);
@@ -205,6 +218,15 @@ public class InboxUI extends AppCompatActivity {
         } else if (resultCode == 1010101) {
             populate_list_view();
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle save) {
+        super.onSaveInstanceState(save);
+        save.putBoolean("sv_change_unseen", change_unseen);
+        save.putBoolean("sv_msg_item_unseen", msg_item_unseen);
+        save.putBoolean("sv_good_incoming_server", good_incoming_server);
+        save.putInt("sv_current_inbox", current_inbox);
     }
 
     @Override
@@ -321,7 +343,7 @@ public class InboxUI extends AppCompatActivity {
         String total_size = "";
         if (sz < 1024) {
             total_size += sz + " " + getString(R.string.attch_bytes);
-        } else if (sz >= 1024 && sz < 1048576) {
+        } else if (sz < 1048576) {
             total_size += (sz/1024) + " " + getString(R.string.attch_kilobytes);
         } else {
             total_size += (sz/1048576) + " " + getString(R.string.attch_megabytes);

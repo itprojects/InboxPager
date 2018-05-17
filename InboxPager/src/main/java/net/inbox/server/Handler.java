@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  I.T.
  * <p/>
@@ -202,11 +202,11 @@ public abstract class Handler extends Thread {
      * Command Line or Reply Line = 512 (with \r\n).
      * Text Line = 1000 (with \r\n).
      **/
-    void write_limited(char[] arr, int limit) {
+    void write_limited(char[] arr) {
         boolean cr = false;
         StringBuilder sb_write_out = new StringBuilder();
         for (char b : arr) {
-            if (sb_write_out.length() > limit) {
+            if (sb_write_out.length() > 500) {
                 write(sb_write_out.toString());
                 sb_write_out.setLength(0);
             }
@@ -255,7 +255,7 @@ public abstract class Handler extends Thread {
         // Dismiss the spinning dialog
         Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         if (!multiple) {
-            sp.unblock = true;
+            if (sp != null) sp.unblock = true;
             Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
 
             // Connection icon update

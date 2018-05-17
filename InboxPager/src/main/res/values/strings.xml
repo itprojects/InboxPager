@@ -1,7 +1,7 @@
 <resources>
 
     <string name="app_name">Inbox Pager</string>
-    <string name="author">Copyright &#169; 2016 &#8211; 2017  ITPROJECTS</string>
+    <string name="author">Copyright &#169; 2016 &#8211; 2018  ITPROJECTS</string>
     <string name="disclaimer">DISCLAIMER:\n</string>
     <string name="disclaimer_text">The author(s) of this software are not liable for ANY damages that this software may cause - accidental or otherwise, under ANY and EVERY law or regulation, and in ANY and EVERY country or territory of the world.
     </string>
@@ -109,7 +109,7 @@
     <string name="err_title_already_exists">File Already Exists</string>
     <string name="err_msg_already_exists">Would you like to replace this file? If you cancel, then no download.</string>
     <string name="err_title_android_permission">Android Permissions</string>
-    <string name="err_msg_android_permission">You forgot to enable android storage writing permissions from Settings > Applications > THIS APP > Permissions.</string>
+    <string name="err_msg_android_permission">You forgot to enable android storage access permissions from Settings > Applications > THIS APP > Permissions.</string>
     <string name="err_wrong_user_or_pass">Wrong user name or password</string>
     <string name="err_no_file_manager">A file manager is required, to add attachments.</string>
     <string name="err_read_file">You do not have the permission to read this file.</string>
@@ -156,13 +156,14 @@
     <string name="menu_all_seen">All Read</string>
     <string name="menu_new_msg">Send Message</string>
     <string name="menu_log">Event Log</string>
+    <string name="menu_status">Status</string>
     <string name="menu_port_consideration_title">Confirm Port</string>
     <string name="menu_port_consideration_dialog">Are you sure this is the correct port?</string>
     <string name="menu_delete_account_dialog_title">Confirm Deletion</string>
     <string name="menu_delete_account_dialog">Are you sure you want to delete this account?</string>
     <string name="menu_switch_pop_imap_title">Confirm Switch</string>
     <string name="menu_switch_pop_imap_dialog">Switching between IMAP and POP requires all local messages to be deleted and then added from the server. Continue?</string>
-    <string name="ssl_auth_popup_title">Connection INFO</string>
+    <string name="ssl_auth_popup_title">Last Connection</string>
     <string name="ssl_auth_popup_you">You, this device.</string>
     <string name="ssl_auth_popup_transport">SECURITY</string>
     <string name="ssl_auth_popup_key_size">KEY SIZE</string>
@@ -186,7 +187,8 @@
     <string name="edit_account_incoming_server_port_hint_pop" translatable="false">995</string>
     <string name="edit_account_incoming_server_hint_imap">imap.example.com</string>
     <string name="edit_account_incoming_server_port_hint_imap" translatable="false">993</string>
-    <string name="edit_account_imap_or_pop_switch">IMAP-POP</string>
+    <string name="edit_account_imap_or_pop_switchOn">IMAP  pop</string>
+    <string name="edit_account_imap_or_pop_switchOff">POP  imap</string>
     <string name="edit_account_imap_or_pop_on">IMAP</string>
     <string name="edit_account_imap_or_pop_off">POP</string>
     <string name="edit_account_smtp">SMTP</string>
@@ -279,7 +281,7 @@
     <string name="sett_msg_font_size_summary">Font size for the fields, when viewing a message.</string>
     <string name="sett_change_pw_title">Security Alteration</string>
     <string name="sett_change_pw_summary">Set or change internal database password, or deactivate protection.</string>
-    <string name="sett_change_pw_enable">ENABLE/DISABLE\tProtection</string>
+    <string name="sett_change_pw_enable">Require Password</string>
     <string name="sett_change_pw_new">NEW PASSWORD</string>
     <string name="sett_change_pw_visible">VISIBLE PASSWORD</string>
     <string name="sett_change_pw_text">Minimum 12 characters long.</string>

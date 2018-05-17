@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -32,7 +32,7 @@ public class InboxList extends BaseAdapter {
     private ArrayList<InboxListItem> inboxes;
     private Typeface tf;
 
-    public InboxList(Context ctx, ArrayList<InboxListItem> inboxes) {
+    InboxList(Context ctx, ArrayList<InboxListItem> inboxes) {
         this.ctx = ctx;
         this.inboxes = inboxes;
         this.tf = Pager.tf;
@@ -60,9 +60,9 @@ public class InboxList extends BaseAdapter {
         }
 
         InboxListItem itm = (InboxListItem) getItem(position);
-        TextView tv_title = (TextView) v.findViewById(R.id.inbox_list_title);
+        TextView tv_title = v.findViewById(R.id.inbox_list_title);
         tv_title.setText(itm.get_inbox());
-        TextView tv_count = (TextView) v.findViewById(R.id.inbox_list_count);
+        TextView tv_count = v.findViewById(R.id.inbox_list_count);
         tv_count.setTypeface(tf);
         if (Integer.valueOf(itm.get_count()) < 1) {
             tv_count.setVisibility(View.GONE);
@@ -81,7 +81,7 @@ class InboxListItem {
     private String inbox_name;
     private String count;
 
-    public InboxListItem(int i, String si, int ic) {
+    InboxListItem(int i, String si, int ic) {
         this.id = i;
         this.inbox_name = si;
         set_count(ic);
@@ -99,15 +99,19 @@ class InboxListItem {
         return count;
     }
 
+    /*
     public void set_id(int i) {
         id = i;
     }
+    */
 
+    /*
     public void set_inbox(String s) {
         inbox_name = s;
     }
+    */
 
-    public void set_count(int i) {
+    private void set_count(int i) {
         if (i < 1) {
             count = "000";
         } else {

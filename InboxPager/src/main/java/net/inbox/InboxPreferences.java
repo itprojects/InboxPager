@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -26,6 +26,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -47,11 +49,14 @@ import java.util.HashMap;
 
 public class InboxPreferences extends AppCompatActivity {
 
-    private boolean add_mode;
+    private DBAccess db;
+
+    // Adding or editing account
+    private boolean add_mode = false;
 
     // Used in switching IMAP/POP
-    private boolean initial_switch_value;
-    private int initial_imap_or_pop_port;
+    private boolean initial_switch_value = false;
+    private int initial_imap_or_pop_port = -1;
 
     private EditText et_email;
     private EditText et_username;
@@ -66,11 +71,11 @@ public class InboxPreferences extends AppCompatActivity {
     private CheckBox cb_always_ask_pass;
     private CheckBox cb_auto_save_full_msgs;
 
+    private int current_inbox = -2;
+
     private Inbox current = new Inbox();
 
     private AppCompatActivity ctx;
-
-    private DBAccess db;
 
     private SharedPreferences prefs;
 
@@ -81,156 +86,226 @@ public class InboxPreferences extends AppCompatActivity {
 
         ctx = this;
 
-        // Get the database
-        db = Pager.get_db();
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        try {
+            // Get the database
+            db = Pager.get_db();
+            prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        // Launching the corresponding ADD or EDIT operation
-        add_mode = getIntent().getExtras().getBoolean("add");
-        current.set_id(getIntent().getExtras().getInt("db_id"));
-
-        Toolbar tb = (Toolbar) findViewById(R.id.edit_account_toolbar);
-        setSupportActionBar(tb);
-
-        // Find the title
-        TextView tv_t;
-        for (int i = 0;i < tb.getChildCount();++i) {
-            int idd = tb.getChildAt(i).getId();
-            if (idd == -1) {
-                tv_t = (TextView) tb.getChildAt(i);
-                tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
-                tv_t.setTypeface(Pager.tf);
-                break;
+            // Restore existing state
+            if (savedInstanceState != null) {
+                add_mode = savedInstanceState.getBoolean("sv_add_mode");
+                initial_switch_value = savedInstanceState.getBoolean("sv_initial_switch_value");
+                initial_imap_or_pop_port = savedInstanceState.getInt("sv_initial_imap_or_pop_port");
+                current_inbox = savedInstanceState.getInt("sv_current_inbox");
+            } else {
+                // Launching the corresponding ADD or EDIT operation
+                add_mode = getIntent().getExtras().getBoolean("add");
+                current_inbox = getIntent().getExtras().getInt("db_id");
             }
-        }
 
-        String title;
-        if (add_mode) {
-            title = getString(R.string.activity_add_account_title);
-        } else {
-            title = getString(R.string.activity_edit_account_title);
-        }
+            current.set_id(current_inbox);
 
-        if (getSupportActionBar() != null) getSupportActionBar().setTitle(title.toUpperCase());
+            Toolbar tb = findViewById(R.id.edit_account_toolbar);
+            setSupportActionBar(tb);
 
-        // Get the visual elements
-        et_email = (EditText) findViewById(R.id.et_email);
-        et_username = (EditText) findViewById(R.id.et_username);
-        et_pass = (EditText) findViewById(R.id.et_pass);
-        et_imap_or_pop_server = (EditText) findViewById(R.id.et_imap_or_pop_server);
-        et_imap_or_pop_server_port = (EditText) findViewById(R.id.et_imap_or_pop_server_port);
-        et_smtp_server = (EditText) findViewById(R.id.et_smtp_server);
-        et_smtp_server_port = (EditText) findViewById(R.id.et_smtp_server_port);
-        cb_auto_refresh = (CheckBox) findViewById(R.id.cb_auto_refresh);
-        cb_always_ask_pass = (CheckBox) findViewById(R.id.cb_always_ask_pass);
-        cb_auto_save_full_msgs = (CheckBox) findViewById(R.id.cb_auto_save_full_msgs);
-        tv_imap_or_pop = (TextView) findViewById(R.id.tv_imap_or_pop);
-        sw_imap_or_pop = (Switch) findViewById(R.id.sw_imap_or_pop);
-        sw_imap_or_pop.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
-            @Override
-            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                if (isChecked) {
-                    tv_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_on));
-                    et_imap_or_pop_server.setHint(getString
-                            (R.string.edit_account_incoming_server_hint_imap));
-                    et_imap_or_pop_server_port.setHint(getString
-                            (R.string.edit_account_incoming_server_port_hint_imap));
-                } else {
-                    tv_imap_or_pop.setText(getString
-                            (R.string.edit_account_imap_or_pop_off));
-                    et_imap_or_pop_server.setHint(getString
-                            (R.string.edit_account_incoming_server_hint_pop));
-                    et_imap_or_pop_server_port.setHint(getString
-                            (R.string.edit_account_incoming_server_port_hint_pop));
+            // Find the title
+            TextView tv_t;
+            for (int i = 0;i < tb.getChildCount();++i) {
+                int idd = tb.getChildAt(i).getId();
+                if (idd == -1) {
+                    tv_t = (TextView) tb.getChildAt(i);
+                    tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
+                    tv_t.setTypeface(Pager.tf);
+                    break;
                 }
             }
-        });
 
-        Button btn_nc_check = (Button) findViewById(R.id.btn_nc_check);
-        btn_nc_check.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                btn_nc_check_action();
+            String title;
+            if (add_mode) {
+                title = getString(R.string.activity_add_account_title);
+            } else {
+                title = getString(R.string.activity_edit_account_title);
             }
-        });
 
-        Button btn_check_incoming = (Button) findViewById(R.id.btn_check_incoming);
-        Button btn_check_smtp = (Button) findViewById(R.id.btn_check_smtp);
-        TextView btn_save = (TextView) findViewById(R.id.tv_save);
-        TextView btn_delete = (TextView) findViewById(R.id.tv_delete);
+            if (getSupportActionBar() != null) getSupportActionBar().setTitle(title.toUpperCase());
 
-        btn_check_incoming.setOnClickListener(new View.OnClickListener() {
+            // Get the visual elements
+            et_email = findViewById(R.id.et_email);
+            et_username = findViewById(R.id.et_username);
+            et_pass = findViewById(R.id.et_pass);
+            et_imap_or_pop_server = findViewById(R.id.et_imap_or_pop_server);
+            et_imap_or_pop_server_port = findViewById(R.id.et_imap_or_pop_server_port);
+            et_smtp_server = findViewById(R.id.et_smtp_server);
+            et_smtp_server_port = findViewById(R.id.et_smtp_server_port);
+            cb_auto_refresh = findViewById(R.id.cb_auto_refresh);
+            cb_always_ask_pass = findViewById(R.id.cb_always_ask_pass);
+            cb_auto_save_full_msgs = findViewById(R.id.cb_auto_save_full_msgs);
+            tv_imap_or_pop = findViewById(R.id.tv_imap_or_pop);
+            sw_imap_or_pop = findViewById(R.id.sw_imap_or_pop);
+            sw_imap_or_pop.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
-            @Override
-            public void onClick(View v) {
-                btn_check_action(false);
-            }
-        });
-        btn_check_smtp.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                btn_check_action(true);
-            }
-        });
-        btn_save.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if (initial_switch_value == sw_imap_or_pop.isChecked()) {
-                    btn_save_action();
-                } else {
-                    int i_port = 0;
-                    String s_port = et_imap_or_pop_server_port.getText().toString();
-                    if (!s_port.isEmpty()) {
-                        i_port = Integer.valueOf(s_port);
-                    }
-                    if (initial_imap_or_pop_port == i_port && i_port != 0) {
-                        // Changed protocol, but not port!
-                        dialog_port_consideration();
+                @Override
+                public void onCheckedChanged(CompoundButton v, boolean isChecked) {
+                    if (isChecked) {
+                        sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOn));
+                        tv_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_on));
+                        et_imap_or_pop_server.setHint(getString
+                                (R.string.edit_account_incoming_server_hint_imap));
+                        et_imap_or_pop_server_port.setHint(getString
+                                (R.string.edit_account_incoming_server_port_hint_imap));
                     } else {
-                        if (db.get_messages_count(current.get_id()) > 0) {
-                            dialog_deletion_messages();
-                        } else {
-                            btn_save_action();
+                        sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOff));
+                        tv_imap_or_pop.setText(getString
+                                (R.string.edit_account_imap_or_pop_off));
+                        et_imap_or_pop_server.setHint(getString
+                                (R.string.edit_account_incoming_server_hint_pop));
+                        et_imap_or_pop_server_port.setHint(getString
+                                (R.string.edit_account_incoming_server_port_hint_pop));
+                    }
+                }
+            });
+
+            et_imap_or_pop_server_port.addTextChangedListener(new TextWatcher() {
+
+                int n = 0;
+
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (s.length() > 0) {
+                        n = Integer.parseInt(s.toString());
+                        if (n < 1 || n > 65535) {
+                            // override bad setting
+                            et_imap_or_pop_server_port.setText("");
                         }
                     }
                 }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
+
+            et_smtp_server_port.addTextChangedListener(new TextWatcher() {
+
+                int n = 0;
+
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (s.length() > 0) {
+                        n = Integer.parseInt(s.toString());
+                        if (n < 1 || n > 65535) {
+                            // override bad setting
+                            et_smtp_server_port.setText("");
+                        }
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
+
+            Button btn_nc_check = findViewById(R.id.btn_nc_check);
+            btn_nc_check.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    btn_nc_check_action();
+                }
+            });
+
+            Button btn_check_incoming = findViewById(R.id.btn_check_incoming);
+            Button btn_check_smtp = findViewById(R.id.btn_check_smtp);
+            TextView btn_save = findViewById(R.id.tv_save);
+            TextView btn_delete = findViewById(R.id.tv_delete);
+
+            btn_check_incoming.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    btn_check_action(false);
+                }
+            });
+            btn_check_smtp.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    btn_check_action(true);
+                }
+            });
+            btn_save.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (initial_switch_value == sw_imap_or_pop.isChecked()) {
+                        btn_save_action();
+                    } else {
+                        int i_port = 0;
+                        String s_port = et_imap_or_pop_server_port.getText().toString();
+                        if (!s_port.isEmpty()) {
+                            i_port = Integer.valueOf(s_port);
+                        }
+                        if (initial_imap_or_pop_port == i_port && i_port != 0) {
+                            // Changed protocol, but not port!
+                            dialog_port_consideration();
+                        } else {
+                            if (db.get_messages_count(current.get_id()) > 0) {
+                                dialog_deletion_messages();
+                            } else {
+                                btn_save_action();
+                            }
+                        }
+                    }
+                }
+            });
+
+            btn_delete.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    dialog_deletion();
+                }
+            });
+
+            // Delete cache full messages
+            Button btn_delete_full_msgs = findViewById(R.id.btn_delete_all_full_msgs);
+            btn_delete_full_msgs.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    db.delete_all_full_messages(current.get_id());
+                    Dialogs.toaster(false, getString(R.string.message_no_full_messages), ctx);
+                }
+            });
+
+            if (add_mode) {
+                // New account is being added
+                prepare_add();
+            } else {
+                // Existing account is being edited
+                prepare_edit();
             }
-        });
 
-        btn_delete.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_deletion();
-            }
-        });
-
-        // Delete cache full messages
-        Button btn_delete_full_msgs = (Button) findViewById(R.id.btn_delete_all_full_msgs);
-        btn_delete_full_msgs.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                db.delete_all_full_messages(current.get_id());
-                Dialogs.toaster(false, getString(R.string.message_no_full_messages), ctx);
-            }
-        });
-
-        if (add_mode) {
-            // New account is being added
-            prepare_add();
-        } else {
-            // Existing account is being edited
-            prepare_edit();
+            // Used in IMAP <-> POP
+            initial_switch_value = current.get_imap_or_pop();
+            initial_imap_or_pop_port = current.get_imap_or_pop_port();
+        } catch (Exception e) {
+            Pager.log += e.getMessage() + "\n\n";
+            finish();
         }
+    }
 
-        // Used in IMAP <-> POP
-        initial_switch_value = current.get_imap_or_pop();
-        initial_imap_or_pop_port = current.get_imap_or_pop_port();
+    @Override
+    public void onSaveInstanceState(Bundle save) {
+        super.onSaveInstanceState(save);
+        save.putBoolean("sv_add_mode", add_mode);
+        save.putBoolean("sv_initial_switch_value", initial_switch_value);
+        save.putInt("sv_initial_imap_or_pop_port", initial_imap_or_pop_port);
+        save.putInt("sv_current_inbox", current_inbox);
     }
 
     @Override
@@ -269,12 +344,14 @@ public class InboxPreferences extends AppCompatActivity {
         cb_auto_save_full_msgs.setChecked(current.get_auto_save_full_msgs());
         sw_imap_or_pop.setChecked(current.get_imap_or_pop());
         if (sw_imap_or_pop.isChecked()) {
+            sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOn));
             tv_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_on));
             et_imap_or_pop_server.setHint(getString
                     (R.string.edit_account_incoming_server_hint_imap));
             et_imap_or_pop_server_port.setHint(getString
                     (R.string.edit_account_incoming_server_port_hint_imap));
         } else {
+            sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOff));
             tv_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_off));
             et_imap_or_pop_server.setHint(getString
                     (R.string.edit_account_incoming_server_hint_pop));
@@ -311,10 +388,8 @@ public class InboxPreferences extends AppCompatActivity {
 
         // Check for empty text field value
         if (email.isEmpty()) {
-            String err = getString(R.string.edit_account_bad_params);
-            if (email.isEmpty())  {
-                err += getString(R.string.edit_account_bad_email);
-            }
+            String err = getString(R.string.edit_account_bad_params)
+                    + getString(R.string.edit_account_bad_email);
             Dialogs.toaster(true, err, this);
             return;
         }

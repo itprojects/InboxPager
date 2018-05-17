@@ -11,7 +11,7 @@
     <string name="attch_add_attachment">Прикачи Приложение</string>
     <string name="attch_no_name">безименно_приложение.</string>
     <string name="attch_title">Изтегли Приложение</string>
-    <string name="author">Авторското Право © 2016  ИТПроджектс</string>
+    <string name="author">Авторското Право &#169; 2016 &#8211; 2018  ИТПроджектс</string>
     <string name="btn_cancel">Отказ</string>
     <string name="btn_log_clear">Изчисти</string>
     <string name="btn_no">Не</string>
@@ -42,7 +42,8 @@
     <string name="edit_account_imap2">ИМАП-Обезопасен:993</string>
     <string name="edit_account_imap_or_pop_off">ПОП</string>
     <string name="edit_account_imap_or_pop_on">ИМАП</string>
-    <string name="edit_account_imap_or_pop_switch">ИМАП-ПОП</string>
+    <string name="edit_account_imap_or_pop_switchOn">ИМАП  поп</string>
+    <string name="edit_account_imap_or_pop_switchOff">ПОП  ИМАП</string>
     <string name="edit_account_incoming_server_hint_imap">имап.пример.ком</string>
     <string name="edit_account_incoming_server_hint_pop">поп.пример.ком</string>
     <string name="edit_account_nc_check">Самостоен Опит (Дълго)</string>
@@ -65,7 +66,7 @@
     <string name="stats_messages">съобщения</string>
     <string name="ssl_auth_popup_you">Вие, това устройство.</string>
     <string name="ssl_auth_popup_transport">БЕЗОПАСНОСТ</string>
-    <string name="ssl_auth_popup_title">Сведение за връзката</string>
+    <string name="ssl_auth_popup_title">Последната връзка</string>
     <string name="ssl_auth_popup_st">ОБЛАСТ</string>
     <string name="ssl_auth_popup_ou">ВИД</string>
     <string name="ssl_auth_popup_o">УСТАВ</string>
@@ -82,7 +83,7 @@
     <string name="sett_change_pw_title">Промяна на Паролата</string>
     <string name="sett_change_pw_text">Поне 12 знака.</string>
     <string name="sett_change_pw_new">НОВА ПАРОЛА</string>
-    <string name="sett_change_pw_enable">ВКЛЮЧИ/ИЗКЛЮЧИ\tЗащитата</string>
+    <string name="sett_change_pw_enable">Защити с Парола</string>
     <string name="sett_change_pw_summary">Сложете или променете паролата на вътрешната база-данни, или отмени защитата</string>
     <string name="sett_beeps_download_title">Звъни при нови съобщения</string>
     <string name="sett_beeps_download_summary">Устройството ще звъни, при получаването на нови съобщения.</string>
@@ -135,6 +136,7 @@
     <string name="menu_switch_pop_imap_title">Потвърдете Превключването</string>
     <string name="menu_switch_pop_imap_dialog">Превключването между ИМАП и ПОП изисква всички местни съобщения да бъдат изтрити и после добавени наново от сървъра. Да продължим ли?</string>
     <string name="menu_settings">Настройки</string>
+    <string name="menu_status">Състояние</string>
     <string name="menu_see_full_message_title">Пълно Съобщение</string>
     <string name="menu_see_full_message">Преглед на (Пълното) Съобщение</string>
     <string name="menu_save_message">Запиши ➠ Устройство</string>

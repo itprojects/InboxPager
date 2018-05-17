@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  I.T.
  * <p/>
@@ -234,7 +234,7 @@ public class POP extends Handler {
                                 if (i == (data.auths.size() - 1)) {
                                     tested += data.auths.get(i).toUpperCase();
                                 } else {
-                                    tested += data.auths.get(i).toUpperCase() + ", ";
+                                    tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
                                 }
                             }
                             tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
@@ -242,7 +242,7 @@ public class POP extends Handler {
                                 if (i == (data.general.size() - 1)) {
                                     tested += data.general.get(i).toUpperCase();
                                 } else {
-                                    tested += data.general.get(i).toUpperCase() + ", ";
+                                    tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
                                 }
                             }
                         }
@@ -706,7 +706,7 @@ public class POP extends Handler {
                 if (str.startsWith("USERNAME")) {
                     if (str.length() > 500) {
                         write_limited(Base64.encodeToString(str.getBytes(), Base64.DEFAULT)
-                                .trim().toCharArray(), 500);
+                                .trim().toCharArray());
                     } else {
                         write(Base64.encodeToString(current_inbox.get_username().getBytes(),
                                 Base64.DEFAULT).trim());
@@ -720,7 +720,7 @@ public class POP extends Handler {
                     } else {
                         str = Base64.encodeToString(str.getBytes(), Base64.DEFAULT).trim();
                         if (str.length() > 500) {
-                            write_limited(str.toCharArray(), 500);
+                            write_limited(str.toCharArray());
                         } else {
                             write(str);
                         }
@@ -732,7 +732,7 @@ public class POP extends Handler {
                 String str = Base64.encodeToString(("\0"+ current_inbox.get_username() + "\0"
                         + current_inbox.get_pass()).getBytes(), Base64.DEFAULT).trim();
                 if (str.length() > 500) {
-                    write_limited(str.toCharArray(), 500);
+                    write_limited(str.toCharArray());
                 } else {
                     write(str);
                 }
@@ -922,7 +922,7 @@ public class POP extends Handler {
                     pat = Pattern.compile("Received: from (.+?) \\((.+?)\\).*",
                             Pattern.CASE_INSENSITIVE);
                     mat = pat.matcher(rows[i]);
-                    if (mat.matches()) received += rows[i].trim() + "\n";
+                    if (mat.matches()) received = received.concat(rows[i].trim() + "\n");
                 } else if (sto.startsWith("to:")) {
                     str_tmp = rows[i].substring(3).trim();
                     if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);

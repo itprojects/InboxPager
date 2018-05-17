@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -22,8 +22,8 @@ import java.util.Iterator;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.util.SparseArray;
 
+import net.inbox.Pager;
 import net.sqlcipher.Cursor;
 import net.sqlcipher.SQLException;
 import net.sqlcipher.database.SQLiteDatabase;
@@ -147,13 +147,12 @@ public class DBAccess extends SQLiteOpenHelper {
         dbw = getWritableDatabase(s);
     }
 
-    public boolean rekey_db(String s) {
+    public void rekey_db(String s) {
         try {
             dbw.execSQL("PRAGMA rekey = '" + s + "'");
             System.gc();
-            return true;
         } catch (SQLException e) {
-            return false;
+            Pager.log += e.getMessage();
         }
     }
 
@@ -186,7 +185,7 @@ public class DBAccess extends SQLiteOpenHelper {
         current.set_id(ret);
     }
 
-    public int update_account(Inbox current) {
+    public void update_account(Inbox current) {
         ContentValues values = new ContentValues();
         values.put(key_messages, current.get_messages());
         values.put(key_recent, current.get_recent());
@@ -208,7 +207,7 @@ public class DBAccess extends SQLiteOpenHelper {
         values.put(key_always_ask_pass, current.get_always_ask_pass());
         values.put(key_auto_save_full_msgs, current.get_auto_save_full_msgs());
 
-        return dbw.update(table_accounts, values, key_id + " = " + current.get_id(), null);
+        dbw.update(table_accounts, values, key_id + " = " + current.get_id(), null);
     }
 
     public Inbox get_account(int id) {
@@ -278,7 +277,9 @@ public class DBAccess extends SQLiteOpenHelper {
                 count = cursor.getInt(0);
             }
             cursor.close();
-        } catch (Exception e) { }
+        } catch (Exception e) {
+            // A rare exception.
+        }
 
         int current_count = -1;
 
@@ -534,7 +535,7 @@ public class DBAccess extends SQLiteOpenHelper {
      * Computes the total message size on server for an account.
      * Used with IMAP.
      **/
-    public int refresh_total_size(int id) {
+    public void refresh_total_size(int id) {
         Cursor cursor = dbw.query(table_messages, new String[] { key_size }, "account = " + id,
                 null, null, null, null);
 
@@ -550,8 +551,6 @@ public class DBAccess extends SQLiteOpenHelper {
 
         // Prevent memory issues
         cursor.close();
-
-        return result;
     }
 
     /**

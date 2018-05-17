@@ -9,6 +9,7 @@
             <item android:id="@+id/mark_all_seen_menu" android:title="@string/menu_all_seen"/>
             <item android:id="@+id/log_menu" android:title="@string/menu_log"/>
             <item android:id="@+id/new_msg_menu" android:title="@string/menu_new_msg"/>
+            <item android:id="@+id/status_menu" android:title="@string/menu_status"/>
             <item android:id="@+id/defaults_menu" android:title="@string/menu_settings"/>
         </menu>
     </item>

@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -31,7 +31,7 @@ public class About extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about);
 
-        Toolbar tb = (Toolbar) findViewById(R.id.about_toolbar);
+        Toolbar tb = findViewById(R.id.about_toolbar);
         setSupportActionBar(tb);
 
         // Find the title
@@ -50,10 +50,10 @@ public class About extends AppCompatActivity {
             getSupportActionBar().setTitle(getString(R.string.menu_about).toUpperCase());
         }
 
-        TextView tv_ver = (TextView) findViewById(R.id.about_ver);
+        TextView tv_ver = findViewById(R.id.about_ver);
         tv_ver.setText(String.valueOf(BuildConfig.VERSION_NAME));
 
-        TextView tv_font = (TextView) findViewById(R.id.tv_font);
+        TextView tv_font = findViewById(R.id.tv_font);
         tv_font.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -62,7 +62,7 @@ public class About extends AppCompatActivity {
             }
         });
 
-        TextView tv_open_keychain = (TextView) findViewById(R.id.tv_open_keychain);
+        TextView tv_open_keychain = findViewById(R.id.tv_open_keychain);
         tv_open_keychain.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -71,7 +71,7 @@ public class About extends AppCompatActivity {
             }
         });
 
-        TextView tv_sql_cipher_java = (TextView) findViewById(R.id.tv_sql_cipher_java);
+        TextView tv_sql_cipher_java = findViewById(R.id.tv_sql_cipher_java);
         tv_sql_cipher_java.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -80,7 +80,7 @@ public class About extends AppCompatActivity {
             }
         });
 
-        TextView tv_sql_cipher_other = (TextView) findViewById(R.id.tv_sql_cipher_other);
+        TextView tv_sql_cipher_other = findViewById(R.id.tv_sql_cipher_other);
         tv_sql_cipher_other.setOnClickListener(new View.OnClickListener() {
 
             @Override

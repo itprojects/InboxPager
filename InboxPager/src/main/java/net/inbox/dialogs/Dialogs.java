@@ -1,4 +1,4 @@
-/**
+/*
  * InboxPager, an android email client.
  * Copyright (C) 2016  ITPROJECTS
  * <p/>
@@ -63,7 +63,7 @@ public class Dialogs {
                 String str = e.getMessage() + "\n\n";
                 StackTraceElement[] stack = e.getStackTrace();
                 for (int i = 0;i < e.getStackTrace().length;++i) {
-                    str += stack[i].getClassName() +":"+ stack[i].getLineNumber() + "\n";
+                    str = str.concat(stack[i].getClassName() +":"+ stack[i].getLineNumber() + "\n");
                 }
                 builder.setMessage(str);
                 builder.setCancelable(true);
