@@ -56,7 +56,7 @@ The app can:
 
 - Ordinary non-SSL/TLS.
 
-- Printing messages on papaer. You can save them to file, and print them manually.
+- Printing messages on paper. You can save them to file, and print them manually.
 
 # Permissions
 
