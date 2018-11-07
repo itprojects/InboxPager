@@ -28,6 +28,7 @@
             android:layout_height="100sp"
             android:layout_margin="10sp"
             android:layout_gravity="center_horizontal"
+            android:scaleType="fitXY"
             android:contentDescription="@string/app_name"
             android:src="@drawable/application"/>
 

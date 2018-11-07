@@ -18,12 +18,17 @@ package net.inbox;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.view.WindowManager;
 
 public class Settings extends PreferenceActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Prevent Android Switcher leaking data via screenshots
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE);
         getFragmentManager().beginTransaction().replace
                 (android.R.id.content, new SettingsFragment()).commit();
     }

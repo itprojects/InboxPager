@@ -6,17 +6,15 @@ An E-mail client for the Android (java) platform. Supports imap, pop, and smtp p
 
 # Download
 
-You can download the application directly from GitHub by visiting ![this link](https://github.com/itprojects/InboxPager/tree/apk-direct).
-
-Alternatively you can find [InboxPager](https://f-droid.org/repository/browse/?fdfilter=inbox&fdid=net.inbox.pager) in the F-droid app store.
+You can find [InboxPager](https://f-droid.org/repository/browse/?fdfilter=inbox&fdid=net.inbox.pager) in the free and open source F-droid app store.
 
 # Usage
 
-In order to use this application you have to enable SSL/TLS application-email-checking through your email account's web interface. Some email servers may have this feature already turned on (NOT GMAIL!, see below). If your account's server does not support this feature, it won't work.
+In order to use this application you have to enable SSL/TLS application-email-checking through your email account's web interface. Some email servers may have this feature already turned on (NOT GMAIL!, see below). If your account's server does not support this feature, the app won't work.
 
-Setting up an account in InboxPager happens through "Settings" > "Add Account". There, you have to enter your account's credentials, server parameters. If you don't know what your email account's server parameters are - try the automatic tools provided, otherwise enter and test your own configuration. Optionally, if you'd like to receive a sound or vibration notification tick those settings. If you wish to only refresh a specific account, when you individually choose to, then untick the "Allow in all-accounts-refresh".
+Setting up an account in InboxPager happens through "Settings" > "Add Account". There, you have to enter your account's credentials & server parameters. If you don't know what your email account's server parameters are - use the automatic tools provided to find out, otherwise enter and test your own configuration. Optionally, if you'd like to receive a sound or vibration notification tick those settings. If you wish to only refresh a specific account, when you individually choose to, then untick the "Allow in all-accounts-refresh" in that account's settings.
 
-By default InboxPager DOES NOT KEEP "FULL MESSAGE" copies of emails, instead, just gets the main textual contents of the message. If you wish to change this policy you can do this in the settings for individual account. In order to save email and/or attachments, the full message must be already in the internal database, or alternatively (re-)download the full message and then extract the attachment through the application. Be advised - keeping full messages can easily consume your device's internal memory.
+By default InboxPager DOES NOT KEEP "FULL MESSAGE" copies of emails, instead, it just downloads the main textual contents of the message. If you wish to change this policy you can do this in the settings for an individual account. Keeping full messages can easily consume your device's internal memory very quickly. In order to save email, the full message must first be downloaded into the internal database. Also, unless the full email message is already inside the internal database, downloading attachments will require access to the internet.
 
 # Features
 
@@ -46,7 +44,7 @@ The app can:
 
 - Automatically, on a cloud server, Save/Restore interrnal database. If a backup of the local device is necessary, then close the app and copy/paste the database from "/data/data/...".
 
-- Backend that runs in the background.
+- Backend that runs in the background, as a constantly present service.
 
 - Contacts integration with rest of Android OS.
 
@@ -87,15 +85,15 @@ For a POP (Post Office Protocol 3) mail server:
 
 ## Known Items
 
-If there are any errors in the application they should be available in the Event Log.
+If there are any errors in the application, you should be able to see those in the internal application Event Log. For data leak prevention this log is automatically deleted if the app is closed or crashes. The crashes should be visible in android's log (logcat).
 
-- If while downloading a large attachment you experience errors, then close some other applications to get more RAM.
+- While downloading a large attachment, if you experience errors, then close some other applications to get more RAM.
 
-- Message and attachment sizes should always only an approximation.
+- Message and attachment sizes are always only an approximation.
 
 - POP has no way to know if a message has been previously seen.
 
-- Sent messages are not saved locally, most servers save those automatically.
+- Sent messages are not saved locally inside the app, most servers will save those automatically on the server.
 
 - Sending messages with attachments works with OI File Manager, not all other file managers supported.
 
@@ -198,6 +196,10 @@ OpenKeychain(Java), Apache 2.0
 SQLCipher, Permissive, see file
 
 SQLCipher(Java), Apache 2.0
+
+# Translations
+
+In Portuguese by Hanelore
 
 # Screenshots
 
