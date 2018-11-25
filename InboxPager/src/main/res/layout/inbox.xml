@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".InboxUI">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/inbox_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -22,7 +22,7 @@
             android:background="@android:color/transparent"
             android:contentDescription="@string/menu_refresh"
             android:padding="4sp"
-            android:src="@drawable/btn_refresh" />
+            app:srcCompat="@drawable/btn_refresh" />
 
         <TextView
             android:id="@+id/inbox_page_counter"
@@ -48,10 +48,10 @@
             android:contentDescription="@string/ssl_auth_popup_title"
             android:paddingStart="10sp"
             android:paddingEnd="0sp"
-            android:src="@drawable/padlock_error"
+            app:srcCompat="@drawable/padlock_error"
             android:visibility="gone" />
 
-    </android.support.v7.widget.Toolbar>
+    </androidx.appcompat.widget.Toolbar>
 
     <ListView
         android:id="@+id/msg_list_view"

@@ -17,7 +17,6 @@
 package net.inbox.server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 
 import net.inbox.InboxSend;
@@ -35,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class SMTP extends Handler {
 

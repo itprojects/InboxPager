@@ -44,7 +44,7 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/home_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -60,7 +60,7 @@
                 android:background="@android:color/transparent"
                 android:contentDescription="@string/menu_refresh"
                 android:padding="4sp"
-                android:src="@drawable/btn_refresh" />
+                app:srcCompat="@drawable/btn_refresh" />
 
             <TextView
                 android:id="@+id/page_counter"
@@ -80,7 +80,7 @@
                 android:textColor="@color/color_home_bar_background"
                 android:visibility="gone" />
 
-        </android.support.v7.widget.Toolbar>
+        </androidx.appcompat.widget.Toolbar>
 
         <ListView
             android:id="@+id/accounts_list_view"

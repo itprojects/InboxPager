@@ -17,7 +17,6 @@
 package net.inbox.server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 
 import net.inbox.InboxMessage;
 import net.inbox.InboxSend;
@@ -34,6 +33,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public abstract class Handler extends Thread {
 

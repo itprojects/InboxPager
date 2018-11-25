@@ -16,12 +16,13 @@
  **/
 package net.inbox.dialogs;
 
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import net.inbox.Pager;
 import net.inbox.R;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class Dialogs {
 

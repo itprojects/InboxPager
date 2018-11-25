@@ -18,7 +18,6 @@ package net.inbox.dialogs;
 
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 
 import net.inbox.InboxMessage;
 import net.inbox.InboxSend;
@@ -26,6 +25,8 @@ import net.inbox.InboxUI;
 import net.inbox.Pager;
 import net.inbox.R;
 import net.inbox.server.Handler;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class SpinningStatus extends AsyncTask<Void, String, Void> {
 

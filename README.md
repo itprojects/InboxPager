@@ -2,7 +2,7 @@
 
 ![screenshot](https://github.com/itprojects/InboxPager/raw/master/img/1.png)
 
-An E-mail client for the Android (java) platform. Supports imap, pop, and smtp protocols, through SSL/TLS.
+An E-mail client for the Android (java) platform. Supports IMAP, POP, and SMTP protocols through SSL/TLS.
 
 # Download
 
@@ -10,21 +10,21 @@ You can find [InboxPager](https://f-droid.org/packages/net.inbox.pager/) in the 
 
 # Usage
 
-In order to use this application you have to enable SSL/TLS application-email-checking through your email account's web interface.
+In order to use this application, you have to enable SSL/TLS application-email-checking through your email account's web interface.
 Some email servers may have this feature already turned on (NOT GMAIL!, see below).
-If your account's server does not support this feature, the app won't work.
+If your account's server does not support this feature, this app won't work.
 
 To set up an account in InboxPager, go to "Settings" > "Add Account".
-There, you have to enter your account's credentials & server parameters.
+There, you have to enter your account's credentials and server parameters.
 
-If you don't know what your email account's server parameters are - use the automatic tools provided to find out, otherwise enter and test your own configuration.
-Optionally, if you'd like to receive a sound or vibration notification tick those settings.
-If you wish to only refresh a specific account, when you individually choose to, then untick the "Allow in all-accounts-refresh" in that account's settings.
+If you don't know what your email account's server parameters are, use the automatic tools provided to find out, or enter and test your own configuration.
+Optionally, if you'd like to receive a sound or vibration notification, tick those settings.
+If you wish to only refresh a specific account when you choose to, un-tick the "Allow in all-accounts-refresh" in that account's settings.
 
-By default, InboxPager DOES NOT KEEP "FULL MESSAGE" copies of emails. Instead, it just downloads the main textual contents of the message.
-If you wish to change this policy you can do this in the settings for an individual account.
+By default, InboxPager does NOT keep "FULL MESSAGE" copies of emails. Instead, it just downloads the main textual contents of the message.
+If you wish to change this policy, you can do this in the settings for an individual account.
 Keeping full messages can easily consume your device's internal memory very quickly.
-In order to save email, the full message must first be downloaded into the internal database.
+In order to save emails, the full message must first be downloaded into the internal database.
 Also, unless the full email message is already inside the internal database, downloading attachments will require access to the internet.
 
 # Features
@@ -43,9 +43,9 @@ The app can:
 
 - Keep track of your unread messages.
 
-- Notify with sound of new messages, per user choice.
+- Notify with sound of new messages per user choice.
 
-- Notify with device vibration of new messages, per user choice.
+- Notify with device vibration of new messages per user choice.
 
 - Work with OpenPGP messages.
 
@@ -53,7 +53,7 @@ The app can:
 
 ## WON'T FIX
 
-- Automatically, on a cloud server, Save/Restore interrnal database. If a backup of the local device is necessary, then close the app and copy/paste the database from "/data/data/...".
+- Automatically, on a cloud server, Save/Restore internal database. If a backup of the local device is necessary, then close the app and copy/paste the database from "/data/data/...".
 
 - Backend that runs in the background, as a constantly present service.
 
@@ -131,7 +131,7 @@ Outgoing Mail (SMTP) Server: smtp.gmail.com
 
 Port for SSL: 465
 
-Sometimes checking GMAIL too ofter (<10 minutes) may or may not block application access to account.
+Sometimes checking gmail too often (<10 minutes) may or may not block application access to account.
 
 If you are using POP with gmail, make sure to first enable it from gmail's settings web interface via browser.
 
@@ -189,7 +189,7 @@ Messages produced with this option will be encrypted, and they can optionally be
 
 ## Decrypt or Verify Message
 
-Decrypt a pgp/mime message and/or only verifying the signature validity. Can save attachemnts.
+Decrypt a pgp/mime message and/or only verifying the signature validity. Can save attachments.
 
 1. Click the padlock icon, this starts the pgp implementation.
 

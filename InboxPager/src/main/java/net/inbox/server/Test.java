@@ -19,7 +19,6 @@ package net.inbox.server;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.support.v7.app.AlertDialog;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -34,6 +33,8 @@ import java.net.Socket;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+
+import androidx.appcompat.app.AlertDialog;
 
 public class Test extends AsyncTask<Void, Integer, Void> {
 

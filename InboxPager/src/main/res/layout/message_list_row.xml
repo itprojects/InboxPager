@@ -1,7 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="?android:attr/listPreferredItemHeight"
-    android:minHeight="?android:attr/listPreferredItemHeight">
+    android:layout_height="?attr/listPreferredItemHeight"
+    android:minHeight="?attr/listPreferredItemHeight">
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/message_list_text"
@@ -19,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4sp"
             android:contentDescription="@string/stats_unseen"
-            android:src="@drawable/unseen"
+            app:srcCompat="@drawable/unseen"
             android:visibility="gone" />
 
         <TextView
@@ -61,6 +62,6 @@
         android:layout_centerVertical="true"
         android:layout_marginEnd="4sp"
         android:contentDescription="@string/stats_unseen"
-        android:src="@drawable/attachment"
+        app:srcCompat="@drawable/attachment"
         android:visibility="gone" />
 </RelativeLayout>

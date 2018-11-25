@@ -14,7 +14,7 @@
         <item name="android:shadowDx">0.1</item>
         <item name="android:shadowDy">0.1</item>
         <item name="android:shadowRadius">1</item>
-        <item name="android:fontFamily">sans-serif-condensed-light</item>
+        <item name="fontFamily">sans-serif-condensed-light</item>
     </style>
 
     <style name="PWEditText" parent="Theme.AppCompat.Light.DarkActionBar">

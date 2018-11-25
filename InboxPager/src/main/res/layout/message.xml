@@ -13,7 +13,7 @@
         android:orientation="vertical"
         tools:context=".InboxMessage">
 
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/message_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -28,7 +28,7 @@
                 android:contentDescription="@string/message_contents"
                 android:paddingStart="10sp"
                 android:paddingEnd="0sp"
-                android:src="@drawable/padlock_error"
+                app:srcCompat="@drawable/padlock_error"
                 android:visibility="gone" />
 
             <TextView
@@ -45,7 +45,7 @@
                 android:shadowDy="0"
                 android:shadowRadius="3" />
 
-        </android.support.v7.widget.Toolbar>
+        </androidx.appcompat.widget.Toolbar>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -209,7 +209,7 @@
                 android:layout_marginStart="5sp"
                 android:layout_marginTop="13sp"
                 android:contentDescription="@string/send_encrypt"
-                android:src="@drawable/padlock_closed_inverse"
+                app:srcCompat="@drawable/padlock_closed_inverse"
                 android:visibility="gone" />
 
             <ImageView
@@ -219,7 +219,7 @@
                 android:layout_marginStart="5sp"
                 android:layout_marginTop="13sp"
                 android:contentDescription="@string/open_pgp_message_signature"
-                android:src="@drawable/signature"
+                app:srcCompat="@drawable/signature"
                 android:visibility="gone" />
         </LinearLayout>
 

@@ -29,6 +29,7 @@ public class Settings extends PreferenceActivity {
         // Prevent Android Switcher leaking data via screenshots
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
                 WindowManager.LayoutParams.FLAG_SECURE);
+        //TODO: classify usage and/or change to getSupportFragmentManager (migrate app to appCompat)
         getFragmentManager().beginTransaction().replace
                 (android.R.id.content, new SettingsFragment()).commit();
     }

@@ -13,7 +13,7 @@
         android:orientation="vertical"
         tools:context=".InboxMessage">
 
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/send_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -28,7 +28,7 @@
                 android:contentDescription="@string/send_send"
                 android:paddingStart="10sp"
                 android:paddingEnd="0sp"
-                android:src="@drawable/padlock_error"
+                app:srcCompat="@drawable/padlock_error"
                 android:visibility="gone" />
 
             <TextView
@@ -40,7 +40,7 @@
                 android:layout_marginEnd="7sp"
                 android:background="@drawable/btn_green"
                 android:text="@string/send_send" />
-        </android.support.v7.widget.Toolbar>
+        </androidx.appcompat.widget.Toolbar>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -190,7 +190,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/send_attachments"
-                android:src="@drawable/attachment"
+                app:srcCompat="@drawable/attachment"
                 android:textColor="@color/color_message_headers" />
 
             <ImageView
@@ -200,7 +200,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="3sp"
                 android:contentDescription="@string/send_encrypt"
-                android:src="@drawable/padlock_open" />
+                app:srcCompat="@drawable/padlock_open" />
 
             <TextView
                 android:id="@+id/tv_encryption_reset"

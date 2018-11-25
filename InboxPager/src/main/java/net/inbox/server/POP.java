@@ -17,7 +17,6 @@
 package net.inbox.server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 
 import net.inbox.InboxMessage;
@@ -36,6 +35,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.regex.Pattern;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class POP extends Handler {
 

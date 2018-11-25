@@ -16,15 +16,10 @@
  **/
 package net.inbox;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.WindowManager;
@@ -44,6 +39,11 @@ import net.inbox.server.SMTP;
 import net.inbox.server.Test;
 
 import java.util.HashMap;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 public class InboxPreferences extends AppCompatActivity {
 
@@ -452,7 +452,7 @@ public class InboxPreferences extends AppCompatActivity {
         Intent ret_intent = new Intent();
 
         // Request ListView re-flow
-        setResult(Activity.RESULT_OK, ret_intent.putExtra("status", true));
+        setResult(AppCompatActivity.RESULT_OK, ret_intent.putExtra("status", true));
 
         // End activity
         finish();
@@ -493,7 +493,7 @@ public class InboxPreferences extends AppCompatActivity {
     public void delete_account() {
         db.delete_account(current.get_id());
         Intent ret_intent = new Intent();
-        setResult(Activity.RESULT_OK, ret_intent);
+        setResult(AppCompatActivity.RESULT_OK, ret_intent);
         finish();
     }
 
