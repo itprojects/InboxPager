@@ -10,30 +10,33 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <android.support.v7.widget.Toolbar android:id="@+id/send_toolbar"
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/send_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/color_home_bar_background"
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-            <TextView android:id="@+id/tv_ready"
+            <TextView
+                android:id="@+id/tv_ready"
+                style="@style/action_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginEnd="7sp"
-                android:text="@string/open_pgp_ready"
                 android:background="@drawable/btn_green"
-                style="@style/action_button"/>
+                android:text="@string/open_pgp_ready" />
 
-            <TextView android:id="@+id/tv_reset"
+            <TextView
+                android:id="@+id/tv_reset"
+                style="@style/action_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginEnd="7sp"
-                android:text="@string/open_pgp_reset"
                 android:background="@drawable/btn_orange"
-                style="@style/action_button"/>
+                android:text="@string/open_pgp_reset" />
         </android.support.v7.widget.Toolbar>
 
         <LinearLayout
@@ -47,105 +50,119 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <TextView android:id="@+id/tv_start"
+                <TextView
+                    android:id="@+id/tv_start"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/open_pgp_start"
-                    android:textColor="@color/color_message_headers"
-                    android:textAppearance="@android:style/TextAppearance"/>
+                    android:textAppearance="@android:style/TextAppearance"
+                    android:textColor="@color/color_message_headers" />
 
-                <Spinner android:id="@+id/spinner_gpg_action"
+                <Spinner
+                    android:id="@+id/spinner_gpg_action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:spinnerMode="dialog"/>
+                    android:spinnerMode="dialog" />
             </LinearLayout>
 
-            <TextView android:id="@+id/tv_pick_sign_key"
+            <TextView
+                android:id="@+id/tv_pick_sign_key"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="15sp"
                 android:paddingBottom="15sp"
-                android:text="@string/open_pgp_signing_key_cross"/>
+                android:text="@string/open_pgp_signing_key_cross" />
 
-            <CheckBox android:id="@+id/cb_sign_to_self"
+            <CheckBox
+                android:id="@+id/cb_sign_to_self"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/open_pgp_encrypt_to_self"/>
+                android:text="@string/open_pgp_encrypt_to_self" />
 
-            <TextView android:id="@+id/tv_recipients_pick"
+            <TextView
+                android:id="@+id/tv_recipients_pick"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="15sp"
-                android:text="@string/open_pgp_rcpt_key_cross"/>
+                android:text="@string/open_pgp_rcpt_key_cross" />
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-                <TextView android:id="@+id/tv_recipients"
+                <TextView
+                    android:id="@+id/tv_recipients"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingTop="15sp"
                     android:text="@string/open_pgp_recipients"
-                    android:textColor="@color/color_message_headers"
-                    android:textAppearance="@android:style/TextAppearance"/>
+                    android:textAppearance="@android:style/TextAppearance"
+                    android:textColor="@color/color_message_headers" />
 
-                <TextView android:id="@+id/tv_recipients_count"
+                <TextView
+                    android:id="@+id/tv_recipients_count"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="7sp"
-                    android:paddingEnd="7sp"/>
+                    android:paddingEnd="7sp" />
             </LinearLayout>
 
-            <TextView android:id="@+id/tv_recipients_list"
+            <TextView
+                android:id="@+id/tv_recipients_list"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
 
-            <TextView android:id="@+id/tv_message_title"
+            <TextView
+                android:id="@+id/tv_message_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="15sp"
                 android:text="@string/open_pgp_message"
-                android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance"/>
+                android:textAppearance="@android:style/TextAppearance"
+                android:textColor="@color/color_message_headers" />
 
-            <TextView android:id="@+id/tv_message"
+            <TextView
+                android:id="@+id/tv_message"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="5"
-                android:paddingTop="5sp"/>
+                android:paddingTop="5sp" />
 
-            <TextView android:id="@+id/tv_encrypted_title"
+            <TextView
+                android:id="@+id/tv_encrypted_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="15sp"
                 android:text="@string/open_pgp_message_encrypted_block"
-                android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance"/>
+                android:textAppearance="@android:style/TextAppearance"
+                android:textColor="@color/color_message_headers" />
 
-            <TextView android:id="@+id/tv_encrypted"
+            <TextView
+                android:id="@+id/tv_encrypted"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="5"
-                android:paddingTop="5sp"/>
+                android:paddingTop="5sp" />
 
-            <TextView android:id="@+id/tv_signature_title"
+            <TextView
+                android:id="@+id/tv_signature_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="15sp"
                 android:text="@string/open_pgp_message_signature"
-                android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance"/>
+                android:textAppearance="@android:style/TextAppearance"
+                android:textColor="@color/color_message_headers" />
 
-            <TextView android:id="@+id/tv_signature"
+            <TextView
+                android:id="@+id/tv_signature"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="5"
-                android:paddingTop="5sp"/>
+                android:paddingTop="5sp" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

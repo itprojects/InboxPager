@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="PagerTheme" parent="Theme.AppCompat.Light.NoActionBar"/>
+    <style name="PagerTheme" parent="Theme.AppCompat.Light.NoActionBar" />
 
     <style name="action_button">
         <item name="android:paddingTop">0sp</item>

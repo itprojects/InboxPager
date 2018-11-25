@@ -2,35 +2,40 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Should the messages be looked for on server on every application start. -->
-    <CheckBoxPreference android:key="auto_check_msg_all"
+    <CheckBoxPreference
         android:defaultValue="true"
-        android:title="@string/sett_auto_check_title"
-        android:summary="@string/sett_auto_check_summary"/>
+        android:key="auto_check_msg_all"
+        android:summary="@string/sett_auto_check_summary"
+        android:title="@string/sett_auto_check_title" />
 
     <!-- Default: sound notification for new messages. -->
-    <CheckBoxPreference android:key="beeps"
+    <CheckBoxPreference
         android:defaultValue="true"
-        android:title="@string/sett_beeps_download_title"
-        android:summary="@string/sett_beeps_download_summary"/>
+        android:key="beeps"
+        android:summary="@string/sett_beeps_download_summary"
+        android:title="@string/sett_beeps_download_title" />
 
     <!-- Default: vibration notification for new messages. -->
-    <CheckBoxPreference android:key="vibrates"
+    <CheckBoxPreference
         android:defaultValue="true"
-        android:title="@string/sett_vibrates_download_title"
-        android:summary="@string/sett_vibrates_download_summary"/>
+        android:key="vibrates"
+        android:summary="@string/sett_vibrates_download_summary"
+        android:title="@string/sett_vibrates_download_title" />
 
     <!-- Password: change password -->
-    <Preference android:key="change_pw"
-        android:title="@string/sett_change_pw_title"
+    <Preference
+        android:defaultValue="false"
+        android:key="change_pw"
         android:summary="@string/sett_change_pw_summary"
-        android:defaultValue="false"/>
+        android:title="@string/sett_change_pw_title" />
 
     <!-- Default: font size in message view. -->
-    <EditTextPreference android:key="sett_msg_font_size"
+    <EditTextPreference
         android:defaultValue="18"
-        android:numeric="integer"
         android:inputType="number"
-        android:title="@string/sett_msg_font_size_title"
-        android:summary="@string/sett_msg_font_size_summary"/>
+        android:key="sett_msg_font_size"
+        android:numeric="integer"
+        android:summary="@string/sett_msg_font_size_summary"
+        android:title="@string/sett_msg_font_size_title" />
 
 </PreferenceScreen>

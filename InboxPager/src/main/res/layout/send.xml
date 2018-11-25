@@ -5,45 +5,50 @@
     android:layout_height="match_parent"
     android:fillViewport="true">
 
-    <LinearLayout tools:context=".InboxMessage"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        tools:context=".InboxMessage">
 
-        <android.support.v7.widget.Toolbar android:id="@+id/send_toolbar"
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/send_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/color_home_bar_background"
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-            <ImageView android:id="@+id/ssl_auth_img_vw"
+            <ImageView
+                android:id="@+id/ssl_auth_img_vw"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/send_send"
                 android:paddingStart="10sp"
                 android:paddingEnd="0sp"
-                android:contentDescription="@string/send_send"
                 android:src="@drawable/padlock_error"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
-            <TextView android:id="@+id/tv_send"
+            <TextView
+                android:id="@+id/tv_send"
+                style="@style/action_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginEnd="7sp"
-                android:text="@string/send_send"
                 android:background="@drawable/btn_green"
-                style="@style/action_button"/>
+                android:text="@string/send_send" />
         </android.support.v7.widget.Toolbar>
 
-        <LinearLayout android:orientation="horizontal"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-            <TextView android:id="@+id/send_to_title"
+            <TextView
+                android:id="@+id/send_to_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15sp"
@@ -51,23 +56,26 @@
                 android:layout_marginEnd="15sp"
                 android:layout_marginRight="15sp"
                 android:text="@string/message_to"
-                android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance"/>
+                android:textAppearance="@android:style/TextAppearance"
+                android:textColor="@color/color_message_headers" />
 
-            <EditText android:id="@+id/send_to"
+            <EditText
+                android:id="@+id/send_to"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="20sp"
-                android:inputType="text|textNoSuggestions|textMultiLine"
-                android:hint="@string/send_addresses_hint"/>
+                android:hint="@string/send_addresses_hint"
+                android:inputType="text|textNoSuggestions|textMultiLine" />
 
         </LinearLayout>
 
-        <LinearLayout android:orientation="horizontal"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-            <TextView android:id="@+id/send_cc_title"
+            <TextView
+                android:id="@+id/send_cc_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15sp"
@@ -75,28 +83,32 @@
                 android:layout_marginEnd="15sp"
                 android:layout_marginRight="15sp"
                 android:text="@string/message_cc"
-                android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance"/>
+                android:textAppearance="@android:style/TextAppearance"
+                android:textColor="@color/color_message_headers" />
 
-            <Switch android:id="@+id/send_cc_check"
+            <Switch
+                android:id="@+id/send_cc_check"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="15sp"/>
+                android:layout_marginEnd="15sp" />
 
-            <EditText android:id="@+id/send_cc"
+            <EditText
+                android:id="@+id/send_cc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="20sp"
-                android:inputType="text|textNoSuggestions|textMultiLine"
-                android:hint="@string/send_addresses_hint"/>
+                android:hint="@string/send_addresses_hint"
+                android:inputType="text|textNoSuggestions|textMultiLine" />
 
         </LinearLayout>
 
-        <LinearLayout android:orientation="horizontal"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-            <TextView android:id="@+id/send_bcc_title"
+            <TextView
+                android:id="@+id/send_bcc_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15sp"
@@ -104,24 +116,27 @@
                 android:layout_marginEnd="15sp"
                 android:layout_marginRight="15sp"
                 android:text="@string/message_bcc"
-                android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance"/>
+                android:textAppearance="@android:style/TextAppearance"
+                android:textColor="@color/color_message_headers" />
 
-            <Switch android:id="@+id/send_bcc_check"
+            <Switch
+                android:id="@+id/send_bcc_check"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="15sp"/>
+                android:layout_marginEnd="15sp" />
 
-            <EditText android:id="@+id/send_bcc"
+            <EditText
+                android:id="@+id/send_bcc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="20sp"
-                android:inputType="text|textNoSuggestions|textMultiLine"
-                android:hint="@string/send_addresses_hint"/>
+                android:hint="@string/send_addresses_hint"
+                android:inputType="text|textNoSuggestions|textMultiLine" />
 
         </LinearLayout>
 
-        <TextView android:id="@+id/send_subject_title"
+        <TextView
+            android:id="@+id/send_subject_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="15sp"
@@ -130,68 +145,76 @@
             android:layout_marginEnd="15sp"
             android:layout_marginRight="15sp"
             android:text="@string/message_subject"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance"/>
+            android:textAppearance="@android:style/TextAppearance"
+            android:textColor="@color/color_message_headers" />
 
-        <EditText android:id="@+id/send_subject"
+        <EditText
+            android:id="@+id/send_subject"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20sp"
             android:layout_marginLeft="20sp"
             android:layout_marginEnd="20sp"
             android:layout_marginRight="20sp"
-            android:maxLength="500"
+            android:hint=""
             android:inputType="text|textNoSuggestions|textMultiLine"
-            android:hint=""/>
+            android:maxLength="500" />
 
-        <LinearLayout android:orientation="horizontal"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="15sp"
             android:layout_marginTop="15sp"
             android:layout_marginEnd="5sp"
             android:layout_marginBottom="15sp"
-            android:layout_marginStart="15sp">
+            android:orientation="horizontal">
 
-            <TextView android:id="@+id/send_contents_title"
+            <TextView
+                android:id="@+id/send_contents_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/message_contents"
-                android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance"/>
+                android:textAppearance="@android:style/TextAppearance"
+                android:textColor="@color/color_message_headers" />
 
-            <TextView android:id="@+id/send_attachments_count"
+            <TextView
+                android:id="@+id/send_attachments_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10sp"
-                android:textColor="@color/color_message_headers"
-                android:textAppearance="@android:style/TextAppearance"/>
+                android:textAppearance="@android:style/TextAppearance"
+                android:textColor="@color/color_message_headers" />
 
-            <ImageView android:id="@+id/send_attachments_img"
+            <ImageView
+                android:id="@+id/send_attachments_img"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/send_attachments"
                 android:src="@drawable/attachment"
-                android:textColor="@color/color_message_headers"/>
+                android:textColor="@color/color_message_headers" />
 
-            <ImageView android:id="@+id/iv_encryption"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:id="@+id/iv_encryption"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="3sp"
                 android:contentDescription="@string/send_encrypt"
-                android:src="@drawable/padlock_open"/>
+                android:src="@drawable/padlock_open" />
 
-            <TextView android:id="@+id/tv_encryption_reset"
+            <TextView
+                android:id="@+id/tv_encryption_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="3sp"
-                android:textColor="@color/color_orange"
-                android:textAppearance="@android:style/TextAppearance.Small"
                 android:text="@string/open_pgp_reset"
-                android:visibility="gone"/>
+                android:textAppearance="@android:style/TextAppearance.Small"
+                android:textColor="@color/color_orange"
+                android:visibility="gone" />
         </LinearLayout>
 
-        <EditText android:id="@+id/send_contents"
+        <EditText
+            android:id="@+id/send_contents"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="20sp"
@@ -199,7 +222,7 @@
             android:layout_marginEnd="20sp"
             android:layout_marginRight="20sp"
             android:layout_marginBottom="15sp"
-            android:inputType="text|textNoSuggestions|textMultiLine"
-            android:hint=""/>
+            android:hint=""
+            android:inputType="text|textNoSuggestions|textMultiLine" />
     </LinearLayout>
 </ScrollView>

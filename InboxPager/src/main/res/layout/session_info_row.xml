@@ -1,149 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:layout_height="wrap_content">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center">
+        android:gravity="center"
+        android:orientation="vertical">
 
-        <ImageView android:id="@+id/tv_this_device_img"
+        <ImageView
+            android:id="@+id/tv_this_device_img"
             android:layout_width="130sp"
             android:layout_height="130sp"
+            android:contentDescription="@string/ssl_auth_popup_you"
             android:gravity="center_horizontal"
             android:scaleType="fitXY"
-            android:src="@drawable/device"
-            android:contentDescription="@string/ssl_auth_popup_you"/>
+            android:src="@drawable/device" />
 
-        <TextView android:id="@+id/tv_this_device_title"
+        <TextView
+            android:id="@+id/tv_this_device_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:text="@string/ssl_auth_popup_you"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_name_title"
+        <TextView
+            android:id="@+id/tv_name_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="15sp"
             android:paddingEnd="15sp"
             android:text="@string/ssl_auth_popup_cn"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_name"
+        <TextView
+            android:id="@+id/tv_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="25sp"
-            android:paddingEnd="25sp"/>
+            android:paddingEnd="25sp" />
 
-        <TextView android:id="@+id/tv_organization_title"
+        <TextView
+            android:id="@+id/tv_organization_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="15sp"
             android:paddingEnd="15sp"
             android:text="@string/ssl_auth_popup_o"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_organization"
+        <TextView
+            android:id="@+id/tv_organization"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="25sp"
-            android:paddingEnd="25sp"/>
+            android:paddingEnd="25sp" />
 
-        <TextView android:id="@+id/tv_type_title"
+        <TextView
+            android:id="@+id/tv_type_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="15sp"
             android:paddingEnd="15sp"
             android:text="@string/ssl_auth_popup_ou"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_type"
+        <TextView
+            android:id="@+id/tv_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="25sp"
-            android:paddingEnd="25sp"/>
+            android:paddingEnd="25sp" />
 
-        <TextView android:id="@+id/tv_location_title"
+        <TextView
+            android:id="@+id/tv_location_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="15sp"
             android:paddingEnd="15sp"
             android:text="@string/ssl_auth_popup_l"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_location"
+        <TextView
+            android:id="@+id/tv_location"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="25sp"
-            android:paddingEnd="25sp"/>
+            android:paddingEnd="25sp" />
 
-        <TextView android:id="@+id/tv_state_title"
+        <TextView
+            android:id="@+id/tv_state_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="15sp"
             android:paddingEnd="15sp"
             android:text="@string/ssl_auth_popup_st"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_state"
+        <TextView
+            android:id="@+id/tv_state"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="25sp"
-            android:paddingEnd="25sp"/>
+            android:paddingEnd="25sp" />
 
-        <TextView android:id="@+id/tv_country_title"
+        <TextView
+            android:id="@+id/tv_country_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="15sp"
             android:paddingEnd="15sp"
             android:text="@string/ssl_auth_popup_c"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_country"
+        <TextView
+            android:id="@+id/tv_country"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="25sp"
-            android:paddingEnd="25sp"/>
+            android:paddingEnd="25sp" />
 
-        <TextView android:id="@+id/tv_security_title"
+        <TextView
+            android:id="@+id/tv_security_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="15sp"
             android:paddingEnd="15sp"
             android:text="@string/ssl_auth_popup_transport"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_security"
+        <TextView
+            android:id="@+id/tv_security"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="25sp"
-            android:paddingEnd="25sp"/>
+            android:paddingEnd="25sp" />
 
-        <TextView android:id="@+id/tv_key_size_title"
+        <TextView
+            android:id="@+id/tv_key_size_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="15sp"
             android:paddingEnd="15sp"
             android:text="@string/ssl_auth_popup_key_size"
-            android:textColor="@color/color_message_headers"
-            android:textAppearance="@android:style/TextAppearance.Small.Inverse"/>
+            android:textAppearance="@android:style/TextAppearance.Small.Inverse"
+            android:textColor="@color/color_message_headers" />
 
-        <TextView android:id="@+id/tv_key_size"
+        <TextView
+            android:id="@+id/tv_key_size"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="25sp"
-            android:paddingEnd="25sp"/>
+            android:paddingEnd="25sp" />
     </LinearLayout>
 </ScrollView>

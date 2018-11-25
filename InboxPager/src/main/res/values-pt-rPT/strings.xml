@@ -12,19 +12,19 @@
     <string name="license_media_files">Aplicação Do Ícone, CC-BY-SA: Creative Commons Attribution Share Alike 4.0 International Public License</string>
     <!-- Progress Dialog Spinner -->
     <string name="progress_title">Atualizando</string>
-    <string name="progress_refreshing">Procurando por mudanças.</string>
+    <string name="progress_refreshing">Procurando por mudanças…</string>
     <string name="progress_nothing">Sem (novas) mensagens.</string>
     <string name="progress_not_found">Nenhuma mensagem.</string>
     <string name="progress_fetch_msg">Buscando mensagem</string>
     <string name="progress_fetch_attachment">Buscando anexo.</string>
-    <string name="progress_deleting_msg">Apagando mensagem</string>
-    <string name="progress_deleting">Apagando</string>
+    <string name="progress_deleting_msg">Apagando mensagem…</string>
+    <string name="progress_deleting">Apagando…</string>
     <string name="progress_deleted_msgs">Mensagens apagadas.</string>
     <string name="progress_deleted_msg">Mensagem apagada.</string>
-    <string name="progress_downloading">Download</string>
+    <string name="progress_downloading">Download…</string>
     <string name="progress_download_complete">Download completo.</string>
     <string name="progress_keep_msg">Manter Cache</string>
-    <string name="progress_connecting">Conectando em</string>
+    <string name="progress_connecting">Conectando em…</string>
     <string name="progress_connected">Conectado.</string>
     <string name="progress_authenticated">Autenticado.</string>
     <!-- Account Statistics Dialog -->
