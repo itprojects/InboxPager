@@ -17,7 +17,6 @@
 package net.inbox;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -29,7 +28,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -122,23 +120,11 @@ public class InboxUI extends AppCompatActivity {
 
             // Refresh mailbox button
             ImageButton ib_refresh = findViewById(R.id.refresh);
-            ib_refresh.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    refresh_mailbox();
-                }
-            });
+            ib_refresh.setOnClickListener(v -> refresh_mailbox());
 
             // Setting up the SSL authentication application
             iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
-            iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    dialog_servers();
-                }
-            });
+            iv_ssl_auth.setOnClickListener(v -> dialog_servers());
 
             // Filling the ListView of the current inbox window
             msg_list_view = findViewById(R.id.msg_list_view);
@@ -263,26 +249,22 @@ public class InboxUI extends AppCompatActivity {
             }
             InboxMessageList msg_list_adapter = new InboxMessageList(this, al_messages_items);
             msg_list_view.setAdapter(msg_list_adapter);
-            msg_list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                @Override
-                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                    InboxMessageListItem itm_new =  (InboxMessageListItem) parent
-                            .getItemAtPosition(position);
-                    if (!itm_new.get_seen()) {
-                        msg_item_unseen = true;
-                        change_unseen = true;
-                    }
-                    Intent i = new Intent(getApplicationContext(), InboxMessage.class);
-                    Bundle b = new Bundle();
-                    b.putInt("db_id", itm_new.get_id());
-                    b.putInt("db_inbox", itm_new.get_inbox());
-                    b.putString("title", current.get_email());
-                    b.putBoolean("no_send", current.get_smtp_server().isEmpty());
-                    b.putBoolean("imap_or_pop", current.get_imap_or_pop());
-                    startActivityForResult(i.putExtras(b), 1000);
-                    overridePendingTransition(R.anim.left_in, R.anim.left_out);
+            msg_list_view.setOnItemClickListener((parent, v, position, id) -> {
+                InboxMessageListItem itm_new = (InboxMessageListItem) parent
+                        .getItemAtPosition(position);
+                if (!itm_new.get_seen()) {
+                    msg_item_unseen = true;
+                    change_unseen = true;
                 }
+                Intent i = new Intent(getApplicationContext(), InboxMessage.class);
+                Bundle b = new Bundle();
+                b.putInt("db_id", itm_new.get_id());
+                b.putInt("db_inbox", itm_new.get_inbox());
+                b.putString("title", current.get_email());
+                b.putBoolean("no_send", current.get_smtp_server().isEmpty());
+                b.putBoolean("imap_or_pop", current.get_imap_or_pop());
+                startActivityForResult(i.putExtras(b), 1000);
+                overridePendingTransition(R.anim.left_in, R.anim.left_out);
             });
         }
 
@@ -306,7 +288,8 @@ public class InboxUI extends AppCompatActivity {
         if (i < 10) {
             str = "00" + String.valueOf(i);
             tv_page_counter.setText(str);
-        } if (i > 9 && i < 100) {
+        }
+        if (i > 9 && i < 100) {
             str = "0" + String.valueOf(i);
             tv_page_counter.setText(str);
         } else if (i > 100 && i <= 999) {
@@ -349,19 +332,13 @@ public class InboxUI extends AppCompatActivity {
         if (sz < 1024) {
             total_size += sz + " " + getString(R.string.attch_bytes);
         } else if (sz < 1048576) {
-            total_size += (sz/1024) + " " + getString(R.string.attch_kilobytes);
+            total_size += (sz / 1024) + " " + getString(R.string.attch_kilobytes);
         } else {
-            total_size += (sz/1048576) + " " + getString(R.string.attch_megabytes);
+            total_size += (sz / 1048576) + " " + getString(R.string.attch_megabytes);
         }
         msg += total_size;
         builder.setMessage(msg);
-        builder.setPositiveButton(getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog,int id) {
-                        dialog.dismiss();
-                    }
-                });
+        builder.setPositiveButton(getString(android.R.string.ok), (dialog, id) -> dialog.dismiss());
         builder.setCancelable(true);
         builder.show();
     }

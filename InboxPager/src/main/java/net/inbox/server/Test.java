@@ -18,7 +18,6 @@ package net.inbox.server;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.widget.RelativeLayout;
@@ -38,9 +37,9 @@ import javax.net.ssl.SSLSocketFactory;
 
 public class Test extends AsyncTask<Void, Integer, Void> {
 
-    private String[] test_results = new String[] { ".", ".", ".", ".", ".", ".", "."};
+    private String[] test_results = new String[]{".", ".", ".", ".", ".", ".", "."};
     private String server_name;
-    private int[] ports = new int[] { 25, 110, 143, 465, 587, 993, 995 };
+    private int[] ports = new int[]{25, 110, 143, 465, 587, 993, 995};
     private BufferedReader r = null;
     private boolean over = false;
 
@@ -67,12 +66,10 @@ public class Test extends AsyncTask<Void, Integer, Void> {
         pd.setMax(100);
         pd.setCancelable(false);
         String cnc = ctx.getString(android.R.string.cancel);
-        pd.setButton(ProgressDialog.BUTTON_NEGATIVE, cnc, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                publishProgress(100);
-                over = true;
-            }
+        pd.setButton(ProgressDialog.BUTTON_NEGATIVE, cnc, (dialog, which) -> {
+            dialog.dismiss();
+            publishProgress(100);
+            over = true;
         });
         pd.show();
 
@@ -84,30 +81,30 @@ public class Test extends AsyncTask<Void, Integer, Void> {
     @Override
     protected Void doInBackground(Void... params) {
         if (!over) {
-            for(int i = 0; i < 7;++i) {
+            for (int i = 0; i < 7; ++i) {
                 switch (i) {
                     case 0:
-                        publishProgress(14*i, i);
+                        publishProgress(14 * i, i);
                         test(false, ports[0], i);
                         break;
                     case 1:
-                        publishProgress(14*i, i);
+                        publishProgress(14 * i, i);
                         test(false, ports[1], i);
                         break;
                     case 2:
-                        publishProgress(14*i, i);
+                        publishProgress(14 * i, i);
                         test(false, ports[2], i);
                         break;
                     case 3:
-                        publishProgress(14*i, i);
+                        publishProgress(14 * i, i);
                         test(true, ports[3], i);
                         break;
                     case 4:
-                        publishProgress(14*i, i);
+                        publishProgress(14 * i, i);
                         test(false, ports[4], i);
                         break;
                     case 5:
-                        publishProgress(14*i, i);
+                        publishProgress(14 * i, i);
                         test(true, ports[5], i);
                         break;
                     case 6:
@@ -121,38 +118,34 @@ public class Test extends AsyncTask<Void, Integer, Void> {
     }
 
     private void test(final Boolean ssl, final int port, final int indx) {
-        Runnable rn = new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    // SSL socket
-                    SSLSocket s = null;
-                    // Ordinary socket
-                    Socket sn = new Socket();
-                    if (ssl) {
-                        SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
-                        s = (SSLSocket) sf.createSocket(server_name, port);
-                    } else {
-                        sn = SocketFactory.getDefault().createSocket(server_name, port);
-                    }
-                    try {
-                        if (ssl) {
-                            r = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                        } else {
-                            r = new BufferedReader(new InputStreamReader(sn.getInputStream()));
-                        }
-                        test_results[indx] = r.readLine();
-                    } catch (IOException ee) {
-                        //e.printStackTrace();
-                    } finally {
-                    }
-                    if (r != null) r.close();
-                    if (s != null && !s.isClosed()) s.close();
-                    if (!sn.isClosed()) sn.close();
-                } catch (Exception e) {
-                    Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+        Runnable rn = () -> {
+            try {
+                // SSL socket
+                SSLSocket s = null;
+                // Ordinary socket
+                Socket sn = new Socket();
+                if (ssl) {
+                    SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
+                    s = (SSLSocket) sf.createSocket(server_name, port);
+                } else {
+                    sn = SocketFactory.getDefault().createSocket(server_name, port);
                 }
+                try {
+                    if (ssl) {
+                        r = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                    } else {
+                        r = new BufferedReader(new InputStreamReader(sn.getInputStream()));
+                    }
+                    test_results[indx] = r.readLine();
+                } catch (IOException ee) {
+                    //e.printStackTrace();
+                } finally {
+                }
+                if (r != null) r.close();
+                if (s != null && !s.isClosed()) s.close();
+                if (!sn.isClosed()) sn.close();
+            } catch (Exception e) {
+                Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
             }
         };
         Thread th = new Thread(rn);
@@ -214,7 +207,7 @@ public class Test extends AsyncTask<Void, Integer, Void> {
         // Show the complete results
         AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
         builder.setTitle(ctx.getString(R.string.edit_account_test_results));
-        TextView tv_results  = new TextView(ctx);
+        TextView tv_results = new TextView(ctx);
         tv_results.setTextIsSelectable(true);
         String str = (test_results[0].startsWith("220")) ? "\u2713" : "\u274C";
         str += ctx.getString(R.string.edit_account_smtp1) + "\n";

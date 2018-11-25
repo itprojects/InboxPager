@@ -16,7 +16,6 @@
  **/
 package net.inbox.dialogs;
 
-import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
@@ -27,63 +26,51 @@ import net.inbox.R;
 public class Dialogs {
 
     public static void dialog_server_ext(final String s1, final String s2, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                builder.setTitle(s1);
-                builder.setMessage(s2);
-                builder.setCancelable(true);
-                builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-                builder.show();
-            }
+        ct.runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(ct);
+            builder.setTitle(s1);
+            builder.setMessage(s2);
+            builder.setCancelable(true);
+            builder.setPositiveButton(ct.getString(android.R.string.ok), null);
+            builder.show();
         });
     }
 
     public static void dialog_error_line(final String s, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                builder.setTitle(ct.getString(R.string.app_name));
-                builder.setMessage(s);
-                builder.setCancelable(true);
-                builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-                builder.show();
-            }
+        ct.runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(ct);
+            builder.setTitle(ct.getString(R.string.app_name));
+            builder.setMessage(s);
+            builder.setCancelable(true);
+            builder.setPositiveButton(ct.getString(android.R.string.ok), null);
+            builder.show();
         });
     }
 
     public static void dialog_exception(final Exception e, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                builder.setTitle(ct.getString(R.string.ex_title));
-                String str = e.getMessage() + "\n\n";
-                StackTraceElement[] stack = e.getStackTrace();
-                for (int i = 0;i < e.getStackTrace().length;++i) {
-                    str = str.concat(stack[i].getClassName() +":"+ stack[i].getLineNumber() + "\n");
-                }
-                builder.setMessage(str);
-                builder.setCancelable(true);
-                builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-                builder.show();
+        ct.runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(ct);
+            builder.setTitle(ct.getString(R.string.ex_title));
+            String str = e.getMessage() + "\n\n";
+            StackTraceElement[] stack = e.getStackTrace();
+            for (int i = 0; i < e.getStackTrace().length; ++i) {
+                str = str.concat(stack[i].getClassName() + ":" + stack[i].getLineNumber() + "\n");
             }
+            builder.setMessage(str);
+            builder.setCancelable(true);
+            builder.setPositiveButton(ct.getString(android.R.string.ok), null);
+            builder.show();
         });
     }
 
     public static void dialog_view_message(final String msg, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                builder.setTitle(ct.getString(R.string.menu_see_full_message_title));
-                builder.setMessage(msg);
-                builder.setCancelable(true);
-                builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-                builder.show();
-            }
+        ct.runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(ct);
+            builder.setTitle(ct.getString(R.string.menu_see_full_message_title));
+            builder.setMessage(msg);
+            builder.setCancelable(true);
+            builder.setPositiveButton(ct.getString(android.R.string.ok), null);
+            builder.show();
         });
     }
 
@@ -93,24 +80,16 @@ public class Dialogs {
         builder.setMessage(Pager.log);
         builder.setCancelable(true);
         builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-        builder.setNeutralButton(ct.getString(R.string.btn_log_clear),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Pager.log = "";
-                    }
-                });
+        builder.setNeutralButton(ct.getString(R.string.btn_log_clear), (dialog, which) -> Pager.log = "");
         builder.show();
     }
 
     public static void toaster(final boolean time, final String msg, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (time) {
-                    Toast.makeText(ct, msg, Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(ct, msg, Toast.LENGTH_LONG).show();
-                }
+        ct.runOnUiThread(() -> {
+            if (time) {
+                Toast.makeText(ct, msg, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(ct, msg, Toast.LENGTH_LONG).show();
             }
         });
     }

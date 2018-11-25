@@ -60,7 +60,7 @@ public abstract class Handler extends Thread {
 
     /**
      * Command return status codes.
-     *
+     * <p>
      * IMAP OK = 1, NO = 2, BAD = 3
      **/
     int stat = 0;
@@ -194,10 +194,10 @@ public abstract class Handler extends Thread {
      * Writes to socket, bypassing limits.
      * IMAP:
      * ???
-     *
+     * <p>
      * POP:
      * Command Line = 255 or Reply Line = 512 (with \r\n).
-     *
+     * <p>
      * SMTP:
      * Command Line or Reply Line = 512 (with \r\n).
      * Text Line = 1000 (with \r\n).
@@ -211,14 +211,14 @@ public abstract class Handler extends Thread {
                 sb_write_out.setLength(0);
             }
             // CR= 13, LF=10
-            if (b == 10 && cr)  {
+            if (b == 10 && cr) {
                 write(sb_write_out.toString());
                 sb_write_out.setLength(0);
             }
             cr = b == 13;
             sb_write_out.append(b);
         }
-        if (sb_write_out.length() > 0 ) {
+        if (sb_write_out.length() > 0) {
             write(sb_write_out.toString());
             sb_write_out.setLength(0);
         }
@@ -243,7 +243,7 @@ public abstract class Handler extends Thread {
     void socket_start_smtp(SMTP hand) {
         // Starting communication on socket
         io_sock = new SocketIO(current_inbox.get_smtp_server(),
-               current_inbox.get_smtp_port(), hand, ctx);
+                current_inbox.get_smtp_port(), hand, ctx);
         io_sock_thread = new Thread(io_sock);
         io_sock_thread.start();
     }
@@ -259,16 +259,13 @@ public abstract class Handler extends Thread {
             Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
 
             // Connection icon update
-            ((AppCompatActivity) ctx).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (ctx.getClass().toString().endsWith(".InboxMessage")) {
-                        // Set server certificate details
-                        ((InboxMessage) ctx).connection_security();
-                    } else if (ctx.getClass().toString().endsWith(".InboxSend")) {
-                        // Set server certificate details
-                        ((InboxSend) ctx).connection_security();
-                    }
+            ((AppCompatActivity) ctx).runOnUiThread(() -> {
+                if (ctx.getClass().toString().endsWith(".InboxMessage")) {
+                    // Set server certificate details
+                    ((InboxMessage) ctx).connection_security();
+                } else if (ctx.getClass().toString().endsWith(".InboxSend")) {
+                    // Set server certificate details
+                    ((InboxSend) ctx).connection_security();
                 }
             });
         } else {
@@ -296,12 +293,7 @@ public abstract class Handler extends Thread {
      * Updates the spinning status dialog.
      **/
     void on_ui_thread(final String title, final String msg) {
-        ((AppCompatActivity) ctx).runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                sp.onProgressUpdate(title, msg);
-            }
-        });
+        ((AppCompatActivity) ctx).runOnUiThread(() -> sp.onProgressUpdate(title, msg));
     }
 
     /**
@@ -310,12 +302,7 @@ public abstract class Handler extends Thread {
      **/
     void on_ui_thread_continue_refresh() {
         final Pager page = (Pager) ctx;
-        page.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                page.mass_refresh();
-            }
-        });
+        page.runOnUiThread(page::mass_refresh);
     }
 
     public boolean get_hostname_verify() {

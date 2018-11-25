@@ -99,17 +99,17 @@ class InboxListItem {
         return count;
     }
 
-    /*
+/*
     public void set_id(int i) {
         id = i;
     }
-    */
+*/
 
-    /*
+/*
     public void set_inbox(String s) {
         inbox_name = s;
     }
-    */
+*/
 
     private void set_count(int i) {
         if (i < 1) {
@@ -117,7 +117,8 @@ class InboxListItem {
         } else {
             if (i < 10) {
                 count = "00" + String.valueOf(i);
-            } if (i > 9 && i < 100) {
+            }
+            if (i > 9 && i < 100) {
                 count = "0" + String.valueOf(i);
             } else if (i > 999) {
                 count = "+" + String.valueOf(i);

@@ -64,7 +64,7 @@ public class POP extends Handler {
         ArrayList<String[]> msg_structure = new ArrayList<>();
 
         // Message texts
-        ArrayList<String[]>  msg_texts = new ArrayList<>();
+        ArrayList<String[]> msg_texts = new ArrayList<>();
 
         // Used in saving attachments and text
         Attachment att_item;
@@ -100,7 +100,7 @@ public class POP extends Handler {
 
     @Override
     public void reply(String l) {
-        if(data == null) return;
+        if (data == null) return;
         if (l.equals(".")) {
             // Multi-line ending
             if (data.delegate) {
@@ -108,7 +108,7 @@ public class POP extends Handler {
                     // Byte count
                     int bytes = 0;
                     int sz = data.sbuffer.length();
-                    for (int i = 0;i < sz;i += 1000) {
+                    for (int i = 0; i < sz; i += 1000) {
                         if ((i + 1000) >= sz) {
                             bytes += data.sbuffer.substring(i).getBytes().length;
                             continue;
@@ -198,63 +198,60 @@ public class POP extends Handler {
 
         if (!excepted) {
             // Prepare a callback for results
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        sleep(3000);
-                    } catch (InterruptedException e) {
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
-                    }
+            new Thread(() -> {
+                try {
+                    sleep(3000);
+                } catch (InterruptedException e) {
+                    Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                }
 
-                    if (current_inbox.get_imap_or_pop_extensions() != null
-                            && !current_inbox.get_imap_or_pop_extensions().isEmpty()) {
-                        String tested;
-                        if (current_inbox.get_imap_or_pop_extensions()
-                                .equals(ctx.getString(R.string.err_no_capa))) {
-                            tested = ctx.getString(R.string.err_no_capa);
-                        } else {
-                            // Preparing the dialog message
-                            data.auths = new ArrayList<>();
-                            data.general = new ArrayList<>();
-                            String[] parts = current_inbox.get_imap_or_pop_extensions().split("\n");
-                            for (int g = 0;g < parts.length;++g) {
-                                if (parts[g] != null) {
-                                    parts[g] = parts[g].toLowerCase().trim();
-                                    if (parts[g].contains("sasl")) {
-                                        String[] au = parts[g].substring(5).split(" ");
-                                        Collections.addAll(data.auths, au);
-                                        continue;
-                                    }
-                                    data.general.add(parts[g]);
+                if (current_inbox.get_imap_or_pop_extensions() != null
+                        && !current_inbox.get_imap_or_pop_extensions().isEmpty()) {
+                    String tested;
+                    if (current_inbox.get_imap_or_pop_extensions()
+                            .equals(ctx.getString(R.string.err_no_capa))) {
+                        tested = ctx.getString(R.string.err_no_capa);
+                    } else {
+                        // Preparing the dialog message
+                        data.auths = new ArrayList<>();
+                        data.general = new ArrayList<>();
+                        String[] parts = current_inbox.get_imap_or_pop_extensions().split("\n");
+                        for (int g = 0; g < parts.length; ++g) {
+                            if (parts[g] != null) {
+                                parts[g] = parts[g].toLowerCase().trim();
+                                if (parts[g].contains("sasl")) {
+                                    String[] au = parts[g].substring(5).split(" ");
+                                    Collections.addAll(data.auths, au);
+                                    continue;
                                 }
-                            }
-                            tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
-                            for (int i = 0;i < data.auths.size();++i) {
-                                if (i == (data.auths.size() - 1)) {
-                                    tested += data.auths.get(i).toUpperCase();
-                                } else {
-                                    tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
-                                }
-                            }
-                            tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
-                            for (int i = 0;i < data.general.size();++i) {
-                                if (i == (data.general.size() - 1)) {
-                                    tested += data.general.get(i).toUpperCase();
-                                } else {
-                                    tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
-                                }
+                                data.general.add(parts[g]);
                             }
                         }
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
-                                tested, (AppCompatActivity) ctx);
-                    } else {
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
-                                ctx.getString(R.string.edit_account_check_fail),
-                                (AppCompatActivity) ctx);
+                        tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
+                        for (int i = 0; i < data.auths.size(); ++i) {
+                            if (i == (data.auths.size() - 1)) {
+                                tested += data.auths.get(i).toUpperCase();
+                            } else {
+                                tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
+                            }
+                        }
+                        tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
+                        for (int i = 0; i < data.general.size(); ++i) {
+                            if (i == (data.general.size() - 1)) {
+                                tested += data.general.get(i).toUpperCase();
+                            } else {
+                                tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
+                            }
+                        }
                     }
-                    reset();
+                    Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
+                            tested, (AppCompatActivity) ctx);
+                } else {
+                    Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
+                            ctx.getString(R.string.edit_account_check_fail),
+                            (AppCompatActivity) ctx);
                 }
+                reset();
             }).start();
         }
     }
@@ -498,7 +495,7 @@ public class POP extends Handler {
                 case "DOWNLOAD_FULL_MESSAGE":
                     if (cmd_start) {
                         // Picking out a particular message
-                        for (int i = data.message_uids.size() - 1;i >= 0;i--) {
+                        for (int i = data.message_uids.size() - 1; i >= 0; i--) {
                             if (!data.message_uids.get(i).equals(data.msg_current.get_uid())) {
                                 data.message_nums.remove(i);
                                 data.message_uids.remove(i);
@@ -529,7 +526,7 @@ public class POP extends Handler {
                 case "DELETE_MSG":
                     if (cmd_start) {
                         // Picking out a particular message
-                        for (int i = data.message_uids.size() - 1;i >= 0;i--) {
+                        for (int i = data.message_uids.size() - 1; i >= 0; i--) {
                             if (!data.message_uids.get(i).equals(data.msg_current.get_uid())) {
                                 data.message_nums.remove(i);
                                 data.message_uids.remove(i);
@@ -624,7 +621,7 @@ public class POP extends Handler {
 
                 // Add the message's attachments to database
                 if (data.msg_structure != null) {
-                    for (int ii = 0;ii < data.msg_structure.size();++ii) {
+                    for (int ii = 0; ii < data.msg_structure.size(); ++ii) {
                         Attachment att = new Attachment();
                         att.set_account(current_inbox.get_id());
                         att.set_message(data.msg_current.get_id());
@@ -729,7 +726,7 @@ public class POP extends Handler {
                 }
             } else if (data.auth.equals("AUTH PLAIN")) {
                 // PLAIN type of authentication
-                String str = Base64.encodeToString(("\0"+ current_inbox.get_username() + "\0"
+                String str = Base64.encodeToString(("\0" + current_inbox.get_username() + "\0"
                         + current_inbox.get_pass()).getBytes(), Base64.DEFAULT).trim();
                 if (str.length() > 500) {
                     write_limited(str.toCharArray());
@@ -880,7 +877,7 @@ public class POP extends Handler {
             }
 
             // Looking for new messages, and adding
-            for (int i = data.message_uids.size() - 1;i >= 0;--i) {
+            for (int i = data.message_uids.size() - 1; i >= 0; --i) {
                 if (local_msgs.containsValue(data.message_uids.get(i))) {
                     data.message_nums.remove(data.message_nums.get(i));
                     data.message_size.remove(data.message_size.get(i));
@@ -916,7 +913,7 @@ public class POP extends Handler {
             String received = "";
             String str_tmp;
             String[] rows = data.sbuffer.toString().split("\n");
-            for (int i = 0;i < rows.length;++i) {
+            for (int i = 0; i < rows.length; ++i) {
                 String sto = rows[i].trim().toLowerCase();
                 if (sto.startsWith("received:")) {
                     pat = Pattern.compile("Received: from (.+?) \\((.+?)\\).*",
@@ -994,7 +991,7 @@ public class POP extends Handler {
                 pop_parse_mime_msg("--" + mat.group(1).replaceAll("\"", "").replaceAll("\n", ""));
             } else {
                 pat = Pattern.compile(".*text/(\\w+)(.*);(.*)charset=(.*)",
-                        Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+                        Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
                 mat = pat.matcher(data.msg_current.get_content_type());
 
                 // Converting mime body to non-transfer-encoding readable body
@@ -1015,16 +1012,20 @@ public class POP extends Handler {
                 }
 
                 if (mat.matches()) {
-                    if (mat.group(1).toLowerCase().equals("plain")) {
-                        data.msg_current.set_charset_plain(mat.group(4).replaceAll("\"", "")
-                                .replaceAll("\n", "").toUpperCase());
-                        data.msg_current.set_contents_plain(data.sbuffer.substring(data.hdr));
-                    } else if (mat.group(1).toLowerCase().equals("html")) {
-                        data.msg_current.set_charset_html(mat.group(4).replaceAll("\"", "")
-                                .replaceAll("\n", "").toUpperCase());
-                        data.msg_current.set_contents_html(data.sbuffer.substring(data.hdr));
-                    } else {
-                        data.msg_current.set_contents_other(data.sbuffer.substring(data.hdr));
+                    switch (mat.group(1).toLowerCase()) {
+                        case "plain":
+                            data.msg_current.set_charset_plain(mat.group(4).replaceAll("\"", "")
+                                    .replaceAll("\n", "").toUpperCase());
+                            data.msg_current.set_contents_plain(data.sbuffer.substring(data.hdr));
+                            break;
+                        case "html":
+                            data.msg_current.set_charset_html(mat.group(4).replaceAll("\"", "")
+                                    .replaceAll("\n", "").toUpperCase());
+                            data.msg_current.set_contents_html(data.sbuffer.substring(data.hdr));
+                            break;
+                        default:
+                            data.msg_current.set_contents_other(data.sbuffer.substring(data.hdr));
+                            break;
                     }
                 }
             }
@@ -1065,7 +1066,7 @@ public class POP extends Handler {
             } else if (data.msg_current.get_content_transfer_encoding()
                     .equalsIgnoreCase("quoted-printable")) {
                 pat = Pattern.compile(".*(charset|charset\\*)=(.*)",
-                        Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+                        Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
                 mat = pat.matcher(data.msg_current.get_content_type());
                 if (mat.matches()) {
                     buff = Utils.parse_quoted_printable(buff, mat.group(1));

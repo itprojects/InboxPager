@@ -20,7 +20,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -41,7 +40,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -60,7 +58,6 @@ import net.sqlcipher.database.SQLiteDatabase;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 
 public class Pager extends AppCompatActivity {
 
@@ -171,22 +168,20 @@ public class Pager extends AppCompatActivity {
             llay_pw.setVisibility(View.VISIBLE);
             rv_main = findViewById(R.id.app_main);
             et_pw = findViewById(R.id.pw);
-            et_pw.setOnKeyListener(new View.OnKeyListener() {
-                public boolean onKey(View v, int key, KeyEvent event) {
-                    if (event.getAction() == KeyEvent.ACTION_DOWN
-                            && key == KeyEvent.KEYCODE_ENTER) {
-                        init_db(et_pw.getText().toString());
-                        et_pw.setText("");
-                        if (unlocked) {
-                            activity_load();
-                            fade_in_ui();
-                        } else {
-                            if (++over >= 3) finish();
-                        }
-                        return true;
+            et_pw.setOnKeyListener((v1, key, event) -> {
+                if (event.getAction() == KeyEvent.ACTION_DOWN
+                        && key == KeyEvent.KEYCODE_ENTER) {
+                    init_db(et_pw.getText().toString());
+                    et_pw.setText("");
+                    if (unlocked) {
+                        activity_load();
+                        fade_in_ui();
+                    } else {
+                        if (++over >= 3) finish();
                     }
-                    return false;
+                    return true;
                 }
+                return false;
             });
         }
 
@@ -197,13 +192,10 @@ public class Pager extends AppCompatActivity {
             builder.setTitle(getString(R.string.helper_title));
             builder.setMessage(getString(R.string.helper_msg));
             builder.setPositiveButton(getString(android.R.string.ok), null);
-            builder.setNegativeButton(getString(R.string.btn_pw),
-                    new AlertDialog.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            startActivity(new Intent(getApplicationContext(), Settings.class));
-                            overridePendingTransition(R.anim.right_in, R.anim.right_out);
-                        }
-                    });
+            builder.setNegativeButton(getString(R.string.btn_pw), (dialog, which) -> {
+                startActivity(new Intent(getApplicationContext(), Settings.class));
+                overridePendingTransition(R.anim.right_in, R.anim.right_out);
+            });
             builder.show();
         }
     }
@@ -347,13 +339,7 @@ public class Pager extends AppCompatActivity {
 
         // Mass Refresh Button
         ImageButton iv_refresh = findViewById(R.id.refresh);
-        iv_refresh.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                mass_refresh_check();
-            }
-        });
+        iv_refresh.setOnClickListener(v -> mass_refresh_check());
 
         // No accounts message is visible if the user has not init-ed the app
         tv_no_account = findViewById(R.id.no_accounts);
@@ -380,11 +366,7 @@ public class Pager extends AppCompatActivity {
             }
 
             // Sort accounts' list
-            Collections.sort(list_accounts, new Comparator<Inbox>() {
-                public int compare(Inbox inn1, Inbox inn2) {
-                    return inn1.get_email().compareTo(inn2.get_email());
-                }
-            });
+            Collections.sort(list_accounts, (inn1, inn2) -> inn1.get_email().compareTo(inn2.get_email()));
 
             for (int i = 0; i < list_accounts.size(); i++) {
                 Inbox nfo = list_accounts.get(i);
@@ -399,17 +381,13 @@ public class Pager extends AppCompatActivity {
             }
 
             inbox_adapter.notifyDataSetChanged();
-            inbox_list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                @Override
-                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                    InboxListItem inbox_itm = (InboxListItem) parent.getItemAtPosition(position);
-                    Intent i = new Intent(getApplicationContext(), InboxUI.class);
-                    Bundle b = new Bundle();
-                    b.putInt("db_id", inbox_itm.get_id());
-                    startActivityForResult(i.putExtras(b), 10);
-                    overridePendingTransition(R.anim.left_in, R.anim.left_out);
-                }
+            inbox_list_view.setOnItemClickListener((parent, v, position, id) -> {
+                InboxListItem inbox_itm = (InboxListItem) parent.getItemAtPosition(position);
+                Intent i = new Intent(getApplicationContext(), InboxUI.class);
+                Bundle b = new Bundle();
+                b.putInt("db_id", inbox_itm.get_id());
+                startActivityForResult(i.putExtras(b), 10);
+                overridePendingTransition(R.anim.left_in, R.anim.left_out);
             });
         }
 
@@ -430,7 +408,8 @@ public class Pager extends AppCompatActivity {
         if (i < 10) {
             str = "00" + String.valueOf(i);
             tv_page_counter.setText(str);
-        } if (i > 9 && i < 100) {
+        }
+        if (i > 9 && i < 100) {
             str = "0" + String.valueOf(i);
             tv_page_counter.setText(str);
         } else if (i > 100 && i <= 999) {

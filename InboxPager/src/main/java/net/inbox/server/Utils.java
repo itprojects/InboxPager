@@ -54,7 +54,7 @@ public class Utils {
         } else return null;
 
         // Array values correspond to index (1 or 1.1), and contents
-        ArrayList<String[]> structure = imap_parse_one_level(new String[] { "?", msg_body });
+        ArrayList<String[]> structure = imap_parse_one_level(new String[]{"?", msg_body});
 
         boolean loop_complete = false;
         boolean sub_levels;
@@ -62,7 +62,7 @@ public class Utils {
             sub_levels = false;
             int change_index = -1;
             int sz = structure.size();
-            for (int i = 0;i < sz;++i) {
+            for (int i = 0; i < sz; ++i) {
                 sub_levels = structure.get(i)[1].startsWith("(");
                 if (sub_levels) {
                     change_index = i;
@@ -89,7 +89,7 @@ public class Utils {
         if (txt[1].charAt(txt[1].length() - 1) == ')') {
             txt[1] = txt[1].substring(1, txt[1].length() - 1);
             if (txt[1].trim().charAt(0) != '(') {
-                structure.add(new String[] { "1", txt[1] });
+                structure.add(new String[]{"1", txt[1]});
                 return structure;
             }
         }
@@ -98,7 +98,7 @@ public class Utils {
         StringBuilder sb_between = new StringBuilder();
 
         // Separating the parts of the message
-        for (int i = 0;i < txt[1].length();++i) {
+        for (int i = 0; i < txt[1].length(); ++i) {
             if (txt[1].charAt(i) == '(') {
                 char_positions.add(i);
                 continue;
@@ -106,7 +106,7 @@ public class Utils {
                 int begin = char_positions.get(char_positions.size() - 1);
                 char_positions.remove(char_positions.get(char_positions.size() - 1));
                 if (char_positions.size() == 0) {
-                    structure.add(new String[] { "-1",  txt[1].substring(begin + 1, i) });
+                    structure.add(new String[]{"-1", txt[1].substring(begin + 1, i)});
                 }
                 continue;
             } else if (txt[1].charAt(i) == '\"' && txt[1].charAt(i - 1) == ' ') {
@@ -130,7 +130,7 @@ public class Utils {
         pat = Pattern.compile("\"(" + t_composite + ")\"(.*)", Pattern.CASE_INSENSITIVE);
         mat = pat.matcher(s_type);
         if (mat.matches()) {
-            structure.add(0, new String[] { "-1" , "\"" + mat.group(1) + "\"" });
+            structure.add(0, new String[]{"-1", "\"" + mat.group(1) + "\""});
             if (!mat.group(2).trim().isEmpty()) {
                 structure.remove(structure.size() - 1);
             }
@@ -139,7 +139,7 @@ public class Utils {
         String t_discrete = "APPLICATION|AUDIO|IMAGE|TEXT|VIDEO";
 
         // Removing some entries
-        for (int i = structure.size() - 1; i >= 0;i--) {
+        for (int i = structure.size() - 1; i >= 0; i--) {
             String str_val = structure.get(i)[1].trim();
             if (str_val.matches("\\(\".*")) {
                 String pattern_subtype = "\\(\"(" + t_composite + "|" + t_discrete + ")\".*";
@@ -154,7 +154,7 @@ public class Utils {
             int i = 0;
             if (structure.size() > 1) {
                 //for (String[] t : structure) {
-                for (int j = 0;j < structure.size();++j) {
+                for (int j = 0; j < structure.size(); ++j) {
                     if (j == 0) {
                         structure.get(j)[0] = "0";
                     } else {
@@ -183,7 +183,7 @@ public class Utils {
      * Finds text nodes, prepares the attachments.
      **/
     static ArrayList<String[]> imap_parse_nodes(ArrayList<String[]> structure,
-        String[] arr_texts_plain, String[] arr_texts_html, String[] arr_texts_other) {
+                                                String[] arr_texts_plain, String[] arr_texts_html, String[] arr_texts_other) {
         if (structure == null) return null;
         if (structure.size() == 1) {
             imap_parse_text_params(structure.get(0), arr_texts_plain, arr_texts_html,
@@ -194,7 +194,7 @@ public class Utils {
         ArrayList<String[]> texts = new ArrayList<>();
         if (structure.get(0)[1].matches("\"ALTERNATIVE\".*")) {
             // All MIME nodes should be text/* formatted
-            for (int i = 1;i < structure.size();++i) {
+            for (int i = 1; i < structure.size(); ++i) {
                 if (structure.get(i)[1].matches("\"TEXT\".*")) texts.add(structure.get(i));
             }
             structure.clear();
@@ -226,7 +226,7 @@ public class Utils {
         // Remaining items are attachments
         ArrayList<String[]> return_structure = new ArrayList<>();
         if (structure.size() > 0) {
-            for (int j = 0;j < structure.size();++j) {
+            for (int j = 0; j < structure.size(); ++j) {
                 return_structure.add(j, imap_parse_attachment_params(structure.get(j)));
             }
         }
@@ -239,7 +239,7 @@ public class Utils {
      * PLAIN, 1.1, UTF-8, QUOTED-PRINTABLE
      **/
     private static void imap_parse_text_params(String[] str_txt,
-        String[] arr_texts_plain, String[] arr_texts_html, String[] arr_texts_other) {
+                                               String[] arr_texts_plain, String[] arr_texts_html, String[] arr_texts_other) {
 
         // Mime subtype
         String mime_subtype;
@@ -300,7 +300,7 @@ public class Utils {
     private static String[] imap_parse_attachment_params(String[] str_attach) {
         String type = "", name = "", encoding = "", size = "";
         int ii = 0;
-        for (int i = 0;i < str_attach[1].length();++i) {
+        for (int i = 0; i < str_attach[1].length(); ++i) {
             if (str_attach[1].charAt(i) == '\"') {
                 ++ii;
                 if (ii == 2) type = type.concat("/");
@@ -344,7 +344,7 @@ public class Utils {
 
         ii = 0;
         String tmp = "";
-        for (int j = 0;j < temp.length();++j) {
+        for (int j = 0; j < temp.length(); ++j) {
             if (ii == 4) {
                 temp = temp.substring(j);
                 break;
@@ -393,7 +393,7 @@ public class Utils {
             mat = pat.matcher(name);
             if (mat.matches()) {
                 temp = mat.group(1);
-                for (int k = 0;k < temp.length();++k) {
+                for (int k = 0; k < temp.length(); ++k) {
                     if (temp.charAt(k) == '}') temp = temp.substring(k);
                 }
                 name = content_disposition_name(false, temp);
@@ -404,12 +404,13 @@ public class Utils {
         }
 
         // Message attachments, (uid, mime-type, name, transfer-encoding, size)
-        return new String[] { str_attach[0], type, name, encoding, size };
+        return new String[]{str_attach[0], type, name, encoding, size};
     }
 
     private static class MIME {
 
-        MIME() {}
+        MIME() {
+        }
 
         Boolean multipart = false;
         String charset = "";
@@ -426,7 +427,7 @@ public class Utils {
 
         String[] toArray() {
             return new String[]
-                    { index, mime_type, boundary, name, transfer_encoding, charset, size };
+                    {index, mime_type, boundary, name, transfer_encoding, charset, size};
         }
     }
 
@@ -443,9 +444,11 @@ public class Utils {
 
         // Finding the boundaries
         Pattern pat_border = Pattern.compile(".*boundary=\"(.*)\".*",
-                Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
         mat = pat_border.matcher(buff);
-        while (mat.find()) { boundaries.add("--" + mat.group(1)); }
+        while (mat.find()) {
+            boundaries.add("--" + mat.group(1));
+        }
 
         String[] lines = buff.replaceAll("\r", "").split("\n");
 
@@ -537,7 +540,7 @@ public class Utils {
         }
 
         int level = 0;
-        for (int i = 0;i < boundaries.size();++i) {
+        for (int i = 0; i < boundaries.size(); ++i) {
             for (MIME p : parts) {
                 if (p.boundary.equals(boundaries.get(i))) ++level;
                 p.sequence[i] = String.valueOf(level);
@@ -550,7 +553,7 @@ public class Utils {
         for (MIME p : parts) {
             index_bound = boundaries.indexOf(p.boundary);
             if (index_bound > -1) {
-                for (int l = 0;l < p.sequence.length;++l) {
+                for (int l = 0; l < p.sequence.length; ++l) {
                     if (l > index_bound) {
                         p.sequence[l] = null;
                     } else {
@@ -568,7 +571,7 @@ public class Utils {
         Pattern pt_char = Pattern.compile(".*(charset|charset\\*)=(.*)", Pattern.CASE_INSENSITIVE);
 
         // Removing wrong mime parts
-        for (int i = parts.size() - 1;i >= 0;i--) {
+        for (int i = parts.size() - 1; i >= 0; i--) {
             if (parts.get(i).multipart) {
                 parts.remove(parts.get(i));
             } else {
@@ -612,7 +615,9 @@ public class Utils {
 
         // Rebuilding the structure
         ArrayList<String[]> structure = new ArrayList<>();
-        for (MIME p : parts) { structure.add(p.toArray()); }
+        for (MIME p : parts) {
+            structure.add(p.toArray());
+        }
 
         return structure;
     }
@@ -666,7 +671,7 @@ public class Utils {
 
         int end_index = str.indexOf(uid_boundary, uid_boundary.length());
         if (end_index == -1) {
-            str =  "!";
+            str = "!";
         } else {
             str = str.substring(mime_hdr, end_index);
         }
@@ -717,7 +722,7 @@ public class Utils {
                 msg.set_charset_html(arr[5]);
                 txt_tmp = Utils.mime_part_section(txt, arr[0], arr[2]);
                 if (arr[4].equalsIgnoreCase("BASE64")) {
-                    for (int j = 0;j < txt_tmp.length();++j) {
+                    for (int j = 0; j < txt_tmp.length(); ++j) {
                         if (txt_tmp.charAt(j) == '\n') {
                             str = str.concat(Utils.parse_BASE64(hold));
                         } else if (txt_tmp.charAt(j) != '\r' && txt_tmp.charAt(j) != '\t') {
@@ -772,11 +777,11 @@ public class Utils {
             }
         }
 
-        return new String[]{ ct, boundary };
+        return new String[]{ct, boundary};
     }
 
     public static String boundary() {
-        return ("=__" + UUID.randomUUID().toString().replace("-","").substring(0, 30));
+        return ("=__" + UUID.randomUUID().toString().replace("-", "").substring(0, 30));
     }
 
     static boolean validate_B64_QP(String s) {
@@ -787,7 +792,7 @@ public class Utils {
         String ret = "";
         StringBuilder sb = new StringBuilder();
         boolean in_bracket = false;
-        for (int i = 0;i < s.length();++i) {
+        for (int i = 0; i < s.length(); ++i) {
             if (s.charAt(i) == '=' && (i + 1) <= (s.length() - 1)) {
                 if (s.charAt(i + 1) == '=') continue;
                 if (s.charAt(i + 1) == '?' && !in_bracket) {
@@ -860,7 +865,7 @@ public class Utils {
     /**
      * Decides appropriate non-ascii string encoding.
      * Converts from BASE64 or Quoted Printable to UTF-8.
-     *
+     * <p>
      * i.e.: (not a real word)
      * =?utf-8?B?Kkg1YTQtdC=?=
      * =?utf-8?Q?=D6=93=D4=BE=D1?=
@@ -894,7 +899,7 @@ public class Utils {
 
     /**
      * Convert an ASCII Quoted Printable to UTF-8 string.
-     *
+     * <p>
      * i.e.: (not a real word)
      * =?utf-8?Q?=D6=93=D4=BE=D1?=
      * =?charset?encoding?encoded-text?=
@@ -912,7 +917,7 @@ public class Utils {
         int len = s_tmp.length();
         byte[] ascii_bytes = new byte[s_tmp.length()];
         int count = 0;
-        for (int i = 0;i < len;++i) {
+        for (int i = 0; i < len; ++i) {
             if (s_tmp.charAt(i) == '=' && (i + 2) <= (len - 1)) {
                 if (s_tmp.charAt(i + 1) == '\r' && s_tmp.charAt(i + 2) == '\n') {
                     // Skip this line
@@ -928,7 +933,7 @@ public class Utils {
                     ++count;
                     i += 2;
                 }
-            }  else {
+            } else {
                 ascii_bytes[count] = (byte) s_tmp.charAt(i);
                 ++count;
             }
@@ -945,7 +950,7 @@ public class Utils {
 
     /**
      * Converts (encode-decode) URL-style filenames for transmission.
-     *
+     * <p>
      * filename*=UTF-8''Na%C3%AFve%20file.txt
      **/
     public static String content_disposition_name(boolean encode, String filename) {
@@ -986,7 +991,9 @@ public class Utils {
     }
 
     public static boolean all_ascii(String s) {
-        for (char c: s.toCharArray()) { if (((int) c) > 127) return false; }
+        for (char c : s.toCharArray()) {
+            if (((int) c) > 127) return false;
+        }
         return true;
     }
 

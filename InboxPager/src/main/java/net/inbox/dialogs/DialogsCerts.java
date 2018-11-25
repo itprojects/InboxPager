@@ -39,17 +39,14 @@ public class DialogsCerts {
 
     public static void dialog_certs(final AppCompatActivity act, ArrayList<String[]> hops_given) {
         hops = hops_given;
-        act.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(act);
-                builder.setTitle(act.getString(R.string.ssl_auth_popup_title));
-                builder.setCancelable(true);
-                View layout = act.getLayoutInflater().inflate(R.layout.session_info, null);
-                builder.setView(layout);
-                builder.show();
-                build_certs_info(act, layout);
-            }
+        act.runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(act);
+            builder.setTitle(act.getString(R.string.ssl_auth_popup_title));
+            builder.setCancelable(true);
+            View layout = act.getLayoutInflater().inflate(R.layout.session_info, null);
+            builder.setView(layout);
+            builder.show();
+            build_certs_info(act, layout);
         });
     }
 
@@ -70,10 +67,12 @@ public class DialogsCerts {
             }
 
             @Override
-            public void onPageScrolled(int arg0, float arg1, int arg2) {}
+            public void onPageScrolled(int arg0, float arg1, int arg2) {
+            }
 
             @Override
-            public void onPageScrollStateChanged(int arg0) {}
+            public void onPageScrollStateChanged(int arg0) {
+            }
         });
 
         LinearLayout llay_hops = layout.findViewById(R.id.v_pager_dots);
@@ -235,7 +234,7 @@ class NodeAdapter extends PagerAdapter {
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
-        container.removeView((View)object);
+        container.removeView((View) object);
     }
 
     @Override

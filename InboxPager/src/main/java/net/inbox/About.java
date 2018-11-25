@@ -21,7 +21,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -41,7 +40,7 @@ public class About extends AppCompatActivity {
 
         // Find the title
         TextView tv_t;
-        for (int i = 0;i < tb.getChildCount();++i) {
+        for (int i = 0; i < tb.getChildCount(); ++i) {
             int idd = tb.getChildAt(i).getId();
             if (idd == -1) {
                 tv_t = (TextView) tb.getChildAt(i);
@@ -59,40 +58,16 @@ public class About extends AppCompatActivity {
         tv_ver.setText(String.valueOf(BuildConfig.VERSION_NAME));
 
         TextView tv_font = findViewById(R.id.tv_font);
-        tv_font.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_license(4);
-            }
-        });
+        tv_font.setOnClickListener(v -> dialog_license(4));
 
         TextView tv_open_keychain = findViewById(R.id.tv_open_keychain);
-        tv_open_keychain.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_license(3);
-            }
-        });
+        tv_open_keychain.setOnClickListener(v -> dialog_license(3));
 
         TextView tv_sql_cipher_java = findViewById(R.id.tv_sql_cipher_java);
-        tv_sql_cipher_java.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_license(1);
-            }
-        });
+        tv_sql_cipher_java.setOnClickListener(v -> dialog_license(1));
 
         TextView tv_sql_cipher_other = findViewById(R.id.tv_sql_cipher_other);
-        tv_sql_cipher_other.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_license(2);
-            }
-        });
+        tv_sql_cipher_other.setOnClickListener(v -> dialog_license(2));
     }
 
     @Override

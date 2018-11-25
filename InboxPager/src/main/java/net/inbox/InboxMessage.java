@@ -16,7 +16,6 @@
  **/
 package net.inbox;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -35,7 +34,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -58,7 +56,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -174,13 +171,7 @@ public class InboxMessage extends AppCompatActivity {
             // Message Attachments Counter
             tv_page_attachments = findViewById(R.id.message_attachments);
             tv_page_attachments.setTypeface(Pager.tf);
-            tv_page_attachments.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    dialog_list_attachments();
-                }
-            });
+            tv_page_attachments.setOnClickListener(v -> dialog_list_attachments());
 
             // Setting the number of attachments
             if (current.get_attachments() > 0) {
@@ -206,30 +197,20 @@ public class InboxMessage extends AppCompatActivity {
             tv_subject.setTextSize(sz);
             tv_date.setTextSize(sz);
             tv_contents.setTextSize(sz);
-            tv_texts.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    if (btn_texts_states.size() > 1 && btn_texts_ready) {
-                        btn_texts_ready = false;
-                        if (btn_texts_state == (btn_texts_states.size() - 1)) {
-                            btn_texts_state = 0;
-                        } else {
-                            ++btn_texts_state;
-                        }
-                        populate_contents();
+            tv_texts.setOnClickListener(v -> {
+                if (btn_texts_states.size() > 1 && btn_texts_ready) {
+                    btn_texts_ready = false;
+                    if (btn_texts_state == (btn_texts_states.size() - 1)) {
+                        btn_texts_state = 0;
+                    } else {
+                        ++btn_texts_state;
                     }
+                    populate_contents();
                 }
             });
 
             TextView tv_from_title = findViewById(R.id.message_from_title);
-            tv_from_title.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    dialog_originating();
-                }
-            });
+            tv_from_title.setOnClickListener(v -> dialog_originating());
 
             // Insert the data
             tv_from.setText(current.get_from());
@@ -253,13 +234,7 @@ public class InboxMessage extends AppCompatActivity {
 
             // Setting up the SSL authentication application
             iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
-            iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    dialog_servers();
-                }
-            });
+            iv_ssl_auth.setOnClickListener(v -> dialog_servers());
 
             // Set unseen -> seen
             if (!(current.get_seen())) {
@@ -268,13 +243,9 @@ public class InboxMessage extends AppCompatActivity {
 
             // GPG crypto activity
             iv_gpg_crypto = findViewById(R.id.iv_gpg_crypto);
-            iv_gpg_crypto.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    if (!crypto_locked && crypto_package()) {
-                        gpg_crypto_start();
-                    }
+            iv_gpg_crypto.setOnClickListener(v -> {
+                if (!crypto_locked && crypto_package()) {
+                    gpg_crypto_start();
                 }
             });
             if (current.get_contents_crypto() != null) {
@@ -363,14 +334,8 @@ public class InboxMessage extends AppCompatActivity {
                 final AppCompatActivity ct = this;
                 ImageView iv_gpg_signature = findViewById(R.id.iv_gpg_signature);
                 iv_gpg_signature.setVisibility(View.VISIBLE);
-                iv_gpg_signature.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        Dialogs.dialog_server_ext
-                                (getString(R.string.open_pgp_message_signature), msg_signature, ct);
-                    }
-                });
+                iv_gpg_signature.setOnClickListener(v -> Dialogs.dialog_server_ext
+                        (getString(R.string.open_pgp_message_signature), msg_signature, ct));
             }
         }
     }
@@ -404,13 +369,13 @@ public class InboxMessage extends AppCompatActivity {
     private void set_btn_texts() {
         btn_texts_states = new ArrayList<>();
         if (current.get_contents_plain() != null && !current.get_contents_plain().isEmpty()) {
-            btn_texts_states.add(new String[] { getString(R.string.message_contents_loop_plain), "1"});
+            btn_texts_states.add(new String[]{getString(R.string.message_contents_loop_plain), "1"});
         }
         if (current.get_contents_html() != null && !current.get_contents_html().isEmpty()) {
-            btn_texts_states.add(new String[] { getString(R.string.message_contents_loop_html), "2"});
+            btn_texts_states.add(new String[]{getString(R.string.message_contents_loop_html), "2"});
         }
         if (current.get_contents_other() != null && !current.get_contents_other().isEmpty()) {
-            btn_texts_states.add(new String[] { getString(R.string.message_contents_loop_other), "3"});
+            btn_texts_states.add(new String[]{getString(R.string.message_contents_loop_other), "3"});
         }
         if (btn_texts_states.size() < 1) {
             tv_texts.setVisibility(View.GONE);
@@ -418,8 +383,8 @@ public class InboxMessage extends AppCompatActivity {
             btn_texts_state = 0;
             populate_contents();
         } else {
-            for (int i = 0;i < btn_texts_states.size();++i) {
-                btn_texts_states.get(i)[0] += " " + (i+1) + "/" + btn_texts_states.size();
+            for (int i = 0; i < btn_texts_states.size(); ++i) {
+                btn_texts_states.get(i)[0] += " " + (i + 1) + "/" + btn_texts_states.size();
             }
             btn_texts_state = 0;
             populate_contents();
@@ -520,7 +485,7 @@ public class InboxMessage extends AppCompatActivity {
 
         String[] str_temp = new String[attachments.size()];
         if (str_temp.length > 0) {
-            for (int i = 0;i < str_temp.length;++i) {
+            for (int i = 0; i < str_temp.length; ++i) {
                 int bytes = attachments.get(i).get_size();
                 if (attachments.get(i).get_name().trim().isEmpty()) {
                     attachments.get(i).set_name(getString(R.string.attch_no_name)
@@ -536,20 +501,17 @@ public class InboxMessage extends AppCompatActivity {
                     if (bytes < 1024) {
                         str_temp[i] += bytes + " " + getString(R.string.attch_bytes);
                     } else if (bytes < 1048576) {
-                        str_temp[i] += (bytes/1024) + " " + getString(R.string.attch_kilobytes);
+                        str_temp[i] += (bytes / 1024) + " " + getString(R.string.attch_kilobytes);
                     } else {
-                        str_temp[i] += (bytes/1048576) + " " + getString(R.string.attch_megabytes);
+                        str_temp[i] += (bytes / 1048576) + " " + getString(R.string.attch_megabytes);
                     }
                 }
             }
 
-            builder.setItems(str_temp, new DialogInterface.OnClickListener() {
-
-                public void onClick(DialogInterface dialog, int choice) {
-                    dialog.dismiss();
-                    chosen_att = attachments.get(choice);
-                    dialog_folder_picker();
-                }
+            builder.setItems(str_temp, (dialog, choice) -> {
+                dialog.dismiss();
+                chosen_att = attachments.get(choice);
+                dialog_folder_picker();
             });
             builder.show();
         }
@@ -560,17 +522,14 @@ public class InboxMessage extends AppCompatActivity {
         builder.setTitle(getString(R.string.progress_downloading));
         builder.setMessage(getString(R.string.message_empty_go_download));
         builder.setCancelable(true);
-        builder.setPositiveButton(getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (msg_encrypted) {
-                            save_in_db = false;
-                            dialog_folder_picker();
-                        } else {
-                            dialog_download_and_keep();
-                        }
-                    }
-                });
+        builder.setPositiveButton(getString(android.R.string.ok), (dialog, which) -> {
+            if (msg_encrypted) {
+                save_in_db = false;
+                dialog_folder_picker();
+            } else {
+                dialog_download_and_keep();
+            }
+        });
         builder.show();
     }
 
@@ -582,20 +541,14 @@ public class InboxMessage extends AppCompatActivity {
         builder.setTitle(getString(R.string.progress_keep_msg));
         builder.setMessage(getString(R.string.message_keep_in_database));
         builder.setCancelable(false);
-        builder.setPositiveButton(getString(R.string.btn_yes),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        save_in_db = true;
-                        dialog_folder_picker();
-                    }
-                });
-        builder.setNegativeButton(getString(R.string.btn_no),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        save_in_db = false;
-                        dialog_folder_picker();
-                    }
-                });
+        builder.setPositiveButton(getString(R.string.btn_yes), (dialog, which) -> {
+            save_in_db = true;
+            dialog_folder_picker();
+        });
+        builder.setNegativeButton(getString(R.string.btn_no), (dialog, which) -> {
+            save_in_db = false;
+            dialog_folder_picker();
+        });
         builder.show();
     }
 
@@ -612,44 +565,36 @@ public class InboxMessage extends AppCompatActivity {
 
         // Populating folders
         ListView lv_folders = new ListView(this);
-        lv_folders.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                // Obtain the index of the chosen folder
-                String str = (String) parent.getItemAtPosition(position);
-                for (File f : f_folders) {
-                    if (f.getName().equals(str)) {
-                        current_path = f;
-                        break;
-                    }
+        lv_folders.setOnItemClickListener((parent, v, position, id) -> {
+            // Obtain the index of the chosen folder
+            String str = (String) parent.getItemAtPosition(position);
+            for (File f : f_folders) {
+                if (f.getName().equals(str)) {
+                    current_path = f;
+                    break;
                 }
-                refresh_folders(2);
-                lv_adapter.notifyDataSetChanged();
             }
+            refresh_folders(2);
+            lv_adapter.notifyDataSetChanged();
         });
 
         // Continuing download
-        lv_folders.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
-                // Obtain the index of the chosen folder
-                String str = (String) parent.getItemAtPosition(position);
-                for (File f : f_folders) {
-                    if (f.getName().equals(str)) {
-                        chosen_folder = f;
-                        break;
-                    }
+        lv_folders.setOnItemLongClickListener((parent, v, position, id) -> {
+            // Obtain the index of the chosen folder
+            String str = (String) parent.getItemAtPosition(position);
+            for (File f : f_folders) {
+                if (f.getName().equals(str)) {
+                    chosen_folder = f;
+                    break;
                 }
-                dialog_folder_picker.dismiss();
-                if (chosen_att == null) {
-                    full_message_tests();
-                } else {
-                    attachment_tests();
-                }
-                return true;
             }
+            dialog_folder_picker.dismiss();
+            if (chosen_att == null) {
+                full_message_tests();
+            } else {
+                attachment_tests();
+            }
+            return true;
         });
 
         lv_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, s_folders);
@@ -659,14 +604,10 @@ public class InboxMessage extends AppCompatActivity {
         dialog_folder_picker = builder.show();
 
         // Reassigning button to prevent early dialog ending
-        dialog_folder_picker.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(
-                new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (current_path.getParent() != null) {
-                    refresh_folders(3);
-                    lv_adapter.notifyDataSetChanged();
-                }
+        dialog_folder_picker.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
+            if (current_path.getParent() != null) {
+                refresh_folders(3);
+                lv_adapter.notifyDataSetChanged();
             }
         });
     }
@@ -693,13 +634,13 @@ public class InboxMessage extends AppCompatActivity {
                 break;
         }
 
-        if(current_path.exists() && current_path.listFiles() != null) {
+        if (current_path.exists() && current_path.listFiles() != null) {
             // Add all path [array] to folder_list
             f_folders.addAll(Arrays.asList(current_path.listFiles()));
         }
 
         // Remove files, keep directories
-        for (int i = f_folders.size() - 1;i >= 0;i--) {
+        for (int i = f_folders.size() - 1; i >= 0; i--) {
             if (!f_folders.get(i).isDirectory()) {
                 f_folders.remove(f_folders.get(i));
             } else {
@@ -708,11 +649,7 @@ public class InboxMessage extends AppCompatActivity {
         }
 
         // Alphabetic sort;
-        Collections.sort(s_folders, new Comparator<String>() {
-            public int compare(String s1, String s2) {
-                return s1.compareTo(s2);
-            }
-        });
+        Collections.sort(s_folders, String::compareTo);
     }
 
     /**
@@ -772,19 +709,15 @@ public class InboxMessage extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(getString(R.string.err_title_already_exists));
             builder.setMessage(getString(R.string.err_msg_already_exists));
-            builder.setPositiveButton(getString(android.R.string.yes),
-                    new AlertDialog.OnClickListener() {
-
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (msg_encrypted && crypto_locked) {
-                                write_attachment_from_db();
-                            } else if (current.get_full_msg() == null || current.get_full_msg().isEmpty()) {
-                                start_saving_attachment();
-                            } else {
-                                write_attachment_from_db();
-                            }
-                        }
-                    });
+            builder.setPositiveButton(getString(android.R.string.yes), (dialog, which) -> {
+                if (msg_encrypted && crypto_locked) {
+                    write_attachment_from_db();
+                } else if (current.get_full_msg() == null || current.get_full_msg().isEmpty()) {
+                    start_saving_attachment();
+                } else {
+                    write_attachment_from_db();
+                }
+            });
             builder.setNegativeButton(getString(android.R.string.no), null);
             builder.show();
         } else {
@@ -845,17 +778,13 @@ public class InboxMessage extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(getString(R.string.err_title_already_exists));
             builder.setMessage(getString(R.string.err_msg_already_exists));
-            builder.setPositiveButton(getString(android.R.string.yes),
-                    new AlertDialog.OnClickListener() {
-
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (current.get_full_msg() == null || current.get_full_msg().isEmpty()) {
-                                start_saving_full_message(false);
-                            } else {
-                                write_full_message();
-                            }
-                        }
-                    });
+            builder.setPositiveButton(getString(android.R.string.yes), (dialog, which) -> {
+                if (current.get_full_msg() == null || current.get_full_msg().isEmpty()) {
+                    start_saving_full_message(false);
+                } else {
+                    write_full_message();
+                }
+            });
             builder.setNegativeButton(getString(android.R.string.no), null);
             builder.show();
         } else {
@@ -928,7 +857,7 @@ public class InboxMessage extends AppCompatActivity {
                 if (chosen_att.get_transfer_encoding().equalsIgnoreCase("BASE64")) {
                     boolean CR = false;
                     StringBuilder sb_tmp = new StringBuilder(0);
-                    for (int i = 0;i < att.length();++i) {
+                    for (int i = 0; i < att.length(); ++i) {
                         if (att.charAt(i) == '\n') {
                             if (CR) {
                                 f_stream.write(Base64.decode
@@ -1116,13 +1045,13 @@ public class InboxMessage extends AppCompatActivity {
                     int end_index = -1;
 
                     Pattern p = Pattern.compile(".*(-----BEGIN PGP MESSAGE-----.*)",
-                            Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+                            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
                     Matcher m = p.matcher(msg_contents);
 
                     if (m.matches()) start_index = m.start(1);
 
                     p = Pattern.compile(".*-----END PGP MESSAGE-----(.*)",
-                            Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+                            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
                     m = p.matcher(msg_contents);
 
                     if (m.matches()) end_index = m.start(1);
@@ -1206,7 +1135,7 @@ public class InboxMessage extends AppCompatActivity {
                 // Inner attachments assignment
                 attachments = new ArrayList<>();
                 if (msg_structure.size() > 0) {
-                    for (int ii = 0;ii < msg_structure.size();++ii) {
+                    for (int ii = 0; ii < msg_structure.size(); ++ii) {
                         // Mime part, i.e. - BODY[1], BODY[1.1], ...
                         Attachment att = new Attachment();
                         att.set_pop_indx(msg_structure.get(ii)[0]);

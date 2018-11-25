@@ -112,76 +112,75 @@ public class SMTP extends Handler {
 
         if (!excepted) {
             // Prepare a callback for results
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        sleep(3000);
-                    } catch (InterruptedException e) {
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
-                    }
+            new Thread(() -> {
+                try {
+                    sleep(3000);
+                } catch (InterruptedException e) {
+                    Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                }
 
-                    if (current_inbox.get_smtp_extensions() != null
-                            && !current_inbox.get_smtp_extensions().isEmpty()) {
-                        String tested;
-                        if (current_inbox.get_smtp_extensions()
-                                .equals(ctx.getString(R.string.err_no_ehlo))) {
-                            tested = ctx.getString(R.string.err_no_ehlo);
-                        } else {
-                            // Preparing the dialog message
-                            data.auths = new ArrayList<>();
-                            data.general = new ArrayList<>();
-                            String[] parts = current_inbox.get_smtp_extensions().split("\n");
-                            for (int g = 0;g < parts.length;++g) {
-                                if (parts[g] != null) {
-                                    parts[g] = parts[g].trim();
-                                    parts[g] = parts[g].toLowerCase();
-                                    if (parts[g].startsWith("auth")) {
-                                        String[] au = parts[g].substring(5).split(" ");
-                                        Collections.addAll(data.auths, au);
-                                        //for (String tt : au) data.auths.add(tt);
-                                        continue;
-                                    }
-                                    data.general.add(parts[g]);
+                if (current_inbox.get_smtp_extensions() != null
+                        && !current_inbox.get_smtp_extensions().isEmpty()) {
+                    String tested;
+                    if (current_inbox.get_smtp_extensions()
+                            .equals(ctx.getString(R.string.err_no_ehlo))) {
+                        tested = ctx.getString(R.string.err_no_ehlo);
+                    } else {
+                        // Preparing the dialog message
+                        data.auths = new ArrayList<>();
+                        data.general = new ArrayList<>();
+                        String[] parts = current_inbox.get_smtp_extensions().split("\n");
+                        for (int g = 0; g < parts.length; ++g) {
+                            if (parts[g] != null) {
+                                parts[g] = parts[g].trim();
+                                parts[g] = parts[g].toLowerCase();
+                                if (parts[g].startsWith("auth")) {
+                                    String[] au = parts[g].substring(5).split(" ");
+                                    Collections.addAll(data.auths, au);
+                                    //for (String tt : au) data.auths.add(tt);
+                                    continue;
                                 }
-                            }
-                            tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
-                            for (int i = 0;i < data.auths.size();++i) {
-                                if (i == (data.auths.size() - 1)) {
-                                    tested += data.auths.get(i).toUpperCase();
-                                } else {
-                                    tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
-                                }
-                            }
-                            tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
-                            for (int i = 0;i < data.general.size();++i) {
-                                if (i == (data.general.size() - 1)) {
-                                    tested += data.general.get(i).toUpperCase();
-                                } else {
-                                    tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
-                                }
+                                data.general.add(parts[g]);
                             }
                         }
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_smtp),
-                                tested, (AppCompatActivity) ctx);
-                    } else {
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_smtp),
-                                ctx.getString(R.string.edit_account_check_fail),
-                                (AppCompatActivity) ctx);
+                        tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
+                        for (int i = 0; i < data.auths.size(); ++i) {
+                            if (i == (data.auths.size() - 1)) {
+                                tested += data.auths.get(i).toUpperCase();
+                            } else {
+                                tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
+                            }
+                        }
+                        tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
+                        for (int i = 0; i < data.general.size(); ++i) {
+                            if (i == (data.general.size() - 1)) {
+                                tested += data.general.get(i).toUpperCase();
+                            } else {
+                                tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
+                            }
+                        }
                     }
-                    reset();
-                    over = true;
+                    Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_smtp),
+                            tested, (AppCompatActivity) ctx);
+                } else {
+                    Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_smtp),
+                            ctx.getString(R.string.edit_account_check_fail),
+                            (AppCompatActivity) ctx);
                 }
+                reset();
+                over = true;
             }).start();
         }
         over = true;
     }
 
     @Override
-    public void default_action(boolean multi, Inbox inn, Context ct) {}
+    public void default_action(boolean multi, Inbox inn, Context ct) {
+    }
 
     @Override
-    public void attachment_action(int aid, Attachment att, String save_path, Context ct) {}
+    public void attachment_action(int aid, Attachment att, String save_path, Context ct) {
+    }
 
     @Override
     public void msg_action(int aid, Message msg, String save_path, boolean sv, Context ct) {
@@ -213,7 +212,7 @@ public class SMTP extends Handler {
         // Check for attachments
         if (save_path != null) {
             String[] str = save_path.trim().split("\uD83D\uDCCE");
-            for (int i = 0;i < str.length;++i) {
+            for (int i = 0; i < str.length; ++i) {
                 data.msg_current_attachments.add(i, str[i]);
             }
         }
@@ -222,7 +221,8 @@ public class SMTP extends Handler {
     }
 
     @Override
-    public void move_action(int aid, Message msg, Context ct) {}
+    public void move_action(int aid, Message msg, Context ct) {
+    }
 
     @Override
     public void load_extensions() {
@@ -249,7 +249,8 @@ public class SMTP extends Handler {
     }
 
     @Override
-    public void clear_buff() {}
+    public void clear_buff() {
+    }
 
     /**
      * A que of commands towards a goal, ex. send message.
@@ -348,7 +349,7 @@ public class SMTP extends Handler {
             return 0;
         }
 
-        switch(l.charAt(0)) {
+        switch (l.charAt(0)) {
             case '2':// OK
             case '3':// WAIT
             case '4':// PARAMS!
@@ -358,7 +359,7 @@ public class SMTP extends Handler {
                 return 0;
         }
 
-        switch(l.charAt(1)) {
+        switch (l.charAt(1)) {
             case '0':
             case '1':
             case '2':
@@ -374,7 +375,7 @@ public class SMTP extends Handler {
                 return 0;
         }
 
-        switch(l.charAt(2)) {
+        switch (l.charAt(2)) {
             case '0':
             case '1':
             case '2':
@@ -457,7 +458,7 @@ public class SMTP extends Handler {
             }
 
             // Sending message details, when logged in.
-            switch(data.sequence.get(0)) {
+            switch (data.sequence.get(0)) {
                 case "RCPT":
                     tag = "RCPT TO";
                     String s = "RCPT to: <";
@@ -543,7 +544,7 @@ public class SMTP extends Handler {
             }
         } else if (data.auth.equalsIgnoreCase("PLAIN")) {
             // PLAIN type of authentication
-            String str = Base64.encodeToString(("\0"+ current_inbox.get_username() + "\0"
+            String str = Base64.encodeToString(("\0" + current_inbox.get_username() + "\0"
                     + current_inbox.get_pass()).getBytes(), Base64.DEFAULT);
             if (str.length() > 500) {
                 write_limited(str.toCharArray());
@@ -598,7 +599,7 @@ public class SMTP extends Handler {
                 write("MIME-Version: 1.0");
                 String dat = data.msg_current.get_contents_crypto();
                 StringBuilder sb_write_out = new StringBuilder();
-                for (int ii = 0;ii < dat.length();++ii) {
+                for (int ii = 0; ii < dat.length(); ++ii) {
                     if (dat.charAt(ii) == '\n') {
                         write(sb_write_out.toString());
                         sb_write_out.setLength(0);
@@ -631,7 +632,7 @@ public class SMTP extends Handler {
 
                 // Message attachments
                 StringBuilder sb_write_out = new StringBuilder();
-                for (int i = 0;i < data.msg_current_attachments.size();++i) {
+                for (int i = 0; i < data.msg_current_attachments.size(); ++i) {
                     File ff = new File(data.msg_current_attachments.get(i));
                     if (sp != null) {
                         on_ui_thread("-1", ctx.getString(R.string.send_upload_attachment)
@@ -653,16 +654,18 @@ public class SMTP extends Handler {
                     ByteArrayOutputStream b_stream = new ByteArrayOutputStream();
                     try {
                         InputStream in_stream = new FileInputStream(ff);
-                        byte[] bfr = new byte[(int)ff.length()];
-                        if ((int)ff.length() > 0) {
+                        byte[] bfr = new byte[(int) ff.length()];
+                        if ((int) ff.length() > 0) {
                             int t;
-                            while ((t = in_stream.read(bfr)) != -1) { b_stream.write(bfr, 0, t); }
+                            while ((t = in_stream.read(bfr)) != -1) {
+                                b_stream.write(bfr, 0, t);
+                            }
                         }
                     } catch (IOException e) {
                         Pager.log = Pager.log.concat(ctx.getString
                                 (R.string.ex_field) + e.getMessage() + "\n\n");
                     }
-                    byte[] a_bytes =  Base64.encode(b_stream.toByteArray(), Base64.DEFAULT);
+                    byte[] a_bytes = Base64.encode(b_stream.toByteArray(), Base64.DEFAULT);
                     boolean cr = false;
                     for (byte b : a_bytes) {
                         if (sb_write_out.length() > 998) {
@@ -670,14 +673,14 @@ public class SMTP extends Handler {
                             sb_write_out.setLength(0);
                         }
                         // CR= 13, LF=10
-                        if (b == 10 && cr)  {
+                        if (b == 10 && cr) {
                             write(sb_write_out.toString());
                             sb_write_out.setLength(0);
                         }
                         cr = b == 13;
                         sb_write_out.append(b);
                     }
-                    if (sb_write_out.length() > 0 ) {
+                    if (sb_write_out.length() > 0) {
                         write(sb_write_out.toString());
                         sb_write_out.setLength(0);
                     }
@@ -702,13 +705,7 @@ public class SMTP extends Handler {
             }
             Pager.notify_update();
             final InboxSend inb = (InboxSend) ctx;
-            ((InboxSend) ctx).runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-                    inb.connection_security();
-                }
-            });
+            ((InboxSend) ctx).runOnUiThread(inb::connection_security);
         } catch (InterruptedException e) {
             Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }

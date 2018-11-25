@@ -16,7 +16,6 @@
  **/
 package net.inbox;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -27,9 +26,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -40,8 +37,8 @@ import android.widget.Toast;
 import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
-import net.inbox.dialogs.DialogsCerts;
 import net.inbox.dialogs.Dialogs;
+import net.inbox.dialogs.DialogsCerts;
 import net.inbox.dialogs.SpinningStatus;
 import net.inbox.server.Handler;
 import net.inbox.server.SMTP;
@@ -134,15 +131,11 @@ public class InboxSend extends AppCompatActivity {
             }
 
             TextView tv_send = findViewById(R.id.tv_send);
-            tv_send.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    if (sending_active) {
-                        toaster(false, "");
-                    } else {
-                        send();
-                    }
+            tv_send.setOnClickListener(v -> {
+                if (sending_active) {
+                    toaster(false, "");
+                } else {
+                    send();
                 }
             });
 
@@ -157,26 +150,18 @@ public class InboxSend extends AppCompatActivity {
 
             et_cc.setVisibility(View.GONE);
             et_bcc.setVisibility(View.GONE);
-            sw_cc.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
-                @Override
-                public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                    if (isChecked) {
-                        et_cc.setVisibility(View.VISIBLE);
-                    } else {
-                        et_cc.setVisibility(View.GONE);
-                    }
+            sw_cc.setOnCheckedChangeListener((v, isChecked) -> {
+                if (isChecked) {
+                    et_cc.setVisibility(View.VISIBLE);
+                } else {
+                    et_cc.setVisibility(View.GONE);
                 }
             });
-            sw_bcc.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
-                @Override
-                public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                    if (isChecked) {
-                        et_bcc.setVisibility(View.VISIBLE);
-                    } else {
-                        et_bcc.setVisibility(View.GONE);
-                    }
+            sw_bcc.setOnCheckedChangeListener((v, isChecked) -> {
+                if (isChecked) {
+                    et_bcc.setVisibility(View.VISIBLE);
+                } else {
+                    et_bcc.setVisibility(View.GONE);
                 }
             });
             tv_attachments.setTypeface(Pager.tf);
@@ -187,45 +172,23 @@ public class InboxSend extends AppCompatActivity {
             }
 
             ImageView iv_attachments = findViewById(R.id.send_attachments_img);
-            iv_attachments.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    dialog_attachments();
-                }
-            });
+            iv_attachments.setOnClickListener(v -> dialog_attachments());
 
             // Setting up the SSL authentication application
             iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
-            iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    dialog_servers();
-                }
-            });
+            iv_ssl_auth.setOnClickListener(v -> dialog_servers());
 
             // Starts encryption
             iv_encryption = findViewById(R.id.iv_encryption);
-            iv_encryption.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    gpg_crypto_tests();
-                }
-            });
+            iv_encryption.setOnClickListener(v -> gpg_crypto_tests());
 
             tv_encryption_reset = findViewById(R.id.tv_encryption_reset);
-            tv_encryption_reset.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    tv_encryption_reset.setVisibility(View.GONE);
-                    current.set_contents_crypto(null);
-                    et_contents.setText(msg_contents);
-                    crypto_locked = false;
-                    crypto_padlock();
-                }
+            tv_encryption_reset.setOnClickListener(v -> {
+                tv_encryption_reset.setVisibility(View.GONE);
+                current.set_contents_crypto(null);
+                et_contents.setText(msg_contents);
+                crypto_locked = false;
+                crypto_padlock();
             });
 
             // If replying to a message
@@ -287,8 +250,7 @@ public class InboxSend extends AppCompatActivity {
         super.onSaveInstanceState(save);
         save.putBoolean("sv_crypto_locked", crypto_locked);
         save.putString("sv_msg_contents", msg_contents);
-        save.putStringArray("sv_attachment_paths", attachment_paths.toArray
-                (new String[attachment_paths.size()]));
+        save.putStringArray("sv_attachment_paths", attachment_paths.toArray(new String[0]));
         save.putLong("sv_attachments_size", attachments_size);
         save.putBoolean("sv_warned_8_bit_absent", warned_8_bit_absent);
         save.putBoolean("sv_sending_active", sending_active);
@@ -308,19 +270,16 @@ public class InboxSend extends AppCompatActivity {
             populate_list_view();
             builder.setView(attachments_list);
             builder.setCancelable(true);
-            builder.setPositiveButton(getString(R.string.attch_add_attachment),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                            intent.setType("*/*");
-                            intent.addCategory(Intent.CATEGORY_OPENABLE);
-                            try {
-                                startActivityForResult(Intent.createChooser(intent, ""), 0);
-                            } catch (android.content.ActivityNotFoundException e) {
-                                dialog_no_fm();
-                            }
-                        }
-                    });
+            builder.setPositiveButton(getString(R.string.attch_add_attachment), (dialog, which) -> {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                try {
+                    startActivityForResult(Intent.createChooser(intent, ""), 0);
+                } catch (android.content.ActivityNotFoundException e) {
+                    dialog_no_fm();
+                }
+            });
 
             attachments_dialog = builder.show();
 
@@ -343,30 +302,24 @@ public class InboxSend extends AppCompatActivity {
         attachments_size = 0;
         attachments_list = new ListView(this);
         String[] values = new String[attachment_paths.size()];
-        for (int i = 0;i < attachment_paths.size();++i) {
+        for (int i = 0; i < attachment_paths.size(); ++i) {
             String val = "[ " + (Uri.parse(attachment_paths.get(i))).getLastPathSegment() + " ], ";
             long sz = (new File(attachment_paths.get(i))).length();
             attachments_size += sz;
             if (sz < 1024) {
                 val += sz + " " + getString(R.string.attch_bytes);
             } else if (sz < 1048576) {
-                val += (sz/1024) + " " + getString(R.string.attch_kilobytes);
+                val += (sz / 1024) + " " + getString(R.string.attch_kilobytes);
             } else {
-                val += (sz/1048576) + " " + getString(R.string.attch_megabytes);
+                val += (sz / 1048576) + " " + getString(R.string.attch_megabytes);
             }
             values[i] = val;
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
                 android.R.id.text1, values);
         attachments_list.setAdapter(adapter);
-        attachments_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                dialog_remove_attachment(position);
-            }
-
-        });
+        attachments_list.setOnItemClickListener(
+                (parent, view, position, id) -> dialog_remove_attachment(position));
     }
 
     private void dialog_no_fm() {
@@ -378,18 +331,15 @@ public class InboxSend extends AppCompatActivity {
         builder.setTitle(getString(R.string.app_name));
         builder.setMessage(getString(R.string.send_remove_attachment) + " "
                 + (new File(attachment_paths.get(i))).getName() + "?");
-        builder.setPositiveButton(getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                attachment_paths.remove(i);
-                if (attachment_paths.size() > 0) {
-                    tv_attachments.setText(String.valueOf(attachment_paths.size()));
-                } else {
-                    tv_attachments.setText("");
-                }
-                attachments_dialog.dismiss();
-                dialog_attachments();
+        builder.setPositiveButton(getString(android.R.string.ok), (dialog, which) -> {
+            attachment_paths.remove(i);
+            if (attachment_paths.size() > 0) {
+                tv_attachments.setText(String.valueOf(attachment_paths.size()));
+            } else {
+                tv_attachments.setText("");
             }
+            attachments_dialog.dismiss();
+            dialog_attachments();
         });
         builder.setCancelable(true);
         builder.show();
@@ -419,7 +369,9 @@ public class InboxSend extends AppCompatActivity {
         }
         String[] arr_to = s_to.split(",");
         int to_count = 0;
-        for (String s_to_name : arr_to) { if (!s_to_name.trim().isEmpty()) ++to_count; }
+        for (String s_to_name : arr_to) {
+            if (!s_to_name.trim().isEmpty()) ++to_count;
+        }
         if (to_count == 0) {
             // No recipient = no message
             Dialogs.dialog_error_line(getString(R.string.err_no_rcpt), this);
@@ -434,7 +386,7 @@ public class InboxSend extends AppCompatActivity {
                 }
             }
             s_to = "";
-            for (int i = 0;i < new_to.size();++i) {
+            for (int i = 0; i < new_to.size(); ++i) {
                 if (i == (new_to.size() - 1)) {
                     s_to += new_to.get(i);
                 } else {
@@ -450,7 +402,9 @@ public class InboxSend extends AppCompatActivity {
         if (sw_cc.isChecked()) s_cc = et_cc.getText().toString().trim();
         if (!s_cc.isEmpty()) {
             String[] arr_cc = s_cc.split(",");
-            for (String s_to_name : arr_cc) { if (!s_to_name.trim().isEmpty()) ++cc_count; }
+            for (String s_to_name : arr_cc) {
+                if (!s_to_name.trim().isEmpty()) ++cc_count;
+            }
             if (arr_cc.length != to_count) {
                 ArrayList<String> new_to = new ArrayList<>();
                 for (String s_to_name : arr_cc) {
@@ -459,7 +413,7 @@ public class InboxSend extends AppCompatActivity {
                     }
                 }
                 s_cc = "";
-                for (int i = 0;i < new_to.size();++i) {
+                for (int i = 0; i < new_to.size(); ++i) {
                     if (i == (new_to.size() - 1)) {
                         s_cc += new_to.get(i);
                     } else {
@@ -476,7 +430,9 @@ public class InboxSend extends AppCompatActivity {
         if (sw_bcc.isChecked()) s_bcc = et_bcc.getText().toString().trim();
         if (!s_bcc.isEmpty()) {
             String[] arr_bcc = s_bcc.split(",");
-            for (String s_to_name : arr_bcc) { if (!s_to_name.trim().isEmpty()) ++bcc_count; }
+            for (String s_to_name : arr_bcc) {
+                if (!s_to_name.trim().isEmpty()) ++bcc_count;
+            }
             if (arr_bcc.length != to_count) {
                 ArrayList<String> new_to = new ArrayList<>();
                 for (String s_to_name : arr_bcc) {
@@ -485,7 +441,7 @@ public class InboxSend extends AppCompatActivity {
                     }
                 }
                 s_bcc = "";
-                for (int i = 0;i < new_to.size();++i) {
+                for (int i = 0; i < new_to.size(); ++i) {
                     if (i == (new_to.size() - 1)) {
                         s_bcc += new_to.get(i);
                     } else {
@@ -558,7 +514,9 @@ public class InboxSend extends AppCompatActivity {
         handler.sp = spt;
         if (attachment_paths.size() > 0) {
             String str = "";
-            for (String st: attachment_paths) { str = str.concat(st + "\uD83D\uDCCE"); }
+            for (String st : attachment_paths) {
+                str = str.concat(st + "\uD83D\uDCCE");
+            }
             handler.msg_action(current_inbox.get_id(), current, str, false, this);
         } else {
             handler.msg_action(current_inbox.get_id(), current, null, false, this);
@@ -635,7 +593,9 @@ public class InboxSend extends AppCompatActivity {
             } else {
                 arr_to = s_to.split(",");
                 int to_count = 0;
-                for (String s_to_name : arr_to) { if (!s_to_name.trim().isEmpty()) ++to_count; }
+                for (String s_to_name : arr_to) {
+                    if (!s_to_name.trim().isEmpty()) ++to_count;
+                }
                 if (to_count == 0) toaster(true, getString(R.string.send_missing_rcpt_to));
             }
 
@@ -645,20 +605,12 @@ public class InboxSend extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(getString(R.string.send_cleartext_subject));
                 builder.setMessage(getString(R.string.send_cleartext_content));
-                builder.setPositiveButton(getString(R.string.send_cleartext_delete),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
+                builder.setPositiveButton(getString(R.string.send_cleartext_delete), (dialog, which) -> {
                             et_subject.setText("");
                             gpg_crypto_start();
                         }
-                    }
                 );
-                builder.setNegativeButton(getString(R.string.send_cleartext_keep),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            gpg_crypto_start();
-                        }
-                    }
+                builder.setNegativeButton(getString(R.string.send_cleartext_keep), (dialog, which) -> gpg_crypto_start()
                 );
                 builder.show();
             } else {

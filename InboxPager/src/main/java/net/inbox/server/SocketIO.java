@@ -106,7 +106,7 @@ class SocketIO implements Runnable {
             } else {
                 closing();
                 handler.last_connection_hostname = false;
-                throw new javax.net.ssl.SSLException("'"+ server + "' != '"
+                throw new javax.net.ssl.SSLException("'" + server + "' != '"
                         + s.getSession().getPeerHost() + "'");
             }
         } catch (Exception e) {
@@ -146,10 +146,10 @@ class SocketIO implements Runnable {
         }
 
         ArrayList<String[]> list = new ArrayList<>();
-        list.add(new String[]{ "-" });
+        list.add(new String[]{"-"});
         for (X509Certificate cert : certs) {
             String[] aa = cert.getIssuerDN().getName().split(",");
-            String[] lst = new String[] { "", "", "", "", "", "", "", ""};
+            String[] lst = new String[]{"", "", "", "", "", "", "", ""};
             for (String aaa : aa) {
                 if (aaa != null) {
                     String[] bb = aaa.split("=");
@@ -178,7 +178,7 @@ class SocketIO implements Runnable {
             }
 
             lst[6] = cert.getSigAlgName();
-            lst[7] = String.valueOf(((RSAPublicKey)cert.getPublicKey()).getModulus().bitLength());
+            lst[7] = String.valueOf(((RSAPublicKey) cert.getPublicKey()).getModulus().bitLength());
             list.add(lst);
         }
         return list;

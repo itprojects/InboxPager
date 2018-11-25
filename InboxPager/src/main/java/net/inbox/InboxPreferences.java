@@ -17,7 +17,6 @@
 package net.inbox;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -28,17 +27,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import net.inbox.db.Inbox;
 import net.inbox.db.DBAccess;
+import net.inbox.db.Inbox;
 import net.inbox.dialogs.Dialogs;
 import net.inbox.server.Handler;
 import net.inbox.server.IMAP;
@@ -115,7 +112,7 @@ public class InboxPreferences extends AppCompatActivity {
 
             // Find the title
             TextView tv_t;
-            for (int i = 0;i < tb.getChildCount();++i) {
+            for (int i = 0; i < tb.getChildCount(); ++i) {
                 int idd = tb.getChildAt(i).getId();
                 if (idd == -1) {
                     tv_t = (TextView) tb.getChildAt(i);
@@ -147,26 +144,22 @@ public class InboxPreferences extends AppCompatActivity {
             cb_auto_save_full_msgs = findViewById(R.id.cb_auto_save_full_msgs);
             tv_imap_or_pop = findViewById(R.id.tv_imap_or_pop);
             sw_imap_or_pop = findViewById(R.id.sw_imap_or_pop);
-            sw_imap_or_pop.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
-                @Override
-                public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                    if (isChecked) {
-                        sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOn));
-                        tv_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_on));
-                        et_imap_or_pop_server.setHint(getString
-                                (R.string.edit_account_incoming_server_hint_imap));
-                        et_imap_or_pop_server_port.setHint(getString
-                                (R.string.edit_account_incoming_server_port_hint_imap));
-                    } else {
-                        sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOff));
-                        tv_imap_or_pop.setText(getString
-                                (R.string.edit_account_imap_or_pop_off));
-                        et_imap_or_pop_server.setHint(getString
-                                (R.string.edit_account_incoming_server_hint_pop));
-                        et_imap_or_pop_server_port.setHint(getString
-                                (R.string.edit_account_incoming_server_port_hint_pop));
-                    }
+            sw_imap_or_pop.setOnCheckedChangeListener((v, isChecked) -> {
+                if (isChecked) {
+                    sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOn));
+                    tv_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_on));
+                    et_imap_or_pop_server.setHint(getString
+                            (R.string.edit_account_incoming_server_hint_imap));
+                    et_imap_or_pop_server_port.setHint(getString
+                            (R.string.edit_account_incoming_server_port_hint_imap));
+                } else {
+                    sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOff));
+                    tv_imap_or_pop.setText(getString
+                            (R.string.edit_account_imap_or_pop_off));
+                    et_imap_or_pop_server.setHint(getString
+                            (R.string.edit_account_incoming_server_hint_pop));
+                    et_imap_or_pop_server_port.setHint(getString
+                            (R.string.edit_account_incoming_server_port_hint_pop));
                 }
             });
 
@@ -175,7 +168,8 @@ public class InboxPreferences extends AppCompatActivity {
                 int n = 0;
 
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -189,7 +183,8 @@ public class InboxPreferences extends AppCompatActivity {
                 }
 
                 @Override
-                public void afterTextChanged(Editable s) {}
+                public void afterTextChanged(Editable s) {
+                }
             });
 
             et_smtp_server_port.addTextChangedListener(new TextWatcher() {
@@ -197,7 +192,8 @@ public class InboxPreferences extends AppCompatActivity {
                 int n = 0;
 
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -211,80 +207,49 @@ public class InboxPreferences extends AppCompatActivity {
                 }
 
                 @Override
-                public void afterTextChanged(Editable s) {}
+                public void afterTextChanged(Editable s) {
+                }
             });
 
             Button btn_nc_check = findViewById(R.id.btn_nc_check);
-            btn_nc_check.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    btn_nc_check_action();
-                }
-            });
+            btn_nc_check.setOnClickListener(v -> btn_nc_check_action());
 
             Button btn_check_incoming = findViewById(R.id.btn_check_incoming);
             Button btn_check_smtp = findViewById(R.id.btn_check_smtp);
             TextView btn_save = findViewById(R.id.tv_save);
             TextView btn_delete = findViewById(R.id.tv_delete);
 
-            btn_check_incoming.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    btn_check_action(false);
-                }
-            });
-            btn_check_smtp.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    btn_check_action(true);
-                }
-            });
-            btn_save.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    if (initial_switch_value == sw_imap_or_pop.isChecked()) {
-                        btn_save_action();
+            btn_check_incoming.setOnClickListener(v -> btn_check_action(false));
+            btn_check_smtp.setOnClickListener(v -> btn_check_action(true));
+            btn_save.setOnClickListener(v -> {
+                if (initial_switch_value == sw_imap_or_pop.isChecked()) {
+                    btn_save_action();
+                } else {
+                    int i_port = 0;
+                    String s_port = et_imap_or_pop_server_port.getText().toString();
+                    if (!s_port.isEmpty()) {
+                        i_port = Integer.valueOf(s_port);
+                    }
+                    if (initial_imap_or_pop_port == i_port && i_port != 0) {
+                        // Changed protocol, but not port!
+                        dialog_port_consideration();
                     } else {
-                        int i_port = 0;
-                        String s_port = et_imap_or_pop_server_port.getText().toString();
-                        if (!s_port.isEmpty()) {
-                            i_port = Integer.valueOf(s_port);
-                        }
-                        if (initial_imap_or_pop_port == i_port && i_port != 0) {
-                            // Changed protocol, but not port!
-                            dialog_port_consideration();
+                        if (db.get_messages_count(current.get_id()) > 0) {
+                            dialog_deletion_messages();
                         } else {
-                            if (db.get_messages_count(current.get_id()) > 0) {
-                                dialog_deletion_messages();
-                            } else {
-                                btn_save_action();
-                            }
+                            btn_save_action();
                         }
                     }
                 }
             });
 
-            btn_delete.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    dialog_deletion();
-                }
-            });
+            btn_delete.setOnClickListener(v -> dialog_deletion());
 
             // Delete cache full messages
             Button btn_delete_full_msgs = findViewById(R.id.btn_delete_all_full_msgs);
-            btn_delete_full_msgs.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    db.delete_all_full_messages(current.get_id());
-                    Dialogs.toaster(false, getString(R.string.message_no_full_messages), ctx);
-                }
+            btn_delete_full_msgs.setOnClickListener(v -> {
+                db.delete_all_full_messages(current.get_id());
+                Dialogs.toaster(false, getString(R.string.message_no_full_messages), ctx);
             });
 
             if (add_mode) {
@@ -501,17 +466,13 @@ public class InboxPreferences extends AppCompatActivity {
         builder.setTitle(getString(R.string.menu_port_consideration_title));
         builder.setMessage(getString(R.string.menu_port_consideration_dialog));
         builder.setCancelable(true);
-        builder.setPositiveButton(getString(R.string.btn_yes),
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog,int id) {
-                        if (db.get_messages_count(current.get_id()) > 0) {
-                            dialog_deletion_messages();
-                        } else {
-                            btn_save_action();
-                        }
-                    }
-                });
+        builder.setPositiveButton(getString(R.string.btn_yes), (dialog, id) -> {
+            if (db.get_messages_count(current.get_id()) > 0) {
+                dialog_deletion_messages();
+            } else {
+                btn_save_action();
+            }
+        });
         builder.setNegativeButton(getString(android.R.string.cancel), null);
         builder.show();
     }
@@ -524,13 +485,7 @@ public class InboxPreferences extends AppCompatActivity {
         builder.setTitle(getString(R.string.menu_delete_account_dialog_title));
         builder.setMessage(getString(R.string.menu_delete_account_dialog));
         builder.setCancelable(true);
-        builder.setPositiveButton(getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog,int id) {
-                        delete_account();
-                    }
-                });
+        builder.setPositiveButton(getString(android.R.string.ok), (dialog, id) -> delete_account());
         builder.setNegativeButton(getString(android.R.string.cancel), null);
         builder.show();
     }
@@ -550,31 +505,23 @@ public class InboxPreferences extends AppCompatActivity {
         builder.setTitle(getString(R.string.menu_switch_pop_imap_title));
         builder.setMessage(getString(R.string.menu_switch_pop_imap_dialog));
         builder.setCancelable(true);
-        builder.setPositiveButton(getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.dismiss();
-                        delete_all_messages();
-                        current.set_imap_or_pop_extensions("-1");
-                        current.set_messages(0);
-                        current.set_recent(0);
-                        current.set_unseen(0);
-                        current.set_uidvalidity(0);
-                        current.set_total_size(0);
-                        db.update_account(current);
-                        btn_save_action();
-                    }
-                });
-        builder.setNegativeButton(getString(android.R.string.cancel),
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.dismiss();
-                        sw_imap_or_pop.setChecked(initial_switch_value);
-                        btn_save_action();
-                    }
-                });
+        builder.setPositiveButton(getString(android.R.string.ok), (dialog, id) -> {
+            dialog.dismiss();
+            delete_all_messages();
+            current.set_imap_or_pop_extensions("-1");
+            current.set_messages(0);
+            current.set_recent(0);
+            current.set_unseen(0);
+            current.set_uidvalidity(0);
+            current.set_total_size(0);
+            db.update_account(current);
+            btn_save_action();
+        });
+        builder.setNegativeButton(getString(android.R.string.cancel), (dialog, id) -> {
+            dialog.dismiss();
+            sw_imap_or_pop.setChecked(initial_switch_value);
+            btn_save_action();
+        });
         builder.show();
     }
 

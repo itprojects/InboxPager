@@ -63,9 +63,9 @@ public class IMAP extends Handler {
         ArrayList<String[]> msg_structure = new ArrayList<>();
 
         // PLAIN, 1.1, UTF-8, QUOTED-PRINTABLE
-        String[] msg_text_plain = new String[] { "-1", "-1", "-1", "-1" };
-        String[] msg_text_html = new String[] { "-1", "-1", "-1", "-1" };
-        String[] msg_text_other = new String[] { "-1" };
+        String[] msg_text_plain = new String[]{"-1", "-1", "-1", "-1"};
+        String[] msg_text_html = new String[]{"-1", "-1", "-1", "-1"};
+        String[] msg_text_other = new String[]{"-1"};
 
         // Used in saving attachments and text
         Attachment att_item;
@@ -77,9 +77,9 @@ public class IMAP extends Handler {
         void msg_reset() {
             msg_current = new Message();
             msg_structure = new ArrayList<>();
-            msg_text_plain = new String[] { "-1", "-1", "-1", "-1" };
-            msg_text_html = new String[] { "-1", "-1", "-1", "-1" };
-            msg_text_other = new String[] { "-1" };
+            msg_text_plain = new String[]{"-1", "-1", "-1", "-1"};
+            msg_text_html = new String[]{"-1", "-1", "-1", "-1"};
+            msg_text_other = new String[]{"-1"};
         }
     }
 
@@ -139,7 +139,7 @@ public class IMAP extends Handler {
         } else if (l.charAt(0) != '*' && data.fstream != null) {
             l += "\r\n";
             data.sbuffer.append(l);
-        } else if (l.charAt(0) == '*' || l.charAt(0) == '+')  {
+        } else if (l.charAt(0) == '*' || l.charAt(0) == '+') {
             // Catching stray data
             if (l.length() > 2 && l.charAt(1) != ' ') {
                 // Message data
@@ -197,50 +197,47 @@ public class IMAP extends Handler {
 
         if (!excepted) {
             // Prepare a callback for results
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        sleep(3000);
-                    } catch (InterruptedException e) {
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
-                    }
+            new Thread(() -> {
+                try {
+                    sleep(3000);
+                } catch (InterruptedException e) {
+                    Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                }
 
-                    if (current_inbox.get_imap_or_pop_extensions() != null
-                            && !current_inbox.get_imap_or_pop_extensions().isEmpty()) {
-                        String tested;
-                        if (current_inbox.get_imap_or_pop_extensions()
-                                .equals(ctx.getString(R.string.err_no_capability))) {
-                            tested = ctx.getString(R.string.err_no_capability);
-                        } else {
-                            // Preparing the dialog message
-                            load_extensions();
-                            tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
-                            for (int i = 0;i < data.auths.size();++i) {
-                                if (i == (data.auths.size() - 1)) {
-                                    tested += data.auths.get(i).toUpperCase();
-                                } else {
-                                    tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
-                                }
-                            }
-                            tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
-                            for (int i = 0;i < data.general.size();++i) {
-                                if (i == (data.general.size() - 1)) {
-                                    tested += data.general.get(i).toUpperCase();
-                                } else {
-                                    tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
-                                }
+                if (current_inbox.get_imap_or_pop_extensions() != null
+                        && !current_inbox.get_imap_or_pop_extensions().isEmpty()) {
+                    String tested;
+                    if (current_inbox.get_imap_or_pop_extensions()
+                            .equals(ctx.getString(R.string.err_no_capability))) {
+                        tested = ctx.getString(R.string.err_no_capability);
+                    } else {
+                        // Preparing the dialog message
+                        load_extensions();
+                        tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
+                        for (int i = 0; i < data.auths.size(); ++i) {
+                            if (i == (data.auths.size() - 1)) {
+                                tested += data.auths.get(i).toUpperCase();
+                            } else {
+                                tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
                             }
                         }
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
-                                tested, (AppCompatActivity) ctx);
-                    } else {
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
-                                ctx.getString(R.string.edit_account_check_fail),
-                                (AppCompatActivity) ctx);
+                        tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
+                        for (int i = 0; i < data.general.size(); ++i) {
+                            if (i == (data.general.size() - 1)) {
+                                tested += data.general.get(i).toUpperCase();
+                            } else {
+                                tested = tested.concat(data.general.get(i).toUpperCase() + ", ");
+                            }
+                        }
                     }
-                    reset();
+                    Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
+                            tested, (AppCompatActivity) ctx);
+                } else {
+                    Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
+                            ctx.getString(R.string.edit_account_check_fail),
+                            (AppCompatActivity) ctx);
                 }
+                reset();
             }).start();
         } else {
             reset();
@@ -575,15 +572,15 @@ public class IMAP extends Handler {
                 break;
             case "MSG_TEXT_PLAIN":
                 // Get plain text of the message
-                    if (data.msg_text_plain[0] == null || data.msg_text_plain[0].equals("-1")) {
-                        cmd_start = false;
-                    } else imap_fetch_msg_body_text(cmd_start, 1);
+                if (data.msg_text_plain[0] == null || data.msg_text_plain[0].equals("-1")) {
+                    cmd_start = false;
+                } else imap_fetch_msg_body_text(cmd_start, 1);
                 break;
             case "MSG_TEXT_HTML":
                 // Get html text of the message
-                    if (data.msg_text_html == null || data.msg_text_html[0].equals("-1")) {
-                        cmd_start = false;
-                    } else imap_fetch_msg_body_text(cmd_start, 2);
+                if (data.msg_text_html == null || data.msg_text_html[0].equals("-1")) {
+                    cmd_start = false;
+                } else imap_fetch_msg_body_text(cmd_start, 2);
                 break;
             case "MSG_TEXT_OTHER":
                 // Get (other type of) text of the message
@@ -607,7 +604,7 @@ public class IMAP extends Handler {
 
                 // Add the message's attachments to database
                 if (data.msg_structure != null) {
-                    for (int ii = 0;ii < data.msg_structure.size();++ii) {
+                    for (int ii = 0; ii < data.msg_structure.size(); ++ii) {
                         Attachment att = new Attachment();
                         att.set_account(current_inbox.get_id());
                         att.set_message(data.msg_current.get_id());
@@ -663,7 +660,7 @@ public class IMAP extends Handler {
                 imap_logout(true);
             }
         } else {
-           clear_buff();
+            clear_buff();
         }
     }
 
@@ -696,7 +693,7 @@ public class IMAP extends Handler {
                 messages = Integer.parseInt(mat.group(1));
                 recent = Integer.parseInt(mat.group(2));
                 uidnext = Integer.parseInt(mat.group(3));
-                uidvalidity  = Integer.parseInt(mat.group(4));
+                uidvalidity = Integer.parseInt(mat.group(4));
                 unseen = Integer.parseInt(mat.group(5));
             }
 
@@ -750,7 +747,7 @@ public class IMAP extends Handler {
                     if (mat.matches()) {
                         String b = mat.group(1);
                         String[] tmp_ = b.split(" ");
-                        for (int i = 0;i < tmp_.length;++i) {
+                        for (int i = 0; i < tmp_.length; ++i) {
                             if (tmp_[i].startsWith("\\")) {
                                 tmp_[i] = tmp_[i].substring(1).trim();
                             }
@@ -789,7 +786,7 @@ public class IMAP extends Handler {
                     if (mat.matches()) {
                         String b = mat.group(1);
                         String[] tmp_ = b.split(" ");
-                        for (int i = 0;i < tmp_.length;++i) {
+                        for (int i = 0; i < tmp_.length; ++i) {
                             if (tmp_[i].startsWith("\\")) {
                                 tmp_[i] = tmp_[i].substring(1).trim();
                             }
@@ -953,7 +950,7 @@ public class IMAP extends Handler {
             String received = "";
             String str_tmp;
             String[] rows = data.sbuffer.toString().split("\r\n");
-            for (int i = 0;i < rows.length;++i) {
+            for (int i = 0; i < rows.length; ++i) {
                 String sto = rows[i].trim().toLowerCase();
                 if (sto.startsWith("received:")) {
                     pat = Pattern.compile("Received:(.*)",
@@ -1036,7 +1033,8 @@ public class IMAP extends Handler {
                     data.msg_text_html, data.msg_text_other);
 
             // Declare the number of attachments for later
-            if (data.msg_structure != null) data.msg_current.set_attachments(data.msg_structure.size());
+            if (data.msg_structure != null)
+                data.msg_current.set_attachments(data.msg_structure.size());
 
             clear_buff();
         }
@@ -1053,23 +1051,23 @@ public class IMAP extends Handler {
             switch (indx) {
                 case 1:
                     cmd_tmp = "BODY[" + data.msg_text_plain[1] + "]";
-                    write(tag + " UID FETCH " + data.msg_current.get_uid() + " " +  cmd_tmp);
+                    write(tag + " UID FETCH " + data.msg_current.get_uid() + " " + cmd_tmp);
                     break;
                 case 2:
-                    cmd_tmp = "BODY[" +  data.msg_text_html[1] + "]";
-                    write(tag + " UID FETCH " + data.msg_current.get_uid() + " " +  cmd_tmp);
+                    cmd_tmp = "BODY[" + data.msg_text_html[1] + "]";
+                    write(tag + " UID FETCH " + data.msg_current.get_uid() + " " + cmd_tmp);
                     break;
                 case 3:
                     arr_tmp = data.msg_text_other[2].split(",");
                     cmd_tmp = "(";
-                    for (int k = 0;k < arr_tmp.length;++k) {
+                    for (int k = 0; k < arr_tmp.length; ++k) {
                         if ((k + 1) == arr_tmp.length) {
                             cmd_tmp = cmd_tmp.concat("BODY[" + arr_tmp[k] + "])");
                         } else {
                             cmd_tmp = cmd_tmp.concat("BODY[" + arr_tmp[k] + "] ");
                         }
                     }
-                    write(tag + " UID FETCH " + data.msg_current.get_uid() + " " +  cmd_tmp);
+                    write(tag + " UID FETCH " + data.msg_current.get_uid() + " " + cmd_tmp);
                     break;
             }
         } else {
@@ -1144,7 +1142,7 @@ public class IMAP extends Handler {
             write(tag + " UID FETCH " + data.msg_current.get_uid() + " BODY[]");
         } else {
             // Removing trailing ')'
-            for (int i = data.sbuffer.length() - 1;i >= 0 ;i--) {
+            for (int i = data.sbuffer.length() - 1; i >= 0; i--) {
                 if (data.sbuffer.charAt(i) == ')') {
                     data.sbuffer.deleteCharAt(i);
                     break;
@@ -1161,7 +1159,7 @@ public class IMAP extends Handler {
                 if (nn != -1) {
                     bounds = bounds.substring(nn + 9);
                     int n_semi = 0;
-                    for (int k = 0;k < bounds.length();++k) {
+                    for (int k = 0; k < bounds.length(); ++k) {
                         if (bounds.charAt(k) == ';') {
                             n_semi = k;
                             break;
@@ -1209,7 +1207,7 @@ public class IMAP extends Handler {
                     + " BODY[" + String.valueOf(data.att_item.get_imap_uid()) + "]");
         } else {
             // Removing trailing ')'
-            for (int i = data.sbuffer.length() - 1;i >= 0 ;i--) {
+            for (int i = data.sbuffer.length() - 1; i >= 0; i--) {
                 if (data.sbuffer.charAt(i) == ')') {
                     data.sbuffer.deleteCharAt(i);
                     break;
@@ -1225,7 +1223,7 @@ public class IMAP extends Handler {
                     if (data.att_item.get_transfer_encoding().equalsIgnoreCase("BASE64")) {
                         boolean CR = false;
                         StringBuilder sb_tmp = new StringBuilder(0);
-                        for (int i = 0;i < data.sbuffer.length();++i) {
+                        for (int i = 0; i < data.sbuffer.length(); ++i) {
                             if (data.sbuffer.charAt(i) == '\n') {
                                 if (CR) {
                                     data.fstream.write(Base64.decode(sb_tmp.toString().getBytes(),
@@ -1289,7 +1287,7 @@ public class IMAP extends Handler {
             write(tag + " UID FETCH " + data.msg_current.get_uid() + " BODY[]");
         } else {
             // Removing trailing ')'
-            for (int i = data.sbuffer.length() - 1;i >= 0 ;i--) {
+            for (int i = data.sbuffer.length() - 1; i >= 0; i--) {
                 if (data.sbuffer.charAt(i) == ')') {
                     data.sbuffer.deleteCharAt(i);
                     break;

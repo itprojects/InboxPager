@@ -148,7 +148,7 @@ public class Inbox {
     }
 
     public void set_uidnext(int i) {
-        uidnext  = i;
+        uidnext = i;
     }
 
     public void set_uidvalidity(int i) {

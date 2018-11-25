@@ -17,7 +17,6 @@
 package net.inbox.dialogs;
 
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 
@@ -59,11 +58,9 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
         pd.setMax(100);
         pd.setCancelable(false);
         String cnc = act.getResources().getString(android.R.string.cancel);
-        pd.setButton(ProgressDialog.BUTTON_NEGATIVE, cnc, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                unblock = true;
-                call_cancel = true;
-            }
+        pd.setButton(ProgressDialog.BUTTON_NEGATIVE, cnc, (dialog, which) -> {
+            unblock = true;
+            call_cancel = true;
         });
         pd.show();
     }
