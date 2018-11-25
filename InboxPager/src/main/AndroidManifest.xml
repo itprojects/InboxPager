@@ -2,40 +2,40 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.inbox">
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-        android:label="@string/app_name"
-        android:theme="@style/PagerTheme"
-        android:icon="@mipmap/application"
         android:allowBackup="false"
-        android:supportsRtl="true">
+        android:icon="@mipmap/application"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/PagerTheme">
 
-        <activity android:name=".About"/>
+        <activity android:name=".About" />
 
         <activity android:name=".Pager">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".InboxMessage"/>
+        <activity android:name=".InboxMessage" />
 
-        <activity android:name=".InboxPreferences"
-            android:windowSoftInputMode="stateHidden|adjustResize">
-        </activity>
+        <activity
+            android:name=".InboxPreferences"
+            android:windowSoftInputMode="stateHidden|adjustResize"></activity>
 
-        <activity android:name=".InboxSend"
-            android:windowSoftInputMode="stateHidden|adjustResize">
-        </activity>
+        <activity
+            android:name=".InboxSend"
+            android:windowSoftInputMode="stateHidden|adjustResize"></activity>
 
-        <activity android:name=".InboxUI"/>
+        <activity android:name=".InboxUI" />
 
-        <activity android:name=".Settings"/>
+        <activity android:name=".Settings" />
 
         <activity
             android:name=".InboxGPG"

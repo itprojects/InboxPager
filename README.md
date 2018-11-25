@@ -6,15 +6,26 @@ An E-mail client for the Android (java) platform. Supports imap, pop, and smtp p
 
 # Download
 
-You can find [InboxPager](https://f-droid.org/repository/browse/?fdfilter=inbox&fdid=net.inbox.pager) in the free and open source F-droid app store.
+You can find [InboxPager](https://f-droid.org/packages/net.inbox.pager/) in the free and open-source F-droid app store.
 
 # Usage
 
-In order to use this application you have to enable SSL/TLS application-email-checking through your email account's web interface. Some email servers may have this feature already turned on (NOT GMAIL!, see below). If your account's server does not support this feature, the app won't work.
+In order to use this application you have to enable SSL/TLS application-email-checking through your email account's web interface.
+Some email servers may have this feature already turned on (NOT GMAIL!, see below).
+If your account's server does not support this feature, the app won't work.
 
-Setting up an account in InboxPager happens through "Settings" > "Add Account". There, you have to enter your account's credentials & server parameters. If you don't know what your email account's server parameters are - use the automatic tools provided to find out, otherwise enter and test your own configuration. Optionally, if you'd like to receive a sound or vibration notification tick those settings. If you wish to only refresh a specific account, when you individually choose to, then untick the "Allow in all-accounts-refresh" in that account's settings.
+To set up an account in InboxPager, go to "Settings" > "Add Account".
+There, you have to enter your account's credentials & server parameters.
 
-By default InboxPager DOES NOT KEEP "FULL MESSAGE" copies of emails, instead, it just downloads the main textual contents of the message. If you wish to change this policy you can do this in the settings for an individual account. Keeping full messages can easily consume your device's internal memory very quickly. In order to save email, the full message must first be downloaded into the internal database. Also, unless the full email message is already inside the internal database, downloading attachments will require access to the internet.
+If you don't know what your email account's server parameters are - use the automatic tools provided to find out, otherwise enter and test your own configuration.
+Optionally, if you'd like to receive a sound or vibration notification tick those settings.
+If you wish to only refresh a specific account, when you individually choose to, then untick the "Allow in all-accounts-refresh" in that account's settings.
+
+By default, InboxPager DOES NOT KEEP "FULL MESSAGE" copies of emails. Instead, it just downloads the main textual contents of the message.
+If you wish to change this policy you can do this in the settings for an individual account.
+Keeping full messages can easily consume your device's internal memory very quickly.
+In order to save email, the full message must first be downloaded into the internal database.
+Also, unless the full email message is already inside the internal database, downloading attachments will require access to the internet.
 
 # Features
 
@@ -85,7 +96,8 @@ For a POP (Post Office Protocol 3) mail server:
 
 ## Known Items
 
-If there are any errors in the application, you should be able to see those in the internal application Event Log. For data leak prevention this log is automatically deleted if the app is closed or crashes. The crashes should be visible in android's log (logcat).
+If there are any errors in the application, you should be able to see those in the internal application Event Log.
+For data leak prevention this log is automatically deleted if the app is closed or crashes. The crashes should be visible in android's log (logcat).
 
 - While downloading a large attachment, if you experience errors, then close some other applications to get more RAM.
 
@@ -125,15 +137,19 @@ If you are using POP with gmail, make sure to first enable it from gmail's setti
 
 # OpenPGP Usage
 
-In order to use cryptographic services you need to install an app called OpenKeychain and make, or import, some pgp-keys. OpenKeychain applies OpenPGP privacy/security to a given message,  and the process is described below, or (better) just look at the screenshots. Sending inline messages in non-pgp/mime standard is not supported, but third party apps exist that can do that, through the system clipboard buffer.
+In order to use cryptographic services you need to install an app called OpenKeychain and make, or import, some pgp-keys.
+OpenKeychain applies OpenPGP privacy/security to a given message, and the process is described below, or (better) just look at the screenshots.
+Sending inline messages in non-pgp/mime standard is not supported, but third party apps exist that can do that, through the system clipboard buffer.
 
 IMPORTANT, for BCC messages:
 
-Encrypted blocks may show the recipients' encryption keys' id's. This may leak data, if you're using the blind carbon copy (BCC) message property. For example: a message is encrypted, Alice sends to Bob and Carol; Carol is a BCC, but Carol may also see the key id of Bob.
+Encrypted blocks may show the recipients' encryption keys' id's. This may leak data if you're using the blind carbon copy (BCC) message property.
+For example: a message is encrypted, Alice sends to Bob and Carol; Carol is a BCC, but Carol may also see the key id of Bob.
 
 ## Signed Clear Text
 
-Signing a clear, unencrypted message with a pgp key, that will be sent using pgp/mime. This option is for those want to be sure that a message was produced with a certain pgp key, the message contents are not encrypted. Can include attachments.
+Signing a clear, unencrypted message with a pgp key, that will be sent using pgp/mime.
+This option is for those want to be sure that a message was produced with a certain pgp key, the message contents are not encrypted. Can include attachments.
 
 1. Click the padlock icon, this starts the pgp implementation.
 
@@ -153,7 +169,9 @@ Some email clients may complain of a "bad signature", i.e. Thunderbird with Enig
 
 ## Encrypt Message
 
-Encrypting a message, or signing and encrypting a message. This option is for those that desire more privacy for their content, for example commercial organizations. Messages produced with this option will be encrypted, and they can optionally be signed. [Extra: If one wishes to be able to decrypt their own messages for posterity, use the option to add the signing key to the recipients. Can include attachments.
+Encrypting a message, or signing and encrypting a message. This option is for those that desire more privacy for their content, for example commercial organizations.
+Messages produced with this option will be encrypted, and they can optionally be signed.
+[Extra: If one wishes to be able to decrypt their own messages for posterity, use the option to add the signing key to the recipients. Can include attachments.
 
 1. Click the padlock icon, this starts the pgp implementation.
 
