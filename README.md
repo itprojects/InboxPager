@@ -18,7 +18,7 @@ In order to use this application, you have to enable SSL/TLS application-email-c
 
 You can set up an account in InboxPager by going to "Settings" > "Add Account". There you have to enter your account's credentials and server parameters. If you don't know what your email account's server parameters are, use the automatic tools provided to find out, or enter and test your own configuration. Optionally, if you'd like to receive a sound or vibration notification, tick those settings. If you wish to have a specific account refresh only when you want it to, untick the "Allow in all-accounts-refresh" in that account's settings.
 
-By default InboxPager DOES *NOT* KEEP "FULL MESSAGE" copies of emails. It just downloads the main textual contents of the message. If you wish to change this policy, you can do this in the settings for an individual account. Keeping full messages can consume your device's internal memory very quickly. In order to save emails, the full message must first be downloaded into the internal database. Also, unless the full email message is already inside the internal database, downloading attachments will require access to the internet.
+By default InboxPager DOES <b>NOT</b> KEEP "FULL MESSAGE" copies of emails. It just downloads the main textual contents of the message. If you wish to change this policy, you can do this in the settings for an individual account. Keeping full messages can consume your device's internal memory very quickly. In order to save emails, the full message must first be downloaded into the internal database. Also, unless the full email message is already inside the internal database, downloading attachments will require access to the internet.
 
 # Features
 
