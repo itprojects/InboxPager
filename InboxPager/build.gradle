@@ -2,7 +2,8 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    buildToolsVersion '28.0.3'
+
     defaultConfig {
         applicationId "net.inbox.pager"
         minSdkVersion 21
@@ -10,6 +11,7 @@ android {
         versionCode 9
         versionName "4.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
