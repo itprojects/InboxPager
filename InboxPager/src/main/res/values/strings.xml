@@ -86,17 +86,19 @@
     <string name="ex_title">Problem</string>
     <string name="ex_do_io">Unable to do network IO operations.</string>
     <string name="ex_field">Exception:</string>
+    <string name="ex_ran_out_of_ram">Not enough RAM. Free more virtual memory.</string>
 
     <!-- Attachments List Dialog -->
-    <string name="attch_title">Download Attachment</string>
+    <string name="attch_title">Download To</string>
     <string name="attch_bytes">B</string>
     <string name="attch_kilobytes">KB</string>
     <string name="attch_megabytes">MB</string>
-    <string name="attch_add_attachment">Add Attachment</string>
-    <string name="attch_no_name">no_name_attachment.</string>
+    <string name="attch_added_attachment">Added:</string>
 
     <!-- Folder Picker Dialog -->
-    <string name="folder_title">Select Folder (long-press)</string>
+    <string name="folder_title">Pick Folder</string>
+    <string name="file_title">Pick File</string>
+    <string name="file_use_this">Rename and Save</string>
 
     <!-- Error Dialogs -->
     <string name="err_error">Error:</string>
@@ -104,17 +106,19 @@
     <string name="err_msg_write_perms">You do not have the folder permission to save your file in your chosen folder.</string>
     <string name="err_title_no_space">No space</string>
     <string name="err_msg_no_space">You do not seem to have enough space on this device, to save the file.</string>
-    <string name="err_title_qp_warn">Quoted Printable Encoding</string>
     <string name="err_msg_qp_warn">This attachment is encoded in the quoted-printable format. This is not fully supported. The file will be saved as text data.</string>
+    <string name="err_title_empty_name">Name Required</string>
     <string name="err_title_already_exists">File Already Exists</string>
-    <string name="err_msg_already_exists">Would you like to replace this file? If you cancel, then no download.</string>
+    <string name="err_title_file_is_duplicate">File is already attached.</string>
+    <string name="err_msg_already_exists">Would you like to replace this file?</string>
+    <string name="err_msg_empty_name">Your file will be saved under the name:</string>
     <string name="err_title_android_permission">Android Permissions</string>
     <string name="err_msg_android_permission">You forgot to enable android storage access permissions from Settings > Applications > THIS APP > Permissions.</string>
     <string name="err_wrong_user_or_pass">Wrong user name or password</string>
-    <string name="err_no_file_manager">A file manager is required, to add attachments.</string>
     <string name="err_read_file">You do not have the permission to read this file.</string>
-    <string name="err_read_file_storage">Have you enabled android storage writing permissions from Settings > Applications > THIS APP > Permissions?</string>
-    <string name="err_size_attachments">Your attachments are larger that the outgoing server will allow.\n\n Send them in separate messages?.</string>
+    <string name="err_size_attachments_title">Attachments Problem</string>
+    <string name="err_size_attachments">Your attachments are larger than the outgoing server will allow. Remove some attachments.</string>
+    <string name="err_size_attachments_continue">Ignore &amp; Continue</string>
     <string name="err_no_rcpt">Nobody to send to!</string>
     <string name="err_too_many_rcpt">Too many recipients. Maximum 100.</string>
     <string name="err_msg_too_heavy">This message is too big. Try removing attachments, and/or sending text in multiple messages.</string>
@@ -136,27 +140,27 @@
     <string name="err_pick_rcpt_keys">Pick recipient keys!</string>
     <string name="err_missing_crypto_mime">Missing message cryptographic data!</string>
 
-    <!-- Pager activity -->
+    <!-- InboxPager activity -->
     <string name="activity_pw">PASSWORD</string>
     <string name="activity_pager_title">Pager</string>
     <string name="menu_refresh">Refresh</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_about">About</string>
-    <string name="menu_add_account">Account ✚</string>
-    <string name="no_accounts">Add message accounts</string>
+    <string name="menu_add_account">Add Account</string>
+    <string name="no_accounts">Add Message Accounts</string>
+    <string name="select_account">Select Inbox</string>
     <string name="btn_log_clear">Clear</string>
-
-    <!-- InboxUI activity -->
+    <string name="drawer_open">Open Inbox List</string>
+    <string name="drawer_close">Close Inbox List</string>
     <string name="helper_title">Welcome!</string>
     <string name="helper_msg">Have an enjoyable messaging, and remember to setup a data protection password, in the settings menu, or your accounts may get easily compromised.</string>
     <string name="btn_pw">SET PASSWORD</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_yes">Yes</string>
     <string name="btn_no">No</string>
-    <string name="menu_all_seen">All Read</string>
-    <string name="menu_new_msg">Send Message</string>
-    <string name="menu_log">Event Log</string>
-    <string name="menu_status">Status</string>
+    <string name="menu_all_seen">Mark All Read</string>
+    <string name="menu_log">Errors / Exceptions</string>
+    <string name="menu_status">Inbox Status</string>
     <string name="menu_port_consideration_title">Confirm Port</string>
     <string name="menu_port_consideration_dialog">Are you sure this is the correct port?</string>
     <string name="menu_delete_account_dialog_title">Confirm Deletion</string>
@@ -164,22 +168,13 @@
     <string name="menu_switch_pop_imap_title">Confirm Switch</string>
     <string name="menu_switch_pop_imap_dialog">Switching between IMAP and POP requires all local messages to be deleted and then added from the server. Continue?</string>
     <string name="ssl_auth_popup_title">Last Connection</string>
-    <string name="ssl_auth_popup_you">You, this device.</string>
-    <string name="ssl_auth_popup_transport">SECURITY</string>
-    <string name="ssl_auth_popup_key_size">KEY SIZE</string>
-    <string name="ssl_auth_popup_cn">NAME</string>
-    <string name="ssl_auth_popup_o">ORGANIZATION</string>
-    <string name="ssl_auth_popup_ou">TYPE</string>
-    <string name="ssl_auth_popup_l">LOCATION</string>
-    <string name="ssl_auth_popup_st">STATE</string>
-    <string name="ssl_auth_popup_c">COUNTRY</string>
     <string name="ssl_auth_popup_bad_connection">You may be experiencing NO SECURITY AT ALL! Remote server had bad or missing SSL/TLS certificates, or the host\'s name cannot be verified.</string>
     <string name="no_messages">Empty Inbox</string>
 
     <!-- InboxPreferences activity -->
     <string name="activity_add_account_title">Add Account</string>
-    <string name="activity_edit_account_title">Edit Account</string>
-    <string name="edit_account_email">Account name</string>
+    <string name="activity_edit_account_title">Edit This Account</string>
+    <string name="edit_account_email">Account Name</string>
     <string name="edit_account_email_hint">your.account@example.com</string>
     <string name="edit_account_username">Username</string>
     <string name="edit_account_pass">Password</string>
@@ -225,10 +220,10 @@
     <string name="edit_account_smtp3">SMTP:587</string>
 
     <!-- InboxMessage activity -->
-    <string name="btn_up_one_level">▲ UP   </string>
+    <string name="btn_up_one_level">▲ UP</string>
     <string name="menu_download_msg">Download ➠ Database</string>
     <string name="menu_save_message">Save ➠ Device</string>
-    <string name="menu_write_reply">Reply To Message</string>
+    <string name="menu_write_reply">Write a Reply</string>
     <string name="menu_delete_from_server">Delete From Server</string>
     <string name="menu_delete_full_message">Delete Full Message (DB)</string>
     <string name="menu_delete_full_messages">Delete Full Messages</string>
@@ -249,7 +244,6 @@
     <string name="message_contents_loop_other">OTHER</string>
     <string name="message_no_full_message">Full message deleted from database.</string>
     <string name="message_no_full_messages">Full messages deleted from database.</string>
-    <string name="message_empty_go_download">Full message needs to be downloaded. Continue?</string>
     <string name="message_keep_in_database">Keep full message in database?</string>
 
     <!-- InboxSend activity -->
@@ -258,20 +252,20 @@
     <string name="send_spin">Sending</string>
     <string name="send_addresses_hint">A@foo.com, B@foo.net,</string>
     <string name="send_attachments">Attachments</string>
-    <string name="send_remove_attachment">Remove attachment</string>
     <string name="send_wait">Wait a few seconds.</string>
     <string name="send_headers_sent">Headers sent. Sending Contents.</string>
     <string name="send_upload_attachment">Uploading attachment:</string>
-    <string name="send_folder_not_file">Your file manager has selected something other than a file.</string>
     <string name="send_missing_rcpt_to">Missing primary recipient.</string>
     <string name="send_cleartext_subject">Cleartext Subject</string>
     <string name="send_cleartext_content">The subject of the message WILL NOT be encrypted. Would you like to remove the subject of the message, for more privacy?</string>
     <string name="send_cleartext_delete">Remove</string>
     <string name="send_cleartext_keep">Keep</string>
     <string name="send_encrypt">Encrypt</string>
+    <string name="send_unlock_first">Press UNLOCK button.</string>
+    <string name="send_show_previous">Show Previous Message</string>
 
     <!-- Settings -->
-    <string name="sett_auto_check_title">Mass refresh</string>
+    <string name="sett_auto_check_title">Refresh All Inboxes</string>
     <string name="sett_auto_check_summary">Default setting. ALL participating message accounts will be checked, when the home screen refresh button if clicked.</string>
     <string name="sett_beeps_download_title">Beep on new messages</string>
     <string name="sett_beeps_download_summary">Device will make a beeping sound, when new messages arrive.</string>
@@ -291,6 +285,7 @@
     <string name="open_pgp_reset">RESET</string>
     <string name="open_pgp_ready">READY</string>
     <string name="open_pgp_start">START</string>
+    <string name="open_pgp_press_start">Press START button.</string>
     <string name="open_pgp_none_found">OpenKeychain not found!\nNo encryption/decryption!!</string>
     <string name="open_pgp_list_items_encrypt">Encrypt message</string>
     <string name="open_pgp_list_items_sign_encrypt">Sign and encrypt message</string>
@@ -300,12 +295,10 @@
     <string name="open_pgp_signing_key_cross">&#10060; Signing key</string>
     <string name="open_pgp_rcpt_key_check">&#10003; Recipient keys</string>
     <string name="open_pgp_rcpt_key_cross">&#10060; Recipient keys</string>
-    <string name="open_pgp_recipients_pick">pick</string>
     <string name="open_pgp_recipients">RECIPIENTS</string>
     <string name="open_pgp_message">CLEAR MESSAGE</string>
     <string name="open_pgp_message_encrypted_block">ENCRYPTED MESSAGE</string>
     <string name="open_pgp_message_signature">SIGNATURE</string>
-    <string name="open_pgp_success">SUCCESS!</string>
     <string name="open_pgp_failure">FAILURE!</string>
     <string name="open_pgp_bad_signature">No signature, bad signature, or a transmission error.</string>
     <string name="open_pgp_encrypt_to_self">Also encrypt to signing key</string>

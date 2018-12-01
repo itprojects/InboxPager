@@ -1,195 +1,234 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar android:id="@+id/edit_account_toolbar"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/edit_account_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/color_home_bar_background"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-        <TextView android:id="@+id/tv_save"
+        <TextView
+            android:id="@+id/tv_save"
+            style="@style/action_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginStart="1sp"
             android:layout_marginEnd="7sp"
-            android:text="@string/edit_account_save"
             android:background="@drawable/btn_green"
-            style="@style/action_button"/>
+            android:text="@string/edit_account_save" />
 
-        <TextView android:id="@+id/tv_delete"
+        <TextView
+            android:id="@+id/tv_delete"
+            style="@style/action_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginStart="1sp"
             android:layout_marginEnd="7sp"
-            android:text="@string/edit_account_delete"
             android:background="@drawable/btn_orange"
-            style="@style/action_button"/>
+            android:text="@string/edit_account_delete" />
+
+        <TextView
+            android:id="@+id/prefs_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/dottz"
+            android:letterSpacing="0.1"
+            android:maxLines="1"
+            android:paddingLeft="0sp"
+            android:paddingTop="4sp"
+            android:paddingRight="0sp"
+            android:paddingBottom="4sp"
+            android:shadowColor="@color/color_title"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="3"
+            android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
+            android:textColor="@color/color_title"
+            android:visibility="visible" />
+
     </android.support.v7.widget.Toolbar>
 
-    <ScrollView android:id="@+id/scrollView"
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true">
 
-        <LinearLayout android:orientation="vertical"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <LinearLayout android:id="@+id/llay_imap_or_pop"
-                android:orientation="vertical"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-                <TextView android:id="@+id/tv_email"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     android:layout_marginStart="15sp"
                     android:layout_marginTop="10sp"
+                    android:maxLines="1"
                     android:text="@string/edit_account_email"
-                    android:textStyle="bold"
-                    android:maxLines="1"/>
+                    android:textStyle="bold" />
 
-                <EditText android:id="@+id/et_email"
+                <EditText
+                    android:id="@+id/et_email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
-                    android:layout_marginLeft="10sp"
                     android:layout_marginStart="10sp"
-                    android:layout_marginRight="10sp"
+                    android:layout_marginLeft="10sp"
                     android:layout_marginEnd="10sp"
-                    android:labelFor="@string/edit_account_email"
+                    android:layout_marginRight="10sp"
                     android:hint="@string/edit_account_email_hint"
-                    android:inputType="textEmailAddress|textNoSuggestions"/>
+                    android:inputType="textEmailAddress|textNoSuggestions"
+                    android:labelFor="@string/edit_account_email" />
 
-                <TextView android:id="@+id/tv_username"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     android:layout_marginStart="15sp"
                     android:layout_marginTop="17sp"
+                    android:maxLines="1"
                     android:text="@string/edit_account_username"
-                    android:textStyle="bold"
-                    android:maxLines="1"/>
+                    android:textStyle="bold" />
 
-                <EditText android:id="@+id/et_username"
+                <EditText
+                    android:id="@+id/et_username"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
-                    android:layout_marginLeft="10sp"
                     android:layout_marginStart="10sp"
-                    android:layout_marginRight="10sp"
+                    android:layout_marginLeft="10sp"
                     android:layout_marginEnd="10sp"
-                    android:labelFor="@string/edit_account_username"
+                    android:layout_marginRight="10sp"
                     android:hint="@string/edit_account_email_hint"
-                    android:inputType="text|textNoSuggestions"/>
+                    android:inputType="text|textNoSuggestions"
+                    android:labelFor="@string/edit_account_username" />
 
-                <TextView android:id="@+id/tv_pass"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     android:layout_marginStart="15sp"
                     android:layout_marginTop="17sp"
                     android:text="@string/edit_account_pass"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
 
-                <EditText android:id="@+id/et_pass"
+                <EditText
+                    android:id="@+id/et_pass"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
-                    android:layout_marginLeft="10sp"
                     android:layout_marginStart="10sp"
-                    android:layout_marginRight="10sp"
+                    android:layout_marginLeft="10sp"
                     android:layout_marginEnd="10sp"
-                    android:labelFor="@string/edit_account_pass"
+                    android:layout_marginRight="10sp"
                     android:hint="@string/edit_account_pass"
-                    android:inputType="textPassword|textNoSuggestions"/>
+                    android:inputType="textPassword|textNoSuggestions"
+                    android:labelFor="@string/edit_account_pass" />
 
-                <Switch android:id="@+id/sw_imap_or_pop"
+                <Switch
+                    android:id="@+id/sw_imap_or_pop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="10sp"
                     android:layout_marginTop="5sp"
-                    android:layoutDirection="rtl"/>
+                    android:layout_marginEnd="10sp"
+                    android:layoutDirection="rtl" />
 
-                <LinearLayout android:orientation="horizontal"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     android:layout_marginStart="15sp"
-                    android:layout_marginTop="5sp">
+                    android:layout_marginTop="5sp"
+                    android:orientation="horizontal">
 
-                    <TextView android:id="@+id/tv_imap_or_pop"
+                    <TextView
+                        android:id="@+id/tv_imap_or_pop"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:maxLines="1"
                         android:text="@string/edit_account_imap_or_pop_on"
-                        android:textStyle="bold"
-                        android:maxLines="1"/>
+                        android:textStyle="bold" />
 
-                    <EditText android:id="@+id/et_imap_or_pop_server_port"
+                    <EditText
+                        android:id="@+id/et_imap_or_pop_server_port"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:digits="0123456789"
+                        android:ems="4"
                         android:gravity="center_horizontal"
                         android:hint="@string/edit_account_incoming_server_port_hint_imap"
                         android:inputType="number|textNoSuggestions"
-                        android:ems="4"
-                        android:digits="0123456789"
-                        android:maxLength="5"/>
+                        android:maxLength="5" />
 
-                    <EditText android:id="@+id/et_imap_or_pop_server"
+                    <EditText
+                        android:id="@+id/et_imap_or_pop_server"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5sp"
                         android:layout_marginEnd="10sp"
+                        android:ems="13"
                         android:gravity="center_horizontal"
                         android:hint="@string/edit_account_incoming_server_hint_imap"
-                        android:inputType="textNoSuggestions"
-                        android:ems="13"/>
+                        android:inputType="textNoSuggestions" />
+
                 </LinearLayout>
+
             </LinearLayout>
 
-            <LinearLayout android:id="@+id/llay_smtp"
-                android:orientation="horizontal"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:layout_marginStart="15sp"
-                android:layout_marginTop="5sp">
+                android:layout_marginTop="5sp"
+                android:orientation="horizontal">
 
-                <TextView android:id="@+id/tv_smtp"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="1"
                     android:text="@string/edit_account_smtp"
-                    android:textStyle="bold"
-                    android:maxLines="1"/>
+                    android:textStyle="bold" />
 
-                <EditText android:id="@+id/et_smtp_server_port"
+                <EditText
+                    android:id="@+id/et_smtp_server_port"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:inputType="number|textNoSuggestions"
-                    android:hint="@string/edit_account_smtp_server_port_hint"
-                    android:ems="4"
                     android:digits="0123456789"
-                    android:maxLength="5"/>
+                    android:ems="4"
+                    android:gravity="center_horizontal"
+                    android:hint="@string/edit_account_smtp_server_port_hint"
+                    android:inputType="number|textNoSuggestions"
+                    android:maxLength="5" />
 
-                <EditText android:id="@+id/et_smtp_server"
+                <EditText
+                    android:id="@+id/et_smtp_server"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
                     android:layout_marginStart="5sp"
                     android:layout_marginEnd="10sp"
+                    android:ems="13"
+                    android:gravity="center_horizontal"
                     android:hint="@string/edit_account_smtp_server_hint"
-                    android:inputType="textNoSuggestions"
-                    android:ems="13"/>
+                    android:inputType="textNoSuggestions" />
+
             </LinearLayout>
 
             <TextView
@@ -199,67 +238,80 @@
                 android:layout_marginStart="15sp"
                 android:layout_marginTop="17sp"
                 android:text="@string/edit_account_net_checks"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
-            <LinearLayout android:orientation="vertical"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
-                android:layout_marginStart="10sp">
+                android:layout_marginStart="10sp"
+                android:orientation="vertical">
 
-                <Button android:id="@+id/btn_nc_check"
+                <Button
+                    android:id="@+id/btn_nc_check"
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/edit_account_nc_check"
                     android:drawableStart="@drawable/network"
-                    style="?android:attr/borderlessButtonStyle"/>
+                    android:text="@string/edit_account_nc_check" />
 
-                <Button android:id="@+id/btn_check_incoming"
+                <Button
+                    android:id="@+id/btn_check_incoming"
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/edit_account_check_incoming"
                     android:drawableStart="@drawable/network"
-                    style="?android:attr/borderlessButtonStyle"/>
+                    android:text="@string/edit_account_check_incoming" />
 
-                <Button android:id="@+id/btn_check_smtp"
+                <Button
+                    android:id="@+id/btn_check_smtp"
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/edit_account_check_smtp"
                     android:drawableStart="@drawable/network"
-                    style="?android:attr/borderlessButtonStyle"/>
+                    android:text="@string/edit_account_check_smtp" />
             </LinearLayout>
 
-            <LinearLayout android:orientation="vertical"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
-                android:layout_marginStart="10sp">
+                android:layout_marginStart="10sp"
+                android:orientation="vertical">
 
-                <CheckBox android:id="@+id/cb_auto_refresh"
+                <CheckBox
+                    android:id="@+id/cb_auto_refresh"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5sp"
-                    android:text="@string/edit_account_auto_check"/>
+                    android:text="@string/edit_account_auto_check" />
 
-                <CheckBox android:id="@+id/cb_always_ask_pass"
+                <CheckBox
+                    android:id="@+id/cb_always_ask_pass"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5sp"
                     android:text="@string/edit_account_always_ask_pass"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
-                <CheckBox android:id="@+id/cb_auto_save_full_msgs"
+                <CheckBox
+                    android:id="@+id/cb_auto_save_full_msgs"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5sp"
-                    android:text="@string/edit_account_auto_save_full_msgs"/>
+                    android:text="@string/edit_account_auto_save_full_msgs" />
 
-                <Button android:id="@+id/btn_delete_all_full_msgs"
+                <Button
+                    android:id="@+id/btn_delete_all_full_msgs"
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/menu_delete_full_messages"
-                    style="?android:attr/borderlessButtonStyle"/>
+                    android:text="@string/menu_delete_full_messages" />
+
             </LinearLayout>
+
         </LinearLayout>
+
     </ScrollView>
+
 </LinearLayout>

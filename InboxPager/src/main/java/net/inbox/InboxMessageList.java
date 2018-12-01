@@ -17,7 +17,6 @@
 package net.inbox;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,12 +30,10 @@ class InboxMessageList extends BaseAdapter {
 
     private ArrayList<InboxMessageListItem> msg_s;
     private Context ctx;
-    private Typeface tf;
 
     InboxMessageList(Context ct, ArrayList<InboxMessageListItem> messages) {
         ctx = ct;
         msg_s = messages;
-        tf = Pager.tf;
     }
 
     @Override
@@ -73,7 +70,6 @@ class InboxMessageList extends BaseAdapter {
         tv_subtitle.setText(itm.get_subtitle());
         ImageView iv_att = v.findViewById(R.id.message_list_attachments_img);
         TextView tv_att = v.findViewById(R.id.message_list_attachments);
-        tv_att.setTypeface(tf);
         if (itm.get_attachments() < 1) {
             iv_att.setVisibility(View.GONE);
             tv_att.setVisibility(View.GONE);
@@ -127,5 +123,9 @@ class InboxMessageListItem {
 
     boolean get_seen() {
         return seen;
+    }
+
+    public void set_seen(boolean b_seen) {
+        seen = b_seen;
     }
 }

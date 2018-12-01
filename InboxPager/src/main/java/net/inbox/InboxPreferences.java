@@ -22,7 +22,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -93,7 +92,7 @@ public class InboxPreferences extends AppCompatActivity {
 
         try {
             // Get the database
-            db = Pager.get_db();
+            db = InboxPager.get_db();
             prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
             // Restore existing state
@@ -114,16 +113,7 @@ public class InboxPreferences extends AppCompatActivity {
             setSupportActionBar(tb);
 
             // Find the title
-            TextView tv_t;
-            for (int i = 0;i < tb.getChildCount();++i) {
-                int idd = tb.getChildAt(i).getId();
-                if (idd == -1) {
-                    tv_t = (TextView) tb.getChildAt(i);
-                    tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
-                    tv_t.setTypeface(Pager.tf);
-                    break;
-                }
-            }
+            TextView prefs_title = tb.findViewById(R.id.prefs_title);
 
             String title;
             if (add_mode) {
@@ -132,7 +122,11 @@ public class InboxPreferences extends AppCompatActivity {
                 title = getString(R.string.activity_edit_account_title);
             }
 
-            if (getSupportActionBar() != null) getSupportActionBar().setTitle(title.toUpperCase());
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowHomeEnabled(false);
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+                prefs_title.setText(title.toUpperCase());
+            }
 
             // Get the visual elements
             et_email = findViewById(R.id.et_email);
@@ -299,7 +293,7 @@ public class InboxPreferences extends AppCompatActivity {
             initial_switch_value = current.get_imap_or_pop();
             initial_imap_or_pop_port = current.get_imap_or_pop_port();
         } catch (Exception e) {
-            Pager.log += e.getMessage() + "\n\n";
+            InboxPager.log += e.getMessage() + "\n\n";
             finish();
         }
     }

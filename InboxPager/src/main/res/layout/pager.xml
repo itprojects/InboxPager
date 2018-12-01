@@ -1,93 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout tools:context=".Pager"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".InboxPager">
 
-    <LinearLayout android:id="@+id/llay_pw"
-        android:orientation="horizontal"
+    <LinearLayout
+        android:id="@+id/llay_pw"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black"
+        android:orientation="horizontal"
         android:visibility="gone">
 
-        <EditText android:id="@+id/pw"
+        <EditText
+            android:id="@+id/pw"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_marginStart="14sp"
             android:layout_marginLeft="14sp"
             android:layout_marginEnd="14sp"
             android:layout_marginRight="14sp"
-            android:layout_gravity="center"
+            android:background="@color/color_title"
+            android:gravity="center_horizontal"
+            android:hint="@string/activity_pw"
+            android:inputType="textPassword|textNoSuggestions"
+            android:maxLines="1"
+            android:paddingStart="15sp"
+            android:paddingLeft="15sp"
             android:paddingTop="4sp"
             android:paddingEnd="15sp"
             android:paddingRight="15sp"
             android:paddingBottom="4sp"
-            android:paddingStart="15sp"
-            android:paddingLeft="15sp"
-            android:gravity="center_horizontal"
-            android:inputType="textPassword|textNoSuggestions"
-            android:hint="@string/activity_pw"
-            android:maxLines="1"
-            android:background="@color/color_title"
-            android:theme="@style/PWEditText"/>
+            android:theme="@style/PWEditText" />
+
     </LinearLayout>
 
-    <RelativeLayout android:id="@+id/app_main"
-        android:orientation="vertical"
+    <android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:openDrawer="start">
 
-        <android.support.v7.widget.Toolbar android:id="@+id/home_toolbar"
+        <include
+            layout="@layout/pager_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/color_home_bar_background"
-            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+            android:layout_height="match_parent" />
 
-            <ImageButton android:id="@+id/refresh"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:padding="4sp"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/menu_refresh"
-                android:src="@drawable/btn_refresh"/>
-
-            <TextView android:id="@+id/page_counter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:textAppearance="@android:style/TextAppearance.Large.Inverse"
-                android:textColor="@color/color_home_bar_background"
-                android:background="@drawable/counter_rounded"
-                android:shadowColor="@color/color_title"
-                android:shadowRadius="3"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:paddingTop="4sp"
-                android:paddingRight="4sp"
-                android:paddingBottom="4sp"
-                android:paddingLeft="4sp"
-                android:visibility="gone"/>
-
-        </android.support.v7.widget.Toolbar>
-
-        <ListView android:id="@+id/accounts_list_view"
-            android:layout_width="match_parent"
+        <ListView
+            android:id="@+id/list_view_drawer"
+            android:layout_width="250dp"
             android:layout_height="match_parent"
-            android:layout_above="@+id/no_accounts"
-            android:layout_below="@+id/home_toolbar" />
+            android:layout_gravity="start"
+            android:background="#000000"
+            android:choiceMode="singleChoice"
+            android:dividerHeight="1dp"
+            android:listSelector="@drawable/inbox_list_view_background" />
 
-        <TextView android:id="@+id/no_accounts"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/text_size_edit_accounts_msg"
-            android:layout_centerInParent="true"
-            android:text="@string/no_accounts"
-            android:textAllCaps="true"
-            android:textSize="@dimen/text_size_edit_accounts_msg"/>
-    </RelativeLayout>
+    </android.support.v4.widget.DrawerLayout>
+
 </RelativeLayout>

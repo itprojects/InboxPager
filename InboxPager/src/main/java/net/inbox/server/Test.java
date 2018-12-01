@@ -24,7 +24,7 @@ import android.support.v7.app.AlertDialog;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import net.inbox.Pager;
+import net.inbox.InboxPager;
 import net.inbox.R;
 
 import java.io.BufferedReader;
@@ -151,7 +151,7 @@ public class Test extends AsyncTask<Void, Integer, Void> {
                     if (s != null && !s.isClosed()) s.close();
                     if (!sn.isClosed()) sn.close();
                 } catch (Exception e) {
-                    Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                    InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                 }
             }
         };

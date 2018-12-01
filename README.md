@@ -50,11 +50,13 @@ The app can:
 
 - Forwarding messages (digests), from inside the app.
 
-- Full IMAP folders. The app is more "lite", than complete all-features gmail-replacement.
+- Full IMAP folders. The app is "lite".
 
 - Ordinary non-SSL/TLS. This includes (STARTTLS).
 
 - Printing messages on paper. You can save them to file, and print them manually.
+
+- Automatic inclusion of the message being replied to, in the new message.
 
 # Permissions
 
@@ -70,8 +72,11 @@ Device can be made to vibrate, if new messages have arrived. Users can disable t
 
 WRITE_EXTERNAL_STORAGE:
 
-In order to save messages or attachments on an SDCARD.
-IF users save only to internal memory, then the permission can be disabled entirely.
+In order to save messages or attachments to the device.
+
+READ_EXTERNAL_STORAGE:
+
+In order to send messages with attachments.
 
 ## Requirements
 
@@ -93,9 +98,13 @@ If there are any errors in the application, you should be able to see those in t
 
 - POP has no way to know if a message has been previously seen.
 
+- Seen messages can not become unseen twice.
+
 - Sent messages are not saved locally inside the app, most servers will save those automatically on the server.
 
-- Sending messages with attachments works with OI File Manager, not all other file managers supported.
+- Device orientation is frozen during sending and downloading, to prevent a crash; restored afterwards.
+
+- IF YOU DOWNLOAD TOO MANY ATTACHMENTS TOO QUICKLY, your server may ban you. Download the full message and then save them.
 
 ## Bug Reporting
 
@@ -204,6 +213,9 @@ In Portuguese by Hanelore
 # Screenshots
 
 <p align="center">
+  <img src="https://github.com/itprojects/InboxPager/raw/master/img/17.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/img/18.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/img/19.png" width="250"/>
   <img src="https://github.com/itprojects/InboxPager/raw/master/img/2.png" width="250"/>
   <img src="https://github.com/itprojects/InboxPager/raw/master/img/3.png" width="250"/>
   <img src="https://github.com/itprojects/InboxPager/raw/master/img/4.png" width="250"/>

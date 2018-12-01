@@ -23,7 +23,7 @@ import java.util.Iterator;
 import android.content.ContentValues;
 import android.content.Context;
 
-import net.inbox.Pager;
+import net.inbox.InboxPager;
 import net.sqlcipher.Cursor;
 import net.sqlcipher.SQLException;
 import net.sqlcipher.database.SQLiteDatabase;
@@ -152,7 +152,7 @@ public class DBAccess extends SQLiteOpenHelper {
             dbw.execSQL("PRAGMA rekey = '" + s + "'");
             System.gc();
         } catch (SQLException e) {
-            Pager.log += e.getMessage();
+            InboxPager.log += e.getMessage();
         }
     }
 

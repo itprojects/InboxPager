@@ -18,7 +18,7 @@ package net.inbox.server;
 
 import android.content.Context;
 
-import net.inbox.Pager;
+import net.inbox.InboxPager;
 import net.inbox.R;
 
 import java.io.BufferedReader;
@@ -27,7 +27,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -110,7 +109,7 @@ class SocketIO implements Runnable {
                         + s.getSession().getPeerHost() + "'");
             }
         } catch (Exception e) {
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
             handler.excepted = true;
             handler.error_dialog(e);
         }
@@ -120,7 +119,7 @@ class SocketIO implements Runnable {
         try {
             if (s != null && !s.isClosed()) s.close();
         } catch (IOException e) {
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
     }
 
@@ -135,52 +134,27 @@ class SocketIO implements Runnable {
         return true;
     }
 
-    ArrayList<String[]> print() {
+    String print() {
         SSLSession session_0 = s.getSession();
         X509Certificate[] certs = new X509Certificate[1];
 
         try {
             certs = session_0.getPeerCertificateChain();
         } catch (SSLPeerUnverifiedException ee) {
-            Pager.log += ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n";
+            InboxPager.log += ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n";
         }
 
-        ArrayList<String[]> list = new ArrayList<>();
-        list.add(new String[]{ "-" });
+        String lb = session_0.getPeerHost() + ":" + session_0.getPeerPort() + "\n\n";
         for (X509Certificate cert : certs) {
-            String[] aa = cert.getIssuerDN().getName().split(",");
-            String[] lst = new String[] { "", "", "", "", "", "", "", ""};
-            for (String aaa : aa) {
-                if (aaa != null) {
-                    String[] bb = aaa.split("=");
-                    String cc = bb[0].trim();
-                    switch (cc) {
-                        case "CN":
-                            lst[0] = bb[1].trim();
-                            break;
-                        case "O":
-                            lst[1] = bb[1].trim();
-                            break;
-                        case "OU":
-                            lst[2] = bb[1].trim();
-                            break;
-                        case "L":
-                            lst[3] = bb[1].trim();
-                            break;
-                        case "ST":
-                            lst[4] = bb[1].trim();
-                            break;
-                        case "C":
-                            lst[5] = bb[1].trim();
-                            break;
-                    }
-                }
-            }
-
-            lst[6] = cert.getSigAlgName();
-            lst[7] = String.valueOf(((RSAPublicKey)cert.getPublicKey()).getModulus().bitLength());
-            list.add(lst);
+            lb = lb.concat("\n" + String.valueOf(((RSAPublicKey)cert.getPublicKey())
+                    .getModulus().bitLength()) + " bit " + cert.getSigAlgName()
+                    + ":\n" + cert.getIssuerDN().getName() + "\n");
         }
-        return list;
+
+        lb = lb.replaceAll("CN=", "").replaceAll("O=", "")
+                .replaceAll("OU=", "").replaceAll("L=", "")
+                .replaceAll("ST=", "").replaceAll("C=", "").trim();
+
+        return lb;
     }
 }

@@ -17,7 +17,6 @@
 package net.inbox;
 
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -40,19 +39,12 @@ public class About extends AppCompatActivity {
         setSupportActionBar(tb);
 
         // Find the title
-        TextView tv_t;
-        for (int i = 0;i < tb.getChildCount();++i) {
-            int idd = tb.getChildAt(i).getId();
-            if (idd == -1) {
-                tv_t = (TextView) tb.getChildAt(i);
-                tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
-                tv_t.setTypeface(Pager.tf);
-                break;
-            }
-        }
+        TextView about_title = tb.findViewById(R.id.about_title);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(getString(R.string.menu_about).toUpperCase());
+            getSupportActionBar().setDisplayShowHomeEnabled(false);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            about_title.setText(getString(R.string.menu_about).toUpperCase());
         }
 
         TextView tv_ver = findViewById(R.id.about_ver);

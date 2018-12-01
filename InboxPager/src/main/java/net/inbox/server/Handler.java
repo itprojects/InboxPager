@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016  I.T.
+ * Copyright (C) 2016  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 
 import net.inbox.InboxMessage;
+import net.inbox.InboxPager;
 import net.inbox.InboxSend;
-import net.inbox.Pager;
 import net.inbox.R;
 import net.inbox.db.Attachment;
 import net.inbox.db.DBAccess;
@@ -124,11 +124,11 @@ public abstract class Handler extends Thread {
 
     int last_connection_data_id = -1;
 
-    ArrayList<String[]> last_connection_data;
+    String last_connection_data;
 
     public Handler(Context ct) {
         // Get the database
-        db = Pager.get_db();
+        db = InboxPager.get_db();
         ctx = ct;
     }
 
@@ -253,7 +253,7 @@ public abstract class Handler extends Thread {
         cancel_action();
 
         // Dismiss the spinning dialog
-        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+        InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         if (!multiple) {
             if (sp != null) sp.unblock = true;
             Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
@@ -284,7 +284,7 @@ public abstract class Handler extends Thread {
 
         // Dismiss the spinning dialog
         if (multiple) {
-            Pager.log += ctx.getString(R.string.ex_field) + s + "\n\n";
+            InboxPager.log += ctx.getString(R.string.ex_field) + s + "\n\n";
         } else {
             sp.unblock = true;
             Dialogs.dialog_error_line(s, (AppCompatActivity) ctx);
@@ -309,7 +309,7 @@ public abstract class Handler extends Thread {
      * Continue mass-refresh.
      **/
     void on_ui_thread_continue_refresh() {
-        final Pager page = (Pager) ctx;
+        final InboxPager page = (InboxPager) ctx;
         page.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -326,7 +326,7 @@ public abstract class Handler extends Thread {
         return last_connection_data_id;
     }
 
-    public ArrayList<String[]> get_last_connection_data() {
+    public String get_last_connection_data() {
         return last_connection_data;
     }
 }

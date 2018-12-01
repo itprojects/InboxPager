@@ -94,7 +94,7 @@ public class SettingsFragment extends PreferenceFragment {
                     et_pw.setVisibility(View.GONE);
                     cb_pw.setVisibility(View.GONE);
                     prefs.edit().putBoolean("enable_pw", false).apply();
-                    Pager.get_db().rekey_db("cleartext");
+                    InboxPager.get_db().rekey_db("cleartext");
                     et_pw.setText("");
                     cb_pw.setChecked(false);
                 }
@@ -130,7 +130,7 @@ public class SettingsFragment extends PreferenceFragment {
                 if (dialog_choice) {
                     if (!sw_enabled.isChecked()) {
                         prefs.edit().putBoolean("enable_pw", false).apply();
-                        Pager.get_db().rekey_db("cleartext");
+                        InboxPager.get_db().rekey_db("cleartext");
                         if (dialog_pw != null) dialog_pw.dismiss();
                     } else if (et_pw.getText().toString().length() < 12) {
                         et_pw.setTextColor(Color.parseColor("#BA0C0C"));
@@ -138,7 +138,7 @@ public class SettingsFragment extends PreferenceFragment {
                         tv_description.setTextColor(Color.parseColor("#BA0C0C"));
                     } else {
                         prefs.edit().putBoolean("enable_pw", true).apply();
-                        Pager.get_db().rekey_db(et_pw.getText().toString());
+                        InboxPager.get_db().rekey_db(et_pw.getText().toString());
                         et_pw.setText("");
                         cb_pw.setChecked(true);
                         if (dialog_pw != null) dialog_pw.dismiss();

@@ -16,41 +16,38 @@
  **/
 package net.inbox;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
-import net.inbox.dialogs.DialogsCerts;
 import net.inbox.dialogs.Dialogs;
+import net.inbox.dialogs.SendFilePicker;
 import net.inbox.dialogs.SpinningStatus;
 import net.inbox.server.Handler;
 import net.inbox.server.SMTP;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class InboxSend extends AppCompatActivity {
+
+    // Prevents intent extras limit of < 1 MB
+    protected static String msg_crypto;
 
     private Handler handler;
 
@@ -65,20 +62,19 @@ public class InboxSend extends AppCompatActivity {
     private TextView tv_attachments;
     private ImageView iv_encryption;
     private TextView tv_encryption_reset;
+    private TextView tv_previous;
 
     // GPG variables
     private boolean crypto_locked = false;
     private String msg_contents;
 
-    private ListView attachments_list;
-    private AlertDialog attachments_dialog;
     private ArrayList<String> attachment_paths = new ArrayList<>();
     private long attachments_size = 0;
+    private long total_size_limit = 0;
 
     private Message current = new Message();
     private Inbox current_inbox;
 
-    private boolean warned_8_bit_absent = false;
     private boolean sending_active = false;
     private boolean good_incoming_server = false;
 
@@ -92,45 +88,32 @@ public class InboxSend extends AppCompatActivity {
         setContentView(R.layout.send);
 
         try {
-            // Get the database
-            DBAccess db = Pager.get_db();
-
             // Restore existing state
             if (savedInstanceState != null) {
                 crypto_locked = savedInstanceState.getBoolean("sv_crypto_locked");
                 msg_contents = savedInstanceState.getString("sv_msg_contents");
-                String[] att_paths = savedInstanceState.getStringArray("sv_attachment_paths");
-                if (att_paths != null && att_paths.length > 0) {
-                    attachment_paths = new ArrayList<>(Arrays.asList(att_paths));
-                } else {
-                    attachment_paths = new ArrayList<>();
-                }
+                attachment_paths = savedInstanceState.getStringArrayList("sv_attachment_paths");
+                if (attachment_paths == null) attachment_paths = new ArrayList<>();
                 attachments_size = savedInstanceState.getLong("sv_attachments_size");
-                warned_8_bit_absent = savedInstanceState.getBoolean("sv_warned_8_bit_absent");
+                total_size_limit = savedInstanceState.getLong("sv_total_size_limit");
                 sending_active = savedInstanceState.getBoolean("sv_sending_active");
                 good_incoming_server = savedInstanceState.getBoolean("sv_good_incoming_server");
             }
 
-            current_inbox = db.get_account(getIntent().getExtras().getInt("db_id"));
+            // Get the database
+            current_inbox = InboxPager.get_db().get_account(getIntent().getExtras().getInt("db_id"));
 
             Toolbar tb = findViewById(R.id.send_toolbar);
             setSupportActionBar(tb);
 
             // Find the title
-            TextView tv_t;
-            for (int i = 0; i < tb.getChildCount(); ++i) {
-                int idd = tb.getChildAt(i).getId();
-                if (idd == -1) {
-                    tv_t = (TextView) tb.getChildAt(i);
-                    tv_t.setTextColor(ContextCompat.getColor(this, R.color.color_title));
-                    tv_t.setTypeface(Pager.tf);
-                    break;
-                }
-            }
+            TextView send_title = tb.findViewById(R.id.send_title);
 
             if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowHomeEnabled(false);
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
                 String s_title = getIntent().getExtras().getString("title");
-                if (s_title != null) getSupportActionBar().setTitle(s_title.toUpperCase());
+                if (s_title != null) send_title.setText(s_title.toUpperCase());
             }
 
             TextView tv_send = findViewById(R.id.tv_send);
@@ -179,7 +162,7 @@ public class InboxSend extends AppCompatActivity {
                     }
                 }
             });
-            tv_attachments.setTypeface(Pager.tf);
+
             if (attachment_paths.size() > 0) {
                 tv_attachments.setText(String.valueOf(attachment_paths.size()));
             } else {
@@ -191,7 +174,7 @@ public class InboxSend extends AppCompatActivity {
 
                 @Override
                 public void onClick(View v) {
-                    dialog_attachments();
+                    pick_attachments();
                 }
             });
 
@@ -228,19 +211,55 @@ public class InboxSend extends AppCompatActivity {
                 }
             });
 
+            // Maximum Server (SMTP) message octet (byte) size
+            String str1 = current_inbox.smtp_check_extension_return("SIZE");
+            total_size_limit = (str1 == null) ? 0 : Long.parseLong(str1.substring(4).trim());
+
+            // Default SMTP message size 64000 octets (bytes)
+            if (total_size_limit == 0) total_size_limit = 64000;
+
             // If replying to a message
             String reply_to;
             String subject_of = "";
             if (getIntent().getExtras().containsKey("subject")) {
                 subject_of = getIntent().getExtras().getString("subject");
+                et_subject.setText(subject_of);
             }
             if (getIntent().getExtras().containsKey("reply-to")) {
                 reply_to = getIntent().getExtras().getString("reply-to");
                 et_to.setText(reply_to);
-                et_subject.setText(subject_of);
+            }
+            if (getIntent().getExtras().containsKey("reply-cc")) {
+                et_cc.setText(getIntent().getExtras().getString("reply-cc"));
+                sw_cc.setChecked(true);
+            }
+            if (getIntent().getExtras().containsKey("previous_letter")) {
+                if (getIntent().getExtras().getString("previous_letter").equals("NO_TEXT")) {
+                    tv_previous = findViewById(R.id.send_previous);
+                    tv_previous.setVisibility(View.GONE);
+                    Switch sw_previous = findViewById(R.id.send_sw_previous);
+                    sw_previous.setVisibility(View.GONE);
+                } else {
+                    tv_previous = findViewById(R.id.send_previous);
+                    tv_previous.setText(getIntent().getExtras().getString("previous_letter"));
+                    Switch sw_previous = findViewById(R.id.send_sw_previous);
+                    sw_previous.setVisibility(View.VISIBLE);
+                    sw_previous.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                tv_previous.setVisibility(View.VISIBLE);
+                            } else {
+                                tv_previous.setVisibility(View.GONE);
+                            }
+                        }
+                    });
+                    sw_previous.setChecked(true);
+                }
             }
         } catch (Exception e) {
-            Pager.log += e.getMessage() + "\n\n";
+            InboxPager.log += e.getMessage() + "\n\n";
             finish();
         }
     }
@@ -248,19 +267,7 @@ public class InboxSend extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            Uri uri = data.getData();
-            File f = new File(uri.getPath());
-            if (f.canRead()) {
-                if (f.isFile()) {
-                    attachment_paths.add(uri.getPath());
-                    attachments_size += f.length();
-                } else {
-                    Dialogs.dialog_error_line(getString(R.string.send_folder_not_file), this);
-                }
-            } else {
-                Dialogs.dialog_error_line(getString(R.string.err_read_file) + "\n\n"
-                        + getString(R.string.err_read_file_storage), this);
-            }
+            attachment_paths = data.getStringArrayListExtra("attachments");
             if (attachment_paths.size() > 0) {
                 tv_attachments.setText(String.valueOf(attachment_paths.size()));
             } else {
@@ -271,7 +278,8 @@ public class InboxSend extends AppCompatActivity {
             crypto_locked = true;
             crypto_padlock();
             if (data.getIntExtra("ret-code", 0) != 0) {
-                current.set_contents_crypto(data.getStringExtra("message-crypto"));
+                current.set_contents_crypto(msg_crypto);
+                msg_crypto = "";
                 if (current.get_contents_crypto() != null
                         && current.get_contents_crypto().length() > 500) {
                     et_contents.setText(current.get_contents_crypto().substring(0, 500));
@@ -287,10 +295,9 @@ public class InboxSend extends AppCompatActivity {
         super.onSaveInstanceState(save);
         save.putBoolean("sv_crypto_locked", crypto_locked);
         save.putString("sv_msg_contents", msg_contents);
-        save.putStringArray("sv_attachment_paths", attachment_paths.toArray
-                (new String[attachment_paths.size()]));
+        save.putStringArrayList("sv_attachment_paths", attachment_paths);
         save.putLong("sv_attachments_size", attachments_size);
-        save.putBoolean("sv_warned_8_bit_absent", warned_8_bit_absent);
+        save.putLong("sv_total_size_limit", total_size_limit);
         save.putBoolean("sv_sending_active", sending_active);
         save.putBoolean("sv_good_incoming_server", good_incoming_server);
     }
@@ -301,98 +308,32 @@ public class InboxSend extends AppCompatActivity {
         overridePendingTransition(R.anim.right_in, R.anim.right_out);
     }
 
-    private void dialog_attachments() {
-        if (check_readable()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.send_attachments));
-            populate_list_view();
-            builder.setView(attachments_list);
-            builder.setCancelable(true);
-            builder.setPositiveButton(getString(R.string.attch_add_attachment),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                            intent.setType("*/*");
-                            intent.addCategory(Intent.CATEGORY_OPENABLE);
-                            try {
-                                startActivityForResult(Intent.createChooser(intent, ""), 0);
-                            } catch (android.content.ActivityNotFoundException e) {
-                                dialog_no_fm();
-                            }
-                        }
-                    });
-
-            attachments_dialog = builder.show();
-
-            if (!warned_8_bit_absent && !current_inbox.get_smtp_extensions().equals("-1")
-                    && !current_inbox.smtp_check_extension("8BITMIME")) {
-                warned_8_bit_absent = true;
-                Dialogs.dialog_error_line(getString(R.string.err_no_8_bit_mime), this);
+    private void pick_attachments() {
+        if (!crypto_locked) {
+            if (check_readable()) {
+                // Prepare to write a reply message
+                Intent pick_intent = new Intent(getApplicationContext(), SendFilePicker.class);
+                Bundle b = new Bundle();
+                b.putStringArrayList("str_array_paths", attachment_paths);
+                b.putLong("l_attachment_size", attachments_size);
+                b.putLong("l_total_size_limit", total_size_limit);
+                if (!current_inbox.get_smtp_extensions().equals("-1")
+                        && !current_inbox.smtp_check_extension("8BITMIME")) {
+                    b.putBoolean("b_8_bit_absent", true);
+                }
+                startActivityForResult(pick_intent.putExtras(b), 19991);
+                overridePendingTransition(0, 0);
+            } else {
+                // Permissions to read files missing
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getString(R.string.err_title_android_permission));
+                builder.setMessage(getString(R.string.err_msg_android_permission));
+                builder.setPositiveButton(getString(android.R.string.ok), null);
+                builder.show();
             }
         } else {
-            // Permission to read file missing
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.err_title_android_permission));
-            builder.setMessage(getString(R.string.err_msg_android_permission));
-            builder.setPositiveButton(getString(android.R.string.ok), null);
-            builder.show();
+            Dialogs.toaster(true, getString(R.string.send_unlock_first), this);
         }
-    }
-
-    private void populate_list_view() {
-        attachments_size = 0;
-        attachments_list = new ListView(this);
-        String[] values = new String[attachment_paths.size()];
-        for (int i = 0;i < attachment_paths.size();++i) {
-            String val = "[ " + (Uri.parse(attachment_paths.get(i))).getLastPathSegment() + " ], ";
-            long sz = (new File(attachment_paths.get(i))).length();
-            attachments_size += sz;
-            if (sz < 1024) {
-                val += sz + " " + getString(R.string.attch_bytes);
-            } else if (sz < 1048576) {
-                val += (sz/1024) + " " + getString(R.string.attch_kilobytes);
-            } else {
-                val += (sz/1048576) + " " + getString(R.string.attch_megabytes);
-            }
-            values[i] = val;
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
-                android.R.id.text1, values);
-        attachments_list.setAdapter(adapter);
-        attachments_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                dialog_remove_attachment(position);
-            }
-
-        });
-    }
-
-    private void dialog_no_fm() {
-        Dialogs.dialog_error_line(getString(R.string.err_no_file_manager), this);
-    }
-
-    private void dialog_remove_attachment(final int i) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.app_name));
-        builder.setMessage(getString(R.string.send_remove_attachment) + " "
-                + (new File(attachment_paths.get(i))).getName() + "?");
-        builder.setPositiveButton(getString(android.R.string.ok),
-                new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                attachment_paths.remove(i);
-                if (attachment_paths.size() > 0) {
-                    tv_attachments.setText(String.valueOf(attachment_paths.size()));
-                } else {
-                    tv_attachments.setText("");
-                }
-                attachments_dialog.dismiss();
-                dialog_attachments();
-            }
-        });
-        builder.setCancelable(true);
-        builder.show();
     }
 
     /**
@@ -401,13 +342,6 @@ public class InboxSend extends AppCompatActivity {
     private void send() {
         // Wait for the checks to complete
         sending_active = true;
-
-        // Maximum SMTP message octet (byte) size
-        String str1 = current_inbox.smtp_check_extension_return("SIZE");
-        int total_size_limit = (str1 == null) ? 0 : Integer.parseInt(str1.substring(4).trim());
-
-        // Default SMTP message size 64000 octets (bytes)
-        if (total_size_limit == 0) total_size_limit = 64000;
 
         // Testing To
         String s_to = et_to.getText().toString().trim();
@@ -547,8 +481,11 @@ public class InboxSend extends AppCompatActivity {
     private void send_action() {
         sending_active = false;
 
+        // Prevents screen rotation crash
+        handle_orientation(true);
+
         // Starting a spinning animation dialog
-        SpinningStatus spt = new SpinningStatus(false, this, handler);
+        SpinningStatus spt = new SpinningStatus(false, false, this, handler);
         spt.execute();
         spt.onProgressUpdate(getString(R.string.send_spin), "");
 
@@ -565,12 +502,20 @@ public class InboxSend extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("WrongConstant")
+    public void handle_orientation(boolean fixed_or_rotating) {
+        if (fixed_or_rotating) {
+            InboxPager.orientation = getResources().getConfiguration().orientation;
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        } else setRequestedOrientation(InboxPager.orientation);
+    }
+
     public void connection_security() {
         good_incoming_server = handler.get_hostname_verify();
         if (good_incoming_server) {
             if (handler != null && handler.get_last_connection_data() != null
                     && (handler.get_last_connection_data_id() == current_inbox.get_id())) {
-                good_incoming_server = handler.get_last_connection_data().size() > 0;
+                good_incoming_server = !handler.get_last_connection_data().isEmpty();
                 iv_ssl_auth.setVisibility(View.VISIBLE);
                 if (good_incoming_server) {
                     good_incoming_server = true;
@@ -595,7 +540,11 @@ public class InboxSend extends AppCompatActivity {
      **/
     private void dialog_servers() {
         if (good_incoming_server) {
-            DialogsCerts.dialog_certs(this, handler.get_last_connection_data());
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.ssl_auth_popup_title));
+            builder.setCancelable(true);
+            builder.setMessage(handler.get_last_connection_data());
+            builder.show();
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(getString(R.string.ssl_auth_popup_title));
@@ -612,8 +561,8 @@ public class InboxSend extends AppCompatActivity {
     private boolean crypto_package() {
         PackageManager pack_man = getPackageManager();
         try {
-            pack_man.getPackageInfo(Pager.open_key_chain, PackageManager.GET_ACTIVITIES);
-            return pack_man.getApplicationInfo(Pager.open_key_chain, 0).enabled;
+            pack_man.getPackageInfo(InboxPager.open_key_chain, PackageManager.GET_ACTIVITIES);
+            return pack_man.getApplicationInfo(InboxPager.open_key_chain, 0).enabled;
         } catch (PackageManager.NameNotFoundException e) {
             toaster(true, getString(R.string.open_pgp_none_found));
             return false;
@@ -697,7 +646,6 @@ public class InboxSend extends AppCompatActivity {
             current.set_contents_crypto(null);
             msg_contents = et_contents.getText().toString();
             b.putString("message-data", msg_contents);
-
             b.putInt("request-code", 91);
             gpg = gpg.putExtras(b);
             startActivityForResult(gpg, 91, null);
