@@ -23,9 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import net.inbox.InboxMessage;
 import net.inbox.InboxSend;
-import net.inbox.InboxUI;
-import net.inbox.Pager;
-import net.inbox.R;
+import net.inbox.InboxPager;
 import net.inbox.server.Handler;
 
 public class SpinningStatus extends AsyncTask<Void, String, Void> {
@@ -34,13 +32,15 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
 
     private boolean call_back;
     private boolean call_cancel;
+    private boolean mass_refresh;
 
     private AppCompatActivity act;
     private ProgressDialog pd;
     private Handler handler;
 
-    public SpinningStatus(boolean cb, AppCompatActivity at, Handler hand) {
+    public SpinningStatus(boolean cb, boolean mr, AppCompatActivity at, Handler hand) {
         call_back = cb;
+        mass_refresh = mr;
         act = at;
         handler = hand;
     }
@@ -52,7 +52,7 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
     protected void onPreExecute() {
         pd = new ProgressDialog(act);
         pd.setTitle("?");
-        pd.setMessage(act.getString(R.string.progress_refreshing));
+        pd.setMessage("?");
         pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         pd.setIndeterminate(true);
         pd.setProgress(0);
@@ -83,6 +83,15 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
         if (call_cancel) {
             if (handler != null) handler.cancel_action();
         }
+
+        if (act.getClass().toString().endsWith(".InboxPager")) {
+            ((InboxPager) act).handle_orientation(false);
+        } else if (act.getClass().toString().endsWith(".InboxMessage")) {
+            ((InboxMessage) act).handle_orientation(false);
+        } else if (act.getClass().toString().endsWith(".InboxSend")) {
+            ((InboxSend) act).handle_orientation(false);
+        }
+
         return null;
     }
 
@@ -102,18 +111,20 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
     protected void onPostExecute(Void voids) {
         pd.dismiss();
         if (call_back) {
-            if (act.getClass().toString().endsWith(".Pager")) {
-                // Refresh the account list
-                ((Pager) act).mass_refresh();
+            if (act.getClass().toString().endsWith(".InboxPager")) {
+                if (mass_refresh) {
+                    // Refresh the account list
+                    ((InboxPager) act).mass_refresh();
+                } else {
+                    // Refresh the message list
+                    ((InboxPager) act).populate_messages_list_view();
+                }
             } else if (act.getClass().toString().endsWith(".InboxMessage")) {
                 // Set server certificate details
                 ((InboxMessage) act).connection_security();
             } else if (act.getClass().toString().endsWith(".InboxSend")) {
                 // Set server certificate details
                 ((InboxSend) act).connection_security();
-            } else if (act.getClass().toString().endsWith(".InboxUI")) {
-                // Refresh the message list
-                ((InboxUI) act).populate_list_view();
             }
         }
     }

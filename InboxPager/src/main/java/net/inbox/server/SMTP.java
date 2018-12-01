@@ -20,8 +20,8 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 
+import net.inbox.InboxPager;
 import net.inbox.InboxSend;
-import net.inbox.Pager;
 import net.inbox.R;
 import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -107,7 +108,7 @@ public class SMTP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
 
         if (!excepted) {
@@ -118,7 +119,7 @@ public class SMTP extends Handler {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                        InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
 
                     if (current_inbox.get_smtp_extensions() != null
@@ -630,21 +631,26 @@ public class SMTP extends Handler {
                 }
 
                 // Message attachments
-                StringBuilder sb_write_out = new StringBuilder();
+                ArrayList<Byte> line_buf_bytes = new ArrayList<>();
                 for (int i = 0;i < data.msg_current_attachments.size();++i) {
                     File ff = new File(data.msg_current_attachments.get(i));
                     if (sp != null) {
                         on_ui_thread("-1", ctx.getString(R.string.send_upload_attachment)
                                 + " " + ff.getName());
                     }
+
+                    String mime_type_guess = URLConnection.guessContentTypeFromName(ff.getName());
+                    if (mime_type_guess == null || mime_type_guess.isEmpty()) {
+                        mime_type_guess = "application/octet-stream";
+                    }
+
                     write("--" + bounds);
                     if (Utils.all_ascii(ff.getName())) {
-                        write("Content-Type: application/octet-stream; name=\"" + ff.getName() + "\"");
+                        write("Content-Type: " + mime_type_guess + "; name=\"" + ff.getName() + "\"");
                         write("Content-Transfer-Encoding: base64");
                         write("Content-Disposition: attachment; filename=\"" + ff.getName() + "\"");
                     } else {
-                        write("Content-Type: application/octet-stream; name*=\""
-                                + Utils.to_base64_utf8(ff.getName()) + "\"");
+                        write("Content-Type: " + mime_type_guess + "; name*=\"" + Utils.to_base64_utf8(ff.getName()) + "\"");
                         write("Content-Transfer-Encoding: base64");
                         String new_name = Utils.content_disposition_name(true, ff.getName());
                         write("Content-Disposition: attachment; filename*=" + new_name);
@@ -659,27 +665,27 @@ public class SMTP extends Handler {
                             while ((t = in_stream.read(bfr)) != -1) { b_stream.write(bfr, 0, t); }
                         }
                     } catch (IOException e) {
-                        Pager.log = Pager.log.concat(ctx.getString
+                        InboxPager.log = InboxPager.log.concat(ctx.getString
                                 (R.string.ex_field) + e.getMessage() + "\n\n");
                     }
-                    byte[] a_bytes =  Base64.encode(b_stream.toByteArray(), Base64.DEFAULT);
-                    boolean cr = false;
+                    byte[] a_bytes = Base64.encode(b_stream.toByteArray(), Base64.DEFAULT);
                     for (byte b : a_bytes) {
-                        if (sb_write_out.length() > 998) {
-                            write(sb_write_out.toString());
-                            sb_write_out.setLength(0);
-                        }
-                        // CR= 13, LF=10
-                        if (b == 10 && cr)  {
-                            write(sb_write_out.toString());
-                            sb_write_out.setLength(0);
-                        }
-                        cr = b == 13;
-                        sb_write_out.append(b);
+                        if (b == 10) {
+                            byte[] b64s = new byte[line_buf_bytes.size()];
+                            for (int d = 0;d < line_buf_bytes.size();d++) {
+                                b64s[d] = line_buf_bytes.get(d);
+                            }
+                            write(new String(b64s));
+                            line_buf_bytes = new ArrayList<>();
+                        } else line_buf_bytes.add(b);
                     }
-                    if (sb_write_out.length() > 0 ) {
-                        write(sb_write_out.toString());
-                        sb_write_out.setLength(0);
+                    if (line_buf_bytes.size() > 0) {
+                        byte[] b64s = new byte[line_buf_bytes.size()];
+                        for (int d = 0;d < line_buf_bytes.size();d++) {
+                            b64s[d] = line_buf_bytes.get(d);
+                        }
+                        write(new String(b64s));
+                        line_buf_bytes = new ArrayList<>();
                     }
                 }
                 write("--" + bounds + "--");
@@ -700,7 +706,7 @@ public class SMTP extends Handler {
                 sp.unblock = true;
                 Dialogs.toaster(false, ctx.getString(R.string.send_sent), (AppCompatActivity) ctx);
             }
-            Pager.notify_update();
+            InboxPager.notify_update();
             final InboxSend inb = (InboxSend) ctx;
             ((InboxSend) ctx).runOnUiThread(new Runnable() {
 
@@ -710,7 +716,7 @@ public class SMTP extends Handler {
                 }
             });
         } catch (InterruptedException e) {
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
     }
 

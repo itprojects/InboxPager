@@ -16,12 +16,13 @@
  **/
 package net.inbox.dialogs;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
-import net.inbox.Pager;
+import net.inbox.InboxPager;
 import net.inbox.R;
 
 public class Dialogs {
@@ -90,13 +91,13 @@ public class Dialogs {
     public static void dialog_view_log(AppCompatActivity ct) {
         AlertDialog.Builder builder = new AlertDialog.Builder(ct);
         builder.setTitle(ct.getString(R.string.menu_log));
-        builder.setMessage(Pager.log);
+        builder.setMessage(InboxPager.log);
         builder.setCancelable(true);
         builder.setPositiveButton(ct.getString(android.R.string.ok), null);
         builder.setNeutralButton(ct.getString(R.string.btn_log_clear),
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        Pager.log = "";
+                        InboxPager.log = "";
                     }
                 });
         builder.show();
@@ -113,5 +114,13 @@ public class Dialogs {
                 }
             }
         });
+    }
+
+    public static void toaster(final boolean time, final String msg, final Context ct) {
+        if (time) {
+            Toast.makeText(ct, msg, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(ct, msg, Toast.LENGTH_LONG).show();
+        }
     }
 }

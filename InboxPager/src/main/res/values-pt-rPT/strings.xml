@@ -3,14 +3,10 @@
     <string name="app_name">Inbox Pager</string>
     <string name="author">Copyright &#169; 2016 &#8211; 2018  ITPROJECTS</string>
     <string name="disclaimer">AVISO LEGAL:\n</string>
-    <string name="disclaimer_text">Os autores desse software não são
-    responsáveis por QUAISQUER danos que esse software poderá causar,
-    acidentalmente ou não, independentemente de QUALQUER e TODA legislação ou regulação, seja de QUALQUER país ou território do mundo.
-    </string>
+    <string name="disclaimer_text">Os autores desse software não são responsáveis por QUAISQUER danos que esse software poderá causar, acidentalmente ou não, independentemente de QUALQUER e TODA legislação ou regulação, seja de QUALQUER país ou território do mundo.</string>
     <string name="dialog_license">Informação De Licença</string>
     <string name="license">Aplicação De Licença: General Public License 3</string>
     <string name="license_media_files">Aplicação Do Ícone, CC-BY-SA: Creative Commons Attribution Share Alike 4.0 International Public License</string>
-    <!-- Progress Dialog Spinner -->
     <string name="progress_title">Atualizando</string>
     <string name="progress_refreshing">Procurando por mudanças.</string>
     <string name="progress_nothing">Sem (novas) mensagens.</string>
@@ -27,53 +23,33 @@
     <string name="progress_connecting">Conectando em</string>
     <string name="progress_connected">Conectado.</string>
     <string name="progress_authenticated">Autenticado.</string>
-    <!-- Account Statistics Dialog -->
     <string name="stats_title">Situação da conta</string>
     <string name="stats_messages">mensagens</string>
     <string name="stats_unseen">não lidas</string>
-    <!-- Exception Dialog -->
     <string name="ex_title">Problema</string>
-    <string name="ex_do_io">Não é possível fazer operações de I/O
-    na rede.</string>
+    <string name="ex_do_io">Não é possível fazer operações de I/O na rede.</string>
     <string name="ex_field">Exceção:</string>
-    <!-- Attachments List Dialog -->
     <string name="attch_title">Baixando anexo</string>
     <string name="attch_bytes">B</string>
     <string name="attch_kilobytes">KB</string>
     <string name="attch_megabytes">MB</string>
-    <string name="attch_add_attachment">Adicionar anexo</string>
-    <string name="attch_no_name">anexo_sem_nome.</string>
-    <!-- Folder Picker Dialog -->
-    <string name="folder_title">Selecionar Pasta (pressione)</string>
-    <!-- Error Dialogs -->
+    <string name="folder_title">Selecionar Pasta</string>
     <string name="err_error">Erro:</string>
     <string name="err_title_write_perms">Escrita Proibida</string>
     <string name="err_msg_write_perms">Voce não possui permissão para salvar seu arquivo no diretório escolhido.</string>
     <string name="err_title_no_space">Sem espaço</string>
     <string name="err_msg_no_space">Parece que voce não possui espaço suficiente nesse dispositivo para salvar o arquivo.</string>
-    <string name="err_title_qp_warn">Codificação Quoted Printable</string>
-    <string name="err_msg_qp_warn">Esse anexo está codificado no
-    formato quoted-printable. Ele não é suportado totalmente. O
-    arquivo será salvo como dados de texto.</string>
+    <string name="err_msg_qp_warn">Esse anexo está codificado no formato quoted-printable. Ele não é suportado totalmente. O arquivo será salvo como dados de texto.</string>
     <string name="err_title_already_exists">Arqauijo Já Existe</string>
-    <string name="err_msg_already_exists">Gostaria de substituir o arquivo? Se voce cancelar, não será baixado.</string>
+    <string name="err_msg_already_exists">Gostaria de substituir o arquivo?</string>
     <string name="err_title_android_permission">Permissões Do Android</string>
-    <string name="err_msg_android_permission">Voce esqueceu de
-    habilitar as permissões de armazenamento no Android em
-    Configurações > Aplicativos E Notificações > ESTE APLICATIVO > Permissões Do Aplicativo.</string>
+    <string name="err_msg_android_permission">Voce esqueceu de habilitar as permissões de armazenamento no Android em Configurações > Aplicativos E Notificações > ESTE APLICATIVO > Permissões Do Aplicativo.</string>
     <string name="err_wrong_user_or_pass">Usuário ou senha incorretos</string>
-    <string name="err_no_file_manager">Necessário um gerenciador de arquivos, para adicionar anexos.</string>
-    <string name="err_read_file">Voce não tem permissão para ler esse
-    arquivo.</string>
-    <string name="err_read_file_storage">Voce ativou as permissões de
-    armazenamento em Configurações > Aplicativos e Notificações >
-    ESTE APLICATIVO > Permissões Do Aplicativo ?</string>
-    <string name="err_size_attachments">Seus anexos são maiores que a
-    capacidade de saída permitida do servidor.\n\n Enviá-los em mensagens separadas ajuda?</string>
+    <string name="err_read_file">Voce não tem permissão para ler esse arquivo.</string>
+    <string name="err_size_attachments">Seus anexos são maiores que a capacidade de saída permitida do servidor. Remova alguns arquivos.</string>
     <string name="err_no_rcpt">Ninguém em enviar para!</string>
     <string name="err_too_many_rcpt">Muitos destinatários. Máximo 100.</string>
-    <string name="err_msg_too_heavy">Essa mensagem é muito longa.
-    Tente remover anexos, e/ou enviar múltiplas mensagens de texto.</string>
+    <string name="err_msg_too_heavy">Essa mensagem é muito longa. Tente remover anexos, e/ou enviar múltiplas mensagens de texto.</string>
     <string name="err_no_8_bit_mime">Suporte transferência do servidor em 8 BIT ausente. Erros de transferências dos anexos possíveis!</string>
     <string name="err_no_authentication">Servidor parece não suportar os tipos de autenticaões usadas por esta aplicação.</string>
     <string name="err_no_ehlo">O servidor não suporta o comando de listagem de extensões EHLO.</string>
@@ -85,59 +61,40 @@
     <string name="err_server_not_configured">Servidor de saída não configurado corretamente!</string>
     <string name="err_no_full_msg">Mensagem completa não encontrada no banco de dados!\nFaça primeiro o download da mensagem do servidor.</string>
     <string name="err_not_saved">Não foi possível concluir a ação de salvar.</string>
-    <string name="err_imap_attachment_saving">Falha na gravação do
-    arquivo de anexo servidor IMAP off-line. Baixar anexo online, excluir mensagem completa do banco de dados.</string>
-    <string name="err_action_failed">Falha da ação, veja o arquivo de
-    registro \'log\'.</string>
+    <string name="err_imap_attachment_saving">Falha na gravação do arquivo de anexo servidor IMAP off-line. Baixar anexo online, excluir mensagem completa do banco de dados.</string>
+    <string name="err_action_failed">Falha da ação, veja o arquivo de registro \'log\'.</string>
     <string name="err_refresh">Erros em</string>
     <string name="err_pick_signing_key">Escolha uma chave de assinatura!</string>
     <string name="err_pick_rcpt_keys">Escolha as chaves do destinatário!</string>
     <string name="err_missing_crypto_mime">Ausente os dados criptográficos da mensagem!</string>
-    <!-- Pager activity -->
     <string name="activity_pw">SENHA</string>
     <string name="activity_pager_title">Pager</string>
     <string name="menu_refresh">Atualizar</string>
     <string name="menu_settings">Configurações</string>
     <string name="menu_about">Sobre</string>
-    <string name="menu_add_account">Conta ✚</string>
+    <string name="menu_add_account">Nova Caixa de Entrada</string>
     <string name="no_accounts">Adicionar contas de mensagens</string>
     <string name="btn_log_clear">Limpar</string>
-    <!-- InboxUI activity -->
     <string name="helper_title">Bem vindos!</string>
-    <string name="helper_msg">Tenha uma agradável experiência,
-    lembre-se de configurar uma senha para proteção dos dados, no menu de configurações, ou suas contas poderão ser comprometidas facilmente.</string>
+    <string name="helper_msg">Tenha uma agradável experiência, lembre-se de configurar uma senha para proteção dos dados, no menu de configurações, ou suas contas poderão ser comprometidas facilmente.</string>
     <string name="btn_pw">CONFIGURAR SENHA</string>
     <string name="btn_cancel">Cancelar</string>
     <string name="btn_yes">Sim</string>
     <string name="btn_no">Não</string>
-    <string name="menu_all_seen">Todas Lidas</string>
-    <string name="menu_new_msg">Enviar Mensagem</string>
-    <string name="menu_log">Eventos De Registro \'Log\'</string>
-    <string name="menu_status">Status</string>
+    <string name="menu_all_seen">Marcar Todos Ler</string>
+    <string name="menu_log">Erros / Exceção</string>
+    <string name="menu_status">Status da Caixa de Entrada</string>
     <string name="menu_port_consideration_title">Confirmar Porta</string>
     <string name="menu_port_consideration_dialog">Tem certeza que é a porta correta?</string>
     <string name="menu_delete_account_dialog_title">Confirme A Exclusão</string>
     <string name="menu_delete_account_dialog">Tem certeza que quer apagar essa conta?</string>
     <string name="menu_switch_pop_imap_title">Confirmar Mudança</string>
-    <string name="menu_switch_pop_imap_dialog">Trocar entre IMAP e POP
-    necessita que todas as mensagens sejam apagadas do dispositivo e então adicionadas a partir do servidor. Continuar?</string>
+    <string name="menu_switch_pop_imap_dialog">Trocar entre IMAP e POP necessita que todas as mensagens sejam apagadas do dispositivo e então adicionadas a partir do servidor. Continuar?</string>
     <string name="ssl_auth_popup_title">Última Conexão</string>
-    <string name="ssl_auth_popup_you">Você, este dispositivo.</string>
-    <string name="ssl_auth_popup_transport">SEGURANÇA</string>
-    <string name="ssl_auth_popup_key_size">TAMANHO DA CHAVE</string>
-    <string name="ssl_auth_popup_cn">NOME</string>
-    <string name="ssl_auth_popup_o">ORGANIZAÇÃO</string>
-    <string name="ssl_auth_popup_ou">TIPO</string>
-    <string name="ssl_auth_popup_l">LOCALIZAÇÃO</string>
-    <string name="ssl_auth_popup_st">ESTADO</string>
-    <string name="ssl_auth_popup_c">PAÍS</string>
-    <string name="ssl_auth_popup_bad_connection">Voce pode estar
-    TOTALMENTE INSEGURO! Servidor remoto com certificados SSL/TLS ausentes ou inválidos, ou ainda os nomes do servidor não podem
-    ser verificados.</string>
+    <string name="ssl_auth_popup_bad_connection">Voce pode estar TOTALMENTE INSEGURO! Servidor remoto com certificados SSL/TLS ausentes ou inválidos, ou ainda os nomes do servidor não podem ser verificados.</string>
     <string name="no_messages">Caixa De Entrada Vazia</string>
-    <!-- InboxPreferences activity -->
     <string name="activity_add_account_title">Adicionar Conta</string>
-    <string name="activity_edit_account_title">Editar Conta</string>
+    <string name="activity_edit_account_title">Editar Esta Conta</string>
     <string name="edit_account_email">Nome Da Conta</string>
     <string name="edit_account_email_hint">sua.conta@exemplo.com</string>
     <string name="edit_account_username">Usuário</string>
@@ -150,11 +107,9 @@
     <string name="edit_account_imap_or_pop_off">POP</string>
     <string name="edit_account_smtp">SMTP</string>
     <string name="edit_account_smtp_server_hint">smtp.examplo.com</string>
-    <string name="edit_account_auto_check">Permitir atualizações em
-    todas as contas</string>
+    <string name="edit_account_auto_check">Permitir atualizações em todas as contas</string>
     <string name="edit_account_always_ask_pass">Sempre solicitar senha?</string>
-    <string name="edit_account_auto_save_full_msgs">Manter mensagens
-    completas no banco de dados</string>
+    <string name="edit_account_auto_save_full_msgs">Manter mensagens completas no banco de dados</string>
     <string name="edit_account_check_save_first">Salvar conta antes de verificar!</string>
     <string name="edit_account_net_checks">Testes online</string>
     <string name="edit_account_nc_check">Auto Teste (Longo)</string>
@@ -181,11 +136,10 @@
     <string name="edit_account_smtp1">SMTP:25</string>
     <string name="edit_account_smtp2">SMTP-Secure:465</string>
     <string name="edit_account_smtp3">SMTP:587</string>
-    <!-- InboxMessage activity -->
-    <string name="btn_up_one_level">▲ ACIMA   </string>
+    <string name="btn_up_one_level">▲ ACIMA</string>
     <string name="menu_download_msg">Baixar ➠ Banco De Dados</string>
     <string name="menu_save_message">Salvar ➠ Dispositivo</string>
-    <string name="menu_write_reply">Responder a mensagem</string>
+    <string name="menu_write_reply">Escrever uma resposta</string>
     <string name="menu_delete_from_server">Excluir Do Servidor</string>
     <string name="menu_delete_full_message">Excluir Mensagem Completa (BD)</string>
     <string name="menu_delete_full_messages">Excluir Mensagem Completa</string>
@@ -206,29 +160,22 @@
     <string name="message_contents_loop_other">OUTROS</string>
     <string name="message_no_full_message">Mensagem completa excluída do banco de dados.</string>
     <string name="message_no_full_messages">Mensagem completa excluída do banco de dados.</string>
-    <string name="message_empty_go_download">A mensagem completa
-    precisa ser baixada. Continuar?</string>
     <string name="message_keep_in_database">Manter mensagem completa no banco de dados?</string>
-    <!-- InboxSend activity -->
     <string name="send_send">ENVIAR</string>
     <string name="send_sent">Enviado.</string>
     <string name="send_spin">Enviando</string>
     <string name="send_addresses_hint">A@foo.com, B@foo.net,</string>
     <string name="send_attachments">Anexos</string>
-    <string name="send_remove_attachment">Remover anexo</string>
     <string name="send_wait">Espere alguns segundos.</string>
     <string name="send_headers_sent">Cabeçalhos enviados. Enviando Conteúdos.</string>
     <string name="send_upload_attachment">Enviando anexo:</string>
-    <string name="send_folder_not_file">Seu gerenciador de arquivos selecionou algo diferente de um arquivo.</string>
     <string name="send_missing_rcpt_to">Destinatário primário ausente.</string>
     <string name="send_cleartext_subject">Assunto Texto Limpo</string>
-    <string name="send_cleartext_content">O assunto da mensagem NÃO
-    será criptografado. Deseja remover o assunto da mensagem para maior privacidade?</string>
+    <string name="send_cleartext_content">O assunto da mensagem NÃO será criptografado. Deseja remover o assunto da mensagem para maior privacidade?</string>
     <string name="send_cleartext_delete">Remover</string>
     <string name="send_cleartext_keep">Manter</string>
     <string name="send_encrypt">Criptografar</string>
-    <!-- Settings -->
-    <string name="sett_auto_check_title">Atualização em massa</string>
+    <string name="sett_auto_check_title">Atualize todas as Caixas de E-mail</string>
     <string name="sett_auto_check_summary">Configuração padrão. TODAS as mensagens marcadas das contas participantes serão verificadas, quando o botão de atualização da tela inicial for clicado.</string>
     <string name="sett_beeps_download_title">Bipe em novas mensagens</string>
     <string name="sett_beeps_download_summary">O dispositivo emitirá um sinal sonoro quando novas mensagens chegarem.</string>
@@ -242,7 +189,6 @@
     <string name="sett_change_pw_new">NOVA SENHA</string>
     <string name="sett_change_pw_visible">SENHA VISÍVEL</string>
     <string name="sett_change_pw_text">Mínimo 12 caracteres.</string>
-    <!-- GPG -->
     <string name="open_pgp_dialog_title">Criptografia</string>
     <string name="open_pgp_reset">RESET</string>
     <string name="open_pgp_ready">PRONTO</string>
@@ -256,13 +202,30 @@
     <string name="open_pgp_signing_key_cross">&#10060; Chave de assinatura</string>
     <string name="open_pgp_rcpt_key_check">&#10003; Chaves destinatário</string>
     <string name="open_pgp_rcpt_key_cross">&#10060; Chaves destinatário</string>
-    <string name="open_pgp_recipients_pick">escolher</string>
     <string name="open_pgp_recipients">DESTINATÁRIOS</string>
     <string name="open_pgp_message">LIMPAR MENSAGEM</string>
     <string name="open_pgp_message_encrypted_block">MENSAGEM ENCRIPTADA</string>
     <string name="open_pgp_message_signature">ASSINATURA</string>
-    <string name="open_pgp_success">SUCCESSO!</string>
     <string name="open_pgp_failure">FALHA!</string>
     <string name="open_pgp_bad_signature">Nenhuma assinatura, assinatura incorreta ou erro de transmissão.</string>
     <string name="open_pgp_encrypt_to_self">Também criptografar para chave de assinatura</string>
+    <string name="drawer_open">Abrir gaveta da caixa de entrada</string>
+    <string name="drawer_close">Fechar gaveta da caixa de entrada</string>
+    <string name="select_account">Selecionar Caixa de Entrada</string>
+    <string name="file_title">Selecionar arquivo</string>
+    <string name="err_size_attachments_title">Problema de Anexos</string>
+    <string name="err_title_file_is_duplicate">O arquivo já está anexado.</string>
+    <string name="err_size_attachments_continue">Ignorar &amp; Continuar</string>
+    <string name="attch_added_attachment">Adicionado:</string>
+    <string name="license_open_keychain">OpenKeychain (Java) Licença Apache, Versão 2,0.</string>
+    <string name="license_font">Dottz Font, SIL-OFL 1.1 Licença, ITPROJECTS</string>
+    <string name="license_sql_cipher_java">SQLCipher (Java) Licença Apache, Versão 2,0.</string>
+    <string name="license_sql_cipher_other">SQLCipher (Outros Componentes)</string>
+    <string name="ex_ran_out_of_ram">RAM insuficiente. Livre mais memória virtual.</string>
+    <string name="file_use_this">Renomear e Salvar</string>
+    <string name="send_unlock_first">Pressione o botão UNLOCK.</string>
+    <string name="open_pgp_press_start">Pressione o botão START.</string>
+    <string name="err_title_empty_name">Nome Obrigatório</string>
+    <string name="err_msg_empty_name">Seu arquivo será salvo o nome:</string>
+    <string name="send_show_previous">Mostrar mensagem anterior</string>
 </resources>

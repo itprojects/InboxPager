@@ -16,7 +16,10 @@
  **/
 package net.inbox.db;
 
-public class Attachment {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Attachment implements Parcelable {
 
     private int id = -2;
     private int account = -2;
@@ -28,6 +31,8 @@ public class Attachment {
     private String name;
     private String transfer_encoding;
     private int size;// octet = 8 bits
+
+    public Attachment() {}
 
     public int get_id() {
         return id;
@@ -108,4 +113,49 @@ public class Attachment {
     public void set_size(int i) {
         size = i;
     }
+
+    protected Attachment(Parcel in) {
+        id = in.readInt();
+        account = in.readInt();
+        message = in.readInt();
+        imap_uid = in.readString();
+        pop_indx = in.readString();
+        mime_type = in.readString();
+        boundary = in.readString();
+        name = in.readString();
+        transfer_encoding = in.readString();
+        size = in.readInt();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeInt(account);
+        dest.writeInt(message);
+        dest.writeString(imap_uid);
+        dest.writeString(pop_indx);
+        dest.writeString(mime_type);
+        dest.writeString(boundary);
+        dest.writeString(name);
+        dest.writeString(transfer_encoding);
+        dest.writeInt(size);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Attachment> CREATOR = new Parcelable.Creator<Attachment>() {
+        @Override
+        public Attachment createFromParcel(Parcel in) {
+            return new Attachment(in);
+        }
+
+        @Override
+        public Attachment[] newArray(int size) {
+            return new Attachment[size];
+        }
+    };
 }

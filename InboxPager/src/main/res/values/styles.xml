@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="PagerTheme" parent="Theme.AppCompat.Light.NoActionBar"/>
+    <style name="PagerTheme" parent="Theme.AppCompat.Light.NoActionBar" />
 
     <style name="action_button">
         <item name="android:paddingTop">0sp</item>
@@ -22,5 +22,7 @@
         <item name="colorControlActivated">#000000</item>
         <item name="colorControlHighlight">#000000</item>
     </style>
+
+    <style name="PagerTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
 </resources>

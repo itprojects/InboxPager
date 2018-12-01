@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/home_action_settings_btn"
+    <item
         android:title="@string/menu_settings"
         android:icon="@drawable/settings"
         app:showAsAction="always">
@@ -10,8 +10,12 @@
         <menu>
             <item android:id="@+id/about_menu" android:title="@string/menu_about"/>
             <item android:id="@+id/add_menu" android:title="@string/menu_add_account"/>
-            <item android:id="@+id/log_menu" android:title="@string/menu_log"/>
             <item android:id="@+id/defaults_menu" android:title="@string/menu_settings"/>
+            <item android:id="@+id/mass_refresh_menu" android:title="@string/sett_auto_check_title"/>
+            <item android:id="@+id/log_menu" android:title="@string/menu_log"/>
+            <item android:id="@+id/status_menu" android:title="@string/menu_status"/>
+            <item android:id="@+id/mark_all_seen_menu" android:title="@string/menu_all_seen"/>
+            <item android:id="@+id/edit_account" android:title="@string/activity_edit_account_title"/>
         </menu>
 
     </item>

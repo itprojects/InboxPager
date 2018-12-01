@@ -18,7 +18,7 @@ package net.inbox.server;
 
 import android.util.Base64;
 
-import net.inbox.Pager;
+import net.inbox.InboxPager;
 import net.inbox.db.Message;
 
 import java.io.UnsupportedEncodingException;
@@ -852,7 +852,7 @@ public class Utils {
                         .replaceAll("=", ""), Base64.DEFAULT), enc);
             }
         } catch (UnsupportedEncodingException e) {
-            Pager.log += "!!:" + e.getMessage() + "\n\n";
+            InboxPager.log += "!!:" + e.getMessage() + "\n\n";
         }
         return ret;
     }
@@ -877,7 +877,7 @@ public class Utils {
                 try {
                     return new String((new String(arr_bytes, mat.group(1))).getBytes(), "UTF-8");
                 } catch (UnsupportedEncodingException e) {
-                    Pager.log += "!!:" + e.getMessage() + "\n\n";
+                    InboxPager.log += "!!:" + e.getMessage() + "\n\n";
                     return s;
                 }
             } else if (mat.group(2).matches("(Q|q)")) {
@@ -904,7 +904,7 @@ public class Utils {
         try {
             s_tmp = new String(s.getBytes(), encoding);
         } catch (UnsupportedEncodingException e) {
-            Pager.log += "!!:" + e.getMessage() + "\n\n";
+            InboxPager.log += "!!:" + e.getMessage() + "\n\n";
             return s;
         }
         if (s_tmp.endsWith("=")) s_tmp = s_tmp.substring(0, s_tmp.length() - 1);
@@ -938,7 +938,7 @@ public class Utils {
             System.arraycopy(ascii_bytes, 0, reduced, 0, count);
             return new String(reduced, encoding);
         } catch (UnsupportedEncodingException e) {
-            Pager.log += "!!:" + e.getMessage() + "\n\n";
+            InboxPager.log += "!!:" + e.getMessage() + "\n\n";
             return s;
         }
     }
@@ -970,7 +970,7 @@ public class Utils {
                     return filename;
                 }
             } catch (UnsupportedEncodingException e) {
-                Pager.log += "!!:" + e.getMessage() + "\n\n";
+                InboxPager.log += "!!:" + e.getMessage() + "\n\n";
                 return filename;
             }
         }
@@ -980,7 +980,7 @@ public class Utils {
         try {
             return new String(s.getBytes("US-ASCII"));
         } catch (UnsupportedEncodingException enc) {
-            Pager.log += "!!:" + enc.getMessage() + "\n\n";
+            InboxPager.log += "!!:" + enc.getMessage() + "\n\n";
         }
         return s;
     }

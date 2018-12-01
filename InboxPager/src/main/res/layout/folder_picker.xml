@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/picker_activity"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone"
+    tools:context=".dialogs.SendFilePicker">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/picker_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/color_home_bar_background"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+        <TextView
+            android:id="@+id/tv_picker_save"
+            style="@style/action_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginStart="1sp"
+            android:layout_marginEnd="7sp"
+            android:background="@drawable/btn_green"
+            android:text="@string/edit_account_save" />
+
+        <TextView
+            android:id="@+id/tv_picker_up"
+            style="@style/action_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginStart="1sp"
+            android:layout_marginEnd="7sp"
+            android:background="@drawable/btn_orange"
+            android:text="@string/btn_up_one_level" />
+
+        <ImageButton
+            android:id="@+id/ib_picker_home"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginStart="1sp"
+            android:layout_marginEnd="7sp"
+            android:background="@drawable/btn_orange"
+            android:src="@drawable/home_location"/>
+
+        <TextView
+            android:id="@+id/picker_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/dottz"
+            android:letterSpacing="0.1"
+            android:maxLines="1"
+            android:paddingLeft="0sp"
+            android:paddingTop="4sp"
+            android:paddingRight="0sp"
+            android:paddingBottom="4sp"
+            android:shadowColor="@color/color_title"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="3"
+            android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
+            android:textColor="@color/color_title"
+            android:visibility="visible" />
+
+    </android.support.v7.widget.Toolbar>
+
+    <TextView
+        android:id="@+id/tv_location"
+        style="@style/action_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="4dp"
+        android:ellipsize="start"
+        android:singleLine="true"
+        android:background="@color/color_home_bar_background" />
+
+    <android.support.design.widget.TabLayout
+        android:id="@+id/llay_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/send_attachments" />
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/folder_title" />
+
+    </android.support.design.widget.TabLayout>
+
+    <ListView
+        android:id="@+id/list_view_attachments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:choiceMode="singleChoice"
+        android:descendantFocusability="beforeDescendants"
+        android:dividerHeight="1dp" />
+
+    <ListView
+        android:id="@+id/list_view_picker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dividerHeight="1dp" />
+
+</LinearLayout>

@@ -17,7 +17,6 @@
 package net.inbox;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,12 +29,10 @@ public class InboxList extends BaseAdapter {
 
     private Context ctx;
     private ArrayList<InboxListItem> inboxes;
-    private Typeface tf;
 
     InboxList(Context ctx, ArrayList<InboxListItem> inboxes) {
         this.ctx = ctx;
         this.inboxes = inboxes;
-        this.tf = Pager.tf;
     }
 
     @Override
@@ -63,12 +60,12 @@ public class InboxList extends BaseAdapter {
         TextView tv_title = v.findViewById(R.id.inbox_list_title);
         tv_title.setText(itm.get_inbox());
         TextView tv_count = v.findViewById(R.id.inbox_list_count);
-        tv_count.setTypeface(tf);
         if (Integer.valueOf(itm.get_count()) < 1) {
             tv_count.setVisibility(View.GONE);
         } else {
             tv_count.setVisibility(View.VISIBLE);
         }
+
         tv_count.setText(itm.get_count());
 
         return v;
@@ -99,19 +96,7 @@ class InboxListItem {
         return count;
     }
 
-    /*
-    public void set_id(int i) {
-        id = i;
-    }
-    */
-
-    /*
-    public void set_inbox(String s) {
-        inbox_name = s;
-    }
-    */
-
-    private void set_count(int i) {
+    public void set_count(int i) {
         if (i < 1) {
             count = "000";
         } else {

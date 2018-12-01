@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016  I.T.
+ * Copyright (C) 2016  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 
 import net.inbox.InboxMessage;
-import net.inbox.Pager;
+import net.inbox.InboxPager;
 import net.inbox.R;
 import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
@@ -193,7 +193,7 @@ public class POP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
         }
 
         if (!excepted) {
@@ -204,7 +204,7 @@ public class POP extends Handler {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        Pager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                        InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
                     }
 
                     if (current_inbox.get_imap_or_pop_extensions() != null
@@ -353,7 +353,7 @@ public class POP extends Handler {
         if (save_path == null) {
             data.a_file = null;
         } else {
-            data.a_file = new File(save_path + "/" + data.msg_current.get_subject() + ".eml");
+            data.a_file = new File(save_path);
         }
 
         on_ui_thread(ctx.getString(R.string.progress_downloading), msg.get_subject());
@@ -416,7 +416,7 @@ public class POP extends Handler {
             if (io_sock != null) write("RSET");
             if (io_sock != null) write("QUIT");
         } catch (Exception e) {
-            Pager.log += e.getMessage() + "\n\n";
+            InboxPager.log += e.getMessage() + "\n\n";
         }
         over = true;
         if (multiple) continue_pager();
@@ -507,7 +507,7 @@ public class POP extends Handler {
                         if (data.message_uids.size() < 1) {
                             // Message not present
                             on_ui_thread("-1", ctx.getString(R.string.progress_not_found));
-                            Pager.log += ctx.getString(R.string.progress_not_found) + "\n\n";
+                            InboxPager.log += ctx.getString(R.string.progress_not_found) + "\n\n";
                             cmd_start = false;
                         } else {
                             pop_retr_full_msg(true);
@@ -538,7 +538,7 @@ public class POP extends Handler {
                         if (data.message_uids.size() < 1) {
                             // Message not present
                             on_ui_thread("-1", ctx.getString(R.string.progress_not_found));
-                            Pager.log += ctx.getString(R.string.progress_not_found) + "\n\n";
+                            InboxPager.log += ctx.getString(R.string.progress_not_found) + "\n\n";
                             cmd_start = false;
                         } else {
                             pop_delete_msg(true);
@@ -848,7 +848,7 @@ public class POP extends Handler {
             if (!multiple && sp != null) sp.unblock = true;
         } else if (current_inbox.get_messages() > 0 && local_msgs_num == 0) {
             // Notify the user of the new message(s)
-            Pager.notify_update();
+            InboxPager.notify_update();
 
             // Adding all new messages
             data.delegate = true;
@@ -861,7 +861,7 @@ public class POP extends Handler {
             pop_delegation(true);
         } else {
             // Notify - new message(s)
-            Pager.notify_update();
+            InboxPager.notify_update();
 
             // Remove (obsolete) messages from local database
             int deleted_msgs = 0;
@@ -1136,7 +1136,7 @@ public class POP extends Handler {
                         (AppCompatActivity) ctx);
             }
         } catch (IOException e) {
-            Pager.log += e.getMessage() + "\n\n";
+            InboxPager.log += e.getMessage() + "\n\n";
             error_dialog(e);
             if (sp != null) {
                 on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
@@ -1161,7 +1161,7 @@ public class POP extends Handler {
                             (AppCompatActivity) ctx);
                 }
             } catch (IOException ioe) {
-                Pager.log += ioe.getMessage() + "\n\n";
+                InboxPager.log += ioe.getMessage() + "\n\n";
                 error_dialog(ioe);
                 if (sp != null) {
                     on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
