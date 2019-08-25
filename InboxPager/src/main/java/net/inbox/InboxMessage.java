@@ -246,11 +246,6 @@ public class InboxMessage extends AppCompatActivity {
                 }
             });
 
-            // Set unseen -> seen
-            if (!(current.get_seen())) {
-                db.seen_unseen_message(current.get_account(), current.get_uid(), true);
-            }
-
             // GPG crypto activity
             iv_gpg_crypto = findViewById(R.id.iv_gpg_crypto);
             iv_gpg_crypto.setOnClickListener(new View.OnClickListener() {
@@ -591,12 +586,14 @@ public class InboxMessage extends AppCompatActivity {
         builder.setMessage(getString(R.string.message_keep_in_database));
         builder.setCancelable(false);
         builder.setPositiveButton(getString(R.string.btn_yes),
+
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         start_saving_full_message(true);
                     }
                 });
         builder.setNegativeButton(getString(R.string.btn_no),
+
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         start_saving_full_message(false);
@@ -784,10 +781,8 @@ public class InboxMessage extends AppCompatActivity {
                 good_incoming_server = !handler.get_last_connection_data().isEmpty();
                 iv_ssl_auth.setVisibility(View.VISIBLE);
                 if (good_incoming_server) {
-                    good_incoming_server = true;
                     iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
                 } else {
-                    good_incoming_server = false;
                     iv_ssl_auth.setImageResource(R.drawable.padlock_error);
                 }
             } else {

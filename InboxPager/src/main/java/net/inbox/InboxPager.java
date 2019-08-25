@@ -46,6 +46,7 @@ import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -65,6 +66,7 @@ import net.sqlcipher.database.SQLiteDatabase;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.SortedMap;
 
 public class InboxPager extends AppCompatActivity {
 
@@ -98,16 +100,14 @@ public class InboxPager extends AppCompatActivity {
     private InboxList inbox_adapter;
     private ArrayList<Integer> list_mass_refresh = new ArrayList<>();
     private ArrayList<InboxListItem> al_accounts_items = new ArrayList<>();
+    private SortedMap<String, ArrayList<Message>> al_messages;
 
     private SpinningStatus spt;
 
-    private ListView msg_list_view;
+    private ExpandableListView msg_list_view;
     private ImageButton ib_refresh;
     private ImageView iv_send_activity;
     private ImageView iv_ssl_auth;
-
-    private boolean msg_item_unseen = false;
-    private int msg_item_unseen_id = -2;
 
     private boolean good_incoming_server = false;
 
@@ -131,8 +131,6 @@ public class InboxPager extends AppCompatActivity {
             unlocked = savedInstanceState.getBoolean("sv_unlocked");
             over = savedInstanceState.getInt("sv_over");
             show_help = savedInstanceState.getBoolean("sv_show_help");
-            msg_item_unseen = savedInstanceState.getBoolean("sv_msg_item_unseen");
-            msg_item_unseen_id = savedInstanceState.getInt("sv_msg_item_unseen_id");
             good_incoming_server = savedInstanceState.getBoolean("sv_good_incoming_server");
             current_inbox = savedInstanceState.getInt("sv_current_inbox");
             if (current_inbox != -2) {
@@ -318,17 +316,6 @@ public class InboxPager extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Update unread messages count
-        if (msg_item_unseen) {
-            if (current == null) current = db.get_account(current_inbox);
-            current.set_unseen(db.update_account_unseen_count(current.get_id()));
-            msg_item_unseen = false;
-            set_message_seen_view();
-            set_count_top();
-            populate_accounts_list_view();
-            populate_messages_list_view();
-        }
-
         if (requestCode == 1 || requestCode == 10) {
             if (refresh) {
                 refresh = false;
@@ -366,8 +353,6 @@ public class InboxPager extends AppCompatActivity {
         save.putBoolean("sv_unlocked", unlocked);
         save.putInt("sv_over", over);
         save.putBoolean("sv_show_help", show_help);
-        save.putBoolean("sv_msg_item_unseen", msg_item_unseen);
-        save.putInt("sv_msg_item_unseen_id", msg_item_unseen_id);
         save.putBoolean("sv_good_incoming_server", good_incoming_server);
         save.putInt("sv_current_inbox", current_inbox);
     }
@@ -537,7 +522,14 @@ public class InboxPager extends AppCompatActivity {
             });
 
             for (int i = 0; i < list_accounts.size(); i++) {
+                // Check and update unseen message counts
                 Inbox nfo = list_accounts.get(i);
+                int unseen_count = db.count_unseen_account_messages(nfo.get_id());
+                if (unseen_count != nfo.get_unseen()) {
+                    list_accounts.get(i).set_unseen(unseen_count);
+                    nfo.set_unseen(unseen_count);
+                }
+
                 al_accounts_items.add(new InboxListItem(nfo.get_id(), nfo.get_email(),
                         nfo.get_unseen()));
             }
@@ -643,8 +635,7 @@ public class InboxPager extends AppCompatActivity {
     }
 
     public void populate_messages_list_view() {
-        ArrayList<InboxMessageListItem> al_messages_items;
-        ArrayList<Message> al_messages = db.get_all_messages(current.get_id());
+        al_messages = db.get_all_messages(current.get_id());
 
         // If there is any SMTP
         try {
@@ -664,38 +655,38 @@ public class InboxPager extends AppCompatActivity {
             tv_background.setVisibility(View.GONE);
             msg_list_view.setVisibility(View.VISIBLE);
 
-            al_messages_items = new ArrayList<>();
-            // Adding messages backwards, to save on sort by date
-            for (int i = al_messages.size() - 1; i >= 0; --i) {
-                Message nfo = al_messages.get(i);
-                al_messages_items.add(new InboxMessageListItem(nfo.get_id(), nfo.get_account(),
-                        nfo.get_subject(), nfo.get_from(), nfo.get_attachments(), nfo.get_seen()));
-            }
-
-            InboxMessageList msg_list_adapter = new InboxMessageList(this, al_messages_items);
+            InboxMessageExpList msg_list_adapter = new InboxMessageExpList(this,
+                    new ArrayList<>(al_messages.keySet()), al_messages);
             msg_list_view.setAdapter(msg_list_adapter);
-            msg_list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
+            msg_list_view.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
                 @Override
-                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                    InboxMessageListItem itm_new = (InboxMessageListItem) parent
-                            .getItemAtPosition(position);
-                    if (!itm_new.get_seen()) {
-                        msg_item_unseen = true;
-                        msg_item_unseen_id = itm_new.get_id();
-                    } else {
-                        msg_item_unseen = true;
-                        msg_item_unseen_id = -2;
+                public boolean onChildClick(ExpandableListView parent, View v,
+                                            int group_pos, int child_pos, long id) {
+
+                    Object key = al_messages.keySet().toArray()[group_pos];
+                    Message m = al_messages.get(key).get(child_pos);
+
+                    // Set unseen -> seen
+                    if (!m.get_seen()) {
+                        db.seen_unseen_message(m.get_account(), m.get_uid(), true);
+                        m.set_seen(true);
+                        ImageView imv = v.findViewById(R.id.message_list_title_unseen_mark);
+                        imv.setVisibility(m.get_seen() ? View.GONE : View.VISIBLE);
+                        db.seen_unseen_message(current_inbox, m.get_uid(), true);
+                        update_unread_messages_count(current_inbox);
                     }
+
                     Intent i = new Intent(getApplicationContext(), InboxMessage.class);
                     Bundle b = new Bundle();
-                    b.putInt("db_id", itm_new.get_id());
-                    b.putInt("db_inbox", itm_new.get_inbox());
+                    b.putInt("db_id", m.get_id());
+                    b.putInt("db_inbox", current_inbox);
                     b.putString("title", current.get_email());
                     b.putBoolean("no_send", current.get_smtp_server().isEmpty());
                     b.putBoolean("imap_or_pop", current.get_imap_or_pop());
                     startActivityForResult(i.putExtras(b), 1000);
                     overridePendingTransition(R.anim.left_in, R.anim.left_out);
+
+                    return false;
                 }
             });
         }
@@ -707,18 +698,26 @@ public class InboxPager extends AppCompatActivity {
         connection_security();
     }
 
-    private void set_message_seen_view() {
-        InboxMessageList msg_adapter = (InboxMessageList) msg_list_view.getAdapter();
-        for (int j = 0;j < inbox_adapter.getCount();j++) {
-            if (((InboxMessageListItem) msg_adapter.getItem(j)).get_id() == msg_item_unseen_id) {
-                ((InboxMessageListItem) msg_adapter.getItem(j)).set_seen(true);
+    private void update_unread_messages_count(int account_id) {
+        for (InboxListItem ilm : al_accounts_items) {
+            if (ilm.get_id() == account_id) {
+                ilm.set_count(db.count_unseen_account_messages(ilm.get_id()));
+                inbox_adapter.notifyDataSetChanged();
+                set_count_top();
             }
         }
-        msg_adapter.notifyDataSetChanged();
     }
 
     private void set_count_top() {
         int i = current.get_unseen();
+
+        // Checking for discrepancies
+        int unseen_count = db.count_unseen_account_messages(current_inbox);
+        if (i != unseen_count) {
+            i = unseen_count;
+            current.set_unseen(i);
+        }
+
         String str = "000";
         if (i < 1) {
             tv_page_counter.setText(str);
@@ -728,10 +727,10 @@ public class InboxPager extends AppCompatActivity {
             tv_page_counter.setVisibility(View.VISIBLE);
         }
         if (i < 10) {
-            str = "00" + String.valueOf(i);
+            str = "00" + i;
             tv_page_counter.setText(str);
         } if (i > 9 && i < 100) {
-            str = "0" + String.valueOf(i);
+            str = "0" + i;
             tv_page_counter.setText(str);
         } else if (i > 100 && i <= 999) {
             str = String.valueOf(i);
@@ -791,6 +790,7 @@ public class InboxPager extends AppCompatActivity {
         msg += total_size;
         builder.setMessage(msg);
         builder.setPositiveButton(getString(android.R.string.ok),
+
                 new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog,int id) {
@@ -810,10 +810,8 @@ public class InboxPager extends AppCompatActivity {
                 good_incoming_server = !handler.get_last_connection_data().isEmpty();
                 iv_ssl_auth.setVisibility(View.VISIBLE);
                 if (good_incoming_server) {
-                    good_incoming_server = true;
                     iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
                 } else {
-                    good_incoming_server = false;
                     iv_ssl_auth.setImageResource(R.drawable.padlock_error);
                 }
             } else {

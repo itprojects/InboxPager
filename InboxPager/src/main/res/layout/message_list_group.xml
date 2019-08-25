@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:minHeight="?android:attr/listPreferredItemHeight">
+
+    <TextView
+        android:id="@+id/message_group_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:singleLine="true"
+        android:layout_marginStart="34sp"
+        android:ellipsize="middle"
+        android:fontFamily="sans-serif-condensed"
+        android:textSize="@dimen/text_size_message_item_subtitle" />
+
+    <ImageView
+        android:id="@+id/message_grop_unseen_mark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="4sp"
+        android:contentDescription="@string/stats_unseen"
+        android:src="@drawable/unseen"
+        android:visibility="gone" />
+
+</RelativeLayout>

@@ -19,6 +19,8 @@ package net.inbox.db;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -266,11 +268,36 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public int update_account_unseen_count(int id) {
-        int count = 0;
-        Cursor cursor;
+        int count = count_unseen_account_messages(id);
+
+        int current_count = -1;
+
+        Cursor cursor = dbw.query(table_accounts, new String[] { key_unseen }, "id = " + id,
+                null, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            current_count = cursor.getInt(0);
+        }
+
+        // Updating unread messages count for account
+        if (current_count != -1 && current_count != count) {
+            dbw.execSQL("UPDATE " + table_accounts + " SET unseen=" + count + " WHERE id = " + id);
+        }
+
+        // Prevent memory issues
+        cursor.close();
+
+        return count;
+    }
+
+    /**
+     * Count unseen messages for account.
+     **/
+    public int count_unseen_account_messages(int account_id) {
+        int count = -1;
         try {
-            cursor = dbw.query(table_messages, new String[] { "COUNT(1)" },
-                    "account = " + id + " AND seen = 0", null, null, null, null);
+            Cursor cursor = dbw.query(table_messages, new String[] { "COUNT(1)" },
+                    "account = " + account_id + " AND seen = 0", null, null, null, null);
             if (!cursor.moveToFirst()) {
                 count = -1000;
             } else {
@@ -280,26 +307,6 @@ public class DBAccess extends SQLiteOpenHelper {
         } catch (Exception e) {
             // A rare exception.
         }
-
-        int current_count = -1;
-
-        cursor = dbw.query(table_accounts, new String[] { key_unseen }, "id = " + id,
-                null, null, null, null);
-
-        if (cursor.moveToFirst()) {
-            current_count = cursor.getInt(0);
-        }
-
-        if (current_count != -1) {
-            if (current_count != count) {
-                // Updating unread messages count for account
-                dbw.execSQL("UPDATE " + table_accounts + " SET unseen=" + count + " WHERE id = " + id);
-            }
-        }
-
-        // Prevent memory issues
-        cursor.close();
-
         return count;
     }
 
@@ -399,6 +406,9 @@ public class DBAccess extends SQLiteOpenHelper {
         current.set_id(ret);
     }
 
+    /**
+     * Used in testing.
+     **/
     public int update_message(Message current) {
         ContentValues values = new ContentValues();
         values.put(key_account, current.get_account());
@@ -575,11 +585,11 @@ public class DBAccess extends SQLiteOpenHelper {
         return messages;
     }
 
-    public ArrayList<Message> get_all_messages(int id) {
+    public SortedMap<String, ArrayList<Message>> get_all_messages(int id) {
         Cursor cursor = dbw.query(table_messages, new String[] {"*"}, "account = " + id,
                 null, null, null, null);
 
-        ArrayList<Message> messages = new ArrayList<>();
+        SortedMap<String, ArrayList<Message>> messages = new TreeMap<>();
         Message current;
         if (cursor.moveToFirst()) {
             do {
@@ -588,9 +598,17 @@ public class DBAccess extends SQLiteOpenHelper {
                 current.set_account(cursor.getInt(1));
                 current.set_from(cursor.getString(5));
                 current.set_subject(cursor.getString(10));
+                current.set_uid(cursor.getString(12));
                 current.set_attachments(cursor.getInt(22));
                 current.set_seen(cursor.getInt(23) == 1);
-                messages.add(current);
+                if (messages.containsKey(current.get_from())) {
+                    ArrayList<Message> message_list = messages.get(current.get_from());
+                    message_list.add(0, current);
+                } else {
+                    ArrayList<Message> message_list = new ArrayList<>();
+                    message_list.add(0, current);
+                    messages.put(current.get_from(), message_list);
+                }
             } while (cursor.moveToNext());
         }
 
