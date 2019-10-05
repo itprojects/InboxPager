@@ -433,9 +433,6 @@ public class InboxMessage extends AppCompatActivity {
         if (current.get_contents_html() != null && !current.get_contents_html().isEmpty()) {
             btn_texts_states.add(new String[] { getString(R.string.message_contents_loop_html), "2"});
         }
-        if (current.get_contents_other() != null && !current.get_contents_other().isEmpty()) {
-            btn_texts_states.add(new String[] { getString(R.string.message_contents_loop_other), "3"});
-        }
         if (btn_texts_states.size() < 1) {
             tv_texts.setVisibility(View.GONE);
         } else if (btn_texts_states.size() == 1) {
@@ -469,14 +466,6 @@ public class InboxMessage extends AppCompatActivity {
             case "2":
                 if (current.get_contents_html() != null) {
                     html_text(current.get_contents_html());
-                } else {
-                    tv_contents.setText("");
-                }
-                tv_texts.setText(btn_texts_states.get(btn_texts_state)[0]);
-                break;
-            case "3":
-                if (current.get_contents_other() != null) {
-                    tv_contents.setText(current.get_contents_other());
                 } else {
                     tv_contents.setText("");
                 }

@@ -65,7 +65,6 @@ public class IMAP extends Handler {
         // PLAIN, 1.1, UTF-8, QUOTED-PRINTABLE
         String[] msg_text_plain = new String[] { "-1", "-1", "-1", "-1" };
         String[] msg_text_html = new String[] { "-1", "-1", "-1", "-1" };
-        String[] msg_text_other = new String[] { "-1" };
 
         // Used in saving attachments and text
         Attachment att_item;
@@ -79,7 +78,6 @@ public class IMAP extends Handler {
             msg_structure = new ArrayList<>();
             msg_text_plain = new String[] { "-1", "-1", "-1", "-1" };
             msg_text_html = new String[] { "-1", "-1", "-1", "-1" };
-            msg_text_other = new String[] { "-1" };
         }
     }
 
@@ -585,14 +583,6 @@ public class IMAP extends Handler {
                         cmd_start = false;
                     } else imap_fetch_msg_body_text(cmd_start, 2);
                 break;
-            case "MSG_TEXT_OTHER":
-                // Get (other type of) text of the message
-                if (!data.crypto_contents) {
-                    if (data.msg_text_other[0].equals("-1")) {
-                        cmd_start = false;
-                    } else imap_fetch_msg_body_text(cmd_start, 3);
-                } else cmd_start = false;
-                break;
             case "MSG_CRYPTO_MIME":
                 if (data.crypto_contents) {
                     imap_fetch_msg_body_full(cmd_start, true);
@@ -766,6 +756,7 @@ public class IMAP extends Handler {
     /**
      * A read-write way of working with an INBOX.
      * All fetched messages SHOULD be marked \Seen
+     * after SELECT was invoked on server.
      **/
     private void imap_select(boolean go) {
         if (go) {
@@ -835,20 +826,21 @@ public class IMAP extends Handler {
         // Messages in DB
         HashMap<Integer, String> local_msgs = db.get_all_message_uids(current_inbox.get_id());
         Iterator<HashMap.Entry<Integer, String>> local_msgs_iterator;
-        int local_msgs_num = local_msgs.size();
+        int local_msgs_db = local_msgs.size();
+        int local_msgs_var = current_inbox.get_messages();
 
-        if (current_inbox.get_messages() == 0 && local_msgs_num == 0) {
+        if (local_msgs_var == 0 && local_msgs_db == 0) {
             // Update spinning dialog message
             on_ui_thread("-1", ctx.getString(R.string.progress_nothing));
             if (!multiple && sp != null) sp.unblock = true;
-        } else if (current_inbox.get_messages() == 0 && local_msgs_num > 0) {
+        } else if (local_msgs_var == 0 && local_msgs_db > 0) {
             // Update spinning dialog message
             if (sp != null) {
-                on_ui_thread("-1", local_msgs_num + " " + ctx.getString(R.string.progress_deleted_msgs));
+                on_ui_thread("-1", local_msgs_db + " " + ctx.getString(R.string.progress_deleted_msgs));
             }
             db.delete_all_messages(local_msgs);
             if (!multiple && sp != null) sp.unblock = true;
-        } else if (current_inbox.get_messages() > 0 && local_msgs_num == 0) {
+        } else if (local_msgs_var > 0 && local_msgs_db == 0) {
             // Notify the user of the new message(s)
             InboxPager.notify_update();
 
@@ -861,7 +853,7 @@ public class IMAP extends Handler {
             data.delegation.add("MSG_STRUCTURE");
             data.delegation.add("MSG_TEXT_PLAIN");
             data.delegation.add("MSG_TEXT_HTML");
-            data.delegation.add("MSG_TEXT_OTHER");
+            //data.delegation.add("MSG_TEXT_OTHER");
             data.delegation.add("MSG_CRYPTO_MIME");
             if (current_inbox.get_auto_save_full_msgs()) {
                 data.delegation.add("MSG_FULL");
@@ -909,7 +901,7 @@ public class IMAP extends Handler {
                 data.delegation.add("MSG_STRUCTURE");
                 data.delegation.add("MSG_TEXT_PLAIN");
                 data.delegation.add("MSG_TEXT_HTML");
-                data.delegation.add("MSG_TEXT_OTHER");
+                //data.delegation.add("MSG_TEXT_OTHER");
                 data.delegation.add("MSG_CRYPTO_MIME");
                 if (current_inbox.get_auto_save_full_msgs()) {
                     data.delegation.add("MSG_FULL");
@@ -1033,7 +1025,7 @@ public class IMAP extends Handler {
 
             // Preparing texts and attachments
             data.msg_structure = Utils.imap_parse_nodes(data.msg_structure, data.msg_text_plain,
-                    data.msg_text_html, data.msg_text_other);
+                    data.msg_text_html);
 
             // Declare the number of attachments for later
             if (data.msg_structure != null) data.msg_current.set_attachments(data.msg_structure.size());
@@ -1059,17 +1051,7 @@ public class IMAP extends Handler {
                     cmd_tmp = "BODY[" +  data.msg_text_html[1] + "]";
                     write(tag + " UID FETCH " + data.msg_current.get_uid() + " " +  cmd_tmp);
                     break;
-                case 3:
-                    arr_tmp = data.msg_text_other[2].split(",");
-                    cmd_tmp = "(";
-                    for (int k = 0;k < arr_tmp.length;++k) {
-                        if ((k + 1) == arr_tmp.length) {
-                            cmd_tmp = cmd_tmp.concat("BODY[" + arr_tmp[k] + "])");
-                        } else {
-                            cmd_tmp = cmd_tmp.concat("BODY[" + arr_tmp[k] + "] ");
-                        }
-                    }
-                    write(tag + " UID FETCH " + data.msg_current.get_uid() + " " +  cmd_tmp);
+                default:
                     break;
             }
         } else {
@@ -1120,12 +1102,6 @@ public class IMAP extends Handler {
                     }
                     data.msg_current.set_contents_html(str_html);
                     data.msg_text_html = null;
-                    break;
-                case 3:
-                    if (data.sbuffer.length() > 0) {
-                        data.msg_current.set_contents_other(data.sbuffer.toString());
-                    }
-                    data.msg_text_other = null;
                     break;
                 default:
                     break;

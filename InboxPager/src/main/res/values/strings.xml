@@ -1,7 +1,7 @@
 <resources>
 
     <string name="app_name">Inbox Pager</string>
-    <string name="author">Copyright &#169; 2016 &#8211; 2018  ITPROJECTS</string>
+    <string name="author">Copyright &#169; 2016 &#8211; 2019  ITPROJECTS</string>
     <string name="disclaimer">DISCLAIMER:\n</string>
     <string name="disclaimer_text">The author(s) of this software are not liable for ANY damages that this software may cause - accidental or otherwise, under ANY and EVERY law or regulation, and in ANY and EVERY country or territory of the world.
     </string>
@@ -13,7 +13,7 @@
     </string>
     <string name="license_media_files">Application Icon, CC-BY-SA: Creative Commons Attribution Share Alike 4.0 International Public License </string>
     <string name="license_font">Dottz Font, SIL-OFL 1.1 License, ITPROJECTS</string>
-    <string name="license_long_font" translatable="false">Copyright (&#169;) 2016 &#8211; 2017 ITPROJECTS\n\nSIL OPEN FONT LICENSE\n\nVersion 1.1 - 26 February 2007\nPREAMBLE\n\nThe goals of the Open Font License (OFL) are to stimulate worldwide development of collaborative font projects,
+    <string name="license_long_font" translatable="false">Copyright (&#169;) 2016 &#8211; 2019 ITPROJECTS\n\nSIL OPEN FONT LICENSE\n\nVersion 1.1 - 26 February 2007\nPREAMBLE\n\nThe goals of the Open Font License (OFL) are to stimulate worldwide development of collaborative font projects,
         to support the font creation efforts of academic and linguistic communities, and to provide a free and open framework in which fonts may be shared and improved in partnership with others.\n\n
         The OFL allows the licensed fonts to be used, studied, modified and redistributed freely as long as they are not sold by themselves. The fonts, including any derivative works, can be bundled, embedded,
         redistributed and/or sold with any software provided that any reserved names are not used by derivative works. The fonts and derivatives, however, cannot be released under any other type of license.

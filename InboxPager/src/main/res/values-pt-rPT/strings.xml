@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Inbox Pager</string>
-    <string name="author">Copyright &#169; 2016 &#8211; 2018  ITPROJECTS</string>
+    <string name="author">Copyright &#169; 2016 &#8211; 2019  ITPROJECTS</string>
     <string name="disclaimer">AVISO LEGAL:\n</string>
     <string name="disclaimer_text">Os autores desse software não são responsáveis por QUAISQUER danos que esse software poderá causar, acidentalmente ou não, independentemente de QUALQUER e TODA legislação ou regulação, seja de QUALQUER país ou território do mundo.</string>
     <string name="dialog_license">Informação De Licença</string>

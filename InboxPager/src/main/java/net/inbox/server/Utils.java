@@ -183,11 +183,10 @@ public class Utils {
      * Finds text nodes, prepares the attachments.
      **/
     static ArrayList<String[]> imap_parse_nodes(ArrayList<String[]> structure,
-        String[] arr_texts_plain, String[] arr_texts_html, String[] arr_texts_other) {
+        String[] arr_texts_plain, String[] arr_texts_html) {
         if (structure == null) return null;
         if (structure.size() == 1) {
-            imap_parse_text_params(structure.get(0), arr_texts_plain, arr_texts_html,
-                    arr_texts_other);
+            imap_parse_text_params(structure.get(0), arr_texts_plain, arr_texts_html);
             return null;
         }
 
@@ -199,7 +198,7 @@ public class Utils {
             }
             structure.clear();
             for (String[] t : texts) {
-                imap_parse_text_params(t, arr_texts_plain, arr_texts_html, arr_texts_other);
+                imap_parse_text_params(t, arr_texts_plain, arr_texts_html);
             }
         } else {
             Iterator<String[]> texts_iterator = structure.iterator();
@@ -214,8 +213,7 @@ public class Utils {
                         pat = Pattern.compile("\"TEXT\".*", Pattern.CASE_INSENSITIVE);
                         mat = pat.matcher(txt_tmp[1]);
                         if (mat.matches()) {
-                            imap_parse_text_params(txt_tmp, arr_texts_plain, arr_texts_html,
-                                    arr_texts_other);
+                            imap_parse_text_params(txt_tmp, arr_texts_plain, arr_texts_html);
                             texts_iterator.remove();
                         }
                     }
@@ -239,7 +237,7 @@ public class Utils {
      * PLAIN, 1.1, UTF-8, QUOTED-PRINTABLE
      **/
     private static void imap_parse_text_params(String[] str_txt,
-        String[] arr_texts_plain, String[] arr_texts_html, String[] arr_texts_other) {
+        String[] arr_texts_plain, String[] arr_texts_html) {
 
         // Mime subtype
         String mime_subtype;
@@ -282,12 +280,6 @@ public class Utils {
                     arr_texts_html[3] = transfer_enc;
                     break;
                 default:
-                    // OTHER
-                    if (arr_texts_other[0].equals("-1")) {
-                        arr_texts_other[0] = str_txt[0];
-                    } else {
-                        arr_texts_other[0] += "," + str_txt[0];
-                    }
                     break;
             }
         }
@@ -311,7 +303,13 @@ public class Utils {
             }
         }
 
-        String temp = str_attach[1].substring(type.length() + 5);
+        String temp = "";
+        try {
+            temp = str_attach[1].substring(type.length() + 5);
+        } catch (Exception e) {
+            InboxPager.log += "!!7:" + e.getMessage() + "\n\n";
+            return new String[] { str_attach[0], type, "???", "UTF-8?", "-1" };
+        }
 
         // No name parameter
         pat = Pattern.compile("nil .*", Pattern.CASE_INSENSITIVE);
@@ -852,7 +850,8 @@ public class Utils {
                         .replaceAll("=", ""), Base64.DEFAULT), enc);
             }
         } catch (UnsupportedEncodingException e) {
-            InboxPager.log += "!!:" + e.getMessage() + "\n\n";
+            InboxPager.log += "!!1:" + e.getMessage() + "\n\n";
+            return s;
         }
         return ret;
     }
@@ -877,7 +876,7 @@ public class Utils {
                 try {
                     return new String((new String(arr_bytes, mat.group(1))).getBytes(), "UTF-8");
                 } catch (UnsupportedEncodingException e) {
-                    InboxPager.log += "!!:" + e.getMessage() + "\n\n";
+                    InboxPager.log += "!!2:" + e.getMessage() + "\n\n";
                     return s;
                 }
             } else if (mat.group(2).matches("(Q|q)")) {
@@ -904,7 +903,7 @@ public class Utils {
         try {
             s_tmp = new String(s.getBytes(), encoding);
         } catch (UnsupportedEncodingException e) {
-            InboxPager.log += "!!:" + e.getMessage() + "\n\n";
+            InboxPager.log += "!!3:" + e.getMessage() + "\n\n";
             return s;
         }
         if (s_tmp.endsWith("=")) s_tmp = s_tmp.substring(0, s_tmp.length() - 1);
@@ -938,7 +937,7 @@ public class Utils {
             System.arraycopy(ascii_bytes, 0, reduced, 0, count);
             return new String(reduced, encoding);
         } catch (UnsupportedEncodingException e) {
-            InboxPager.log += "!!:" + e.getMessage() + "\n\n";
+            InboxPager.log += "!!4:" + e.getMessage() + "\n\n";
             return s;
         }
     }
@@ -970,7 +969,7 @@ public class Utils {
                     return filename;
                 }
             } catch (UnsupportedEncodingException e) {
-                InboxPager.log += "!!:" + e.getMessage() + "\n\n";
+                InboxPager.log += "!!5:" + e.getMessage() + "\n\n";
                 return filename;
             }
         }
@@ -980,9 +979,9 @@ public class Utils {
         try {
             return new String(s.getBytes("US-ASCII"));
         } catch (UnsupportedEncodingException enc) {
-            InboxPager.log += "!!:" + enc.getMessage() + "\n\n";
+            InboxPager.log += "!!6:" + enc.getMessage() + "\n\n";
+            return s;
         }
-        return s;
     }
 
     public static boolean all_ascii(String s) {

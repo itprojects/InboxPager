@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.SortedMap;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Typeface;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -84,7 +81,7 @@ public class InboxMessageExpList extends BaseExpandableListAdapter {
             }
         }
 
-        (v.findViewById(R.id.message_grop_unseen_mark))
+        (v.findViewById(R.id.message_group_unseen_mark))
                 .setVisibility(has_unread ? View.VISIBLE : View.GONE);
 
         return v;
