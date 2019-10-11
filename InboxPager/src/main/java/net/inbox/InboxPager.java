@@ -801,7 +801,7 @@ public class InboxPager extends AppCompatActivity {
         builder.show();
     }
 
-    private void connection_security() {
+    public void connection_security() {
         if (handler == null) return;
         good_incoming_server = handler.get_hostname_verify();
         if (good_incoming_server) {

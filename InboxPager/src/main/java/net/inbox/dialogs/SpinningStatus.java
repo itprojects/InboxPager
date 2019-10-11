@@ -26,6 +26,8 @@ import net.inbox.InboxSend;
 import net.inbox.InboxPager;
 import net.inbox.server.Handler;
 
+import java.lang.ref.WeakReference;
+
 public class SpinningStatus extends AsyncTask<Void, String, Void> {
 
     public boolean unblock;
@@ -34,14 +36,14 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
     private boolean call_cancel;
     private boolean mass_refresh;
 
-    private AppCompatActivity act;
+    private WeakReference<AppCompatActivity> act;
     private ProgressDialog pd;
     private Handler handler;
 
     public SpinningStatus(boolean cb, boolean mr, AppCompatActivity at, Handler hand) {
         call_back = cb;
         mass_refresh = mr;
-        act = at;
+        act = new WeakReference<>(at);
         handler = hand;
     }
 
@@ -50,22 +52,25 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
      **/
     @Override
     protected void onPreExecute() {
-        pd = new ProgressDialog(act);
-        pd.setTitle("?");
-        pd.setMessage("?");
-        pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        pd.setIndeterminate(true);
-        pd.setProgress(0);
-        pd.setMax(100);
-        pd.setCancelable(false);
-        String cnc = act.getResources().getString(android.R.string.cancel);
-        pd.setButton(ProgressDialog.BUTTON_NEGATIVE, cnc, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                unblock = true;
-                call_cancel = true;
-            }
-        });
-        pd.show();
+        AppCompatActivity appact = act.get();
+        if (appact != null) {
+            pd = new ProgressDialog(appact);
+            pd.setTitle("?");
+            pd.setMessage("?");
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.setIndeterminate(true);
+            pd.setProgress(0);
+            pd.setMax(100);
+            pd.setCancelable(false);
+            String cnc = appact.getResources().getString(android.R.string.cancel);
+            pd.setButton(ProgressDialog.BUTTON_NEGATIVE, cnc, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    unblock = true;
+                    call_cancel = true;
+                }
+            });
+            pd.show();
+        }
     }
 
     /**
@@ -82,14 +87,6 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
         }
         if (call_cancel) {
             if (handler != null) handler.cancel_action();
-        }
-
-        if (act.getClass().toString().endsWith(".InboxPager")) {
-            ((InboxPager) act).handle_orientation(false);
-        } else if (act.getClass().toString().endsWith(".InboxMessage")) {
-            ((InboxMessage) act).handle_orientation(false);
-        } else if (act.getClass().toString().endsWith(".InboxSend")) {
-            ((InboxSend) act).handle_orientation(false);
         }
 
         return null;
@@ -109,22 +106,46 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
      **/
     @Override
     protected void onPostExecute(Void voids) {
-        pd.dismiss();
-        if (call_back) {
+        try {
+            if (pd != null && pd.isShowing()) pd.dismiss();
+        } catch (Exception e) {
+            InboxPager.log += this.getClass().getName() + e.getMessage() + "\n\n";
+        } finally {
+            pd = null;
+        }
+
+        // Restore device screen orientation after operation
+        AppCompatActivity appact = act.get();
+        if (appact != null) {
             if (act.getClass().toString().endsWith(".InboxPager")) {
-                if (mass_refresh) {
-                    // Refresh the account list
-                    ((InboxPager) act).mass_refresh();
-                } else {
-                    // Refresh the message list
-                    ((InboxPager) act).populate_messages_list_view();
-                }
+                ((InboxPager) appact).handle_orientation(false);
             } else if (act.getClass().toString().endsWith(".InboxMessage")) {
-                // Set server certificate details
-                ((InboxMessage) act).connection_security();
+                ((InboxMessage) appact).handle_orientation(false);
             } else if (act.getClass().toString().endsWith(".InboxSend")) {
-                // Set server certificate details
-                ((InboxSend) act).connection_security();
+                ((InboxSend) appact).handle_orientation(false);
+            }
+        }
+
+        // Continue process after async task
+        if (call_back) {
+            if (appact != null) {
+                if (act.getClass().toString().endsWith(".InboxPager")) {
+                    if (mass_refresh) {
+                        // Refresh the account list
+                        ((InboxPager) appact).mass_refresh();
+                    } else {
+                        // Set server certificate details
+                        ((InboxPager) appact).connection_security();
+                        // Refresh the message list
+                        ((InboxPager) appact).populate_messages_list_view();
+                    }
+                } else if (act.getClass().toString().endsWith(".InboxMessage")) {
+                    // Set server certificate details
+                    ((InboxMessage) appact).connection_security();
+                } else if (act.getClass().toString().endsWith(".InboxSend")) {
+                    // Set server certificate details
+                    ((InboxSend) appact).connection_security();
+                }
             }
         }
     }
