@@ -138,22 +138,27 @@ class SocketIO implements Runnable {
         SSLSession session_0 = s.getSession();
         X509Certificate[] certs = new X509Certificate[1];
 
+        String lb = "";
+
         try {
             certs = session_0.getPeerCertificateChain();
+
+            lb = session_0.getPeerHost() + ":" + session_0.getPeerPort() + "\n\n";
+            for (X509Certificate cert : certs) {
+                    lb = lb.concat("\n" + String.valueOf(((RSAPublicKey)cert.getPublicKey())
+                            .getModulus().bitLength()) + " bit " + cert.getSigAlgName()
+                            + ":\n" + cert.getIssuerDN().getName() + "\n");
+            }
+
+            lb = lb.replaceAll("CN=", "").replaceAll("O=", "")
+                    .replaceAll("OU=", "").replaceAll("L=", "")
+                    .replaceAll("ST=", "").replaceAll("C=", "").trim();
         } catch (SSLPeerUnverifiedException ee) {
             InboxPager.log += ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n";
+        } catch (ClassCastException ce) {
+            InboxPager.log += ctx.getString(R.string.ex_field) + ce.getMessage() + "\n\n";
+            lb = "?? ☉_☉ ??";
         }
-
-        String lb = session_0.getPeerHost() + ":" + session_0.getPeerPort() + "\n\n";
-        for (X509Certificate cert : certs) {
-            lb = lb.concat("\n" + String.valueOf(((RSAPublicKey)cert.getPublicKey())
-                    .getModulus().bitLength()) + " bit " + cert.getSigAlgName()
-                    + ":\n" + cert.getIssuerDN().getName() + "\n");
-        }
-
-        lb = lb.replaceAll("CN=", "").replaceAll("O=", "")
-                .replaceAll("OU=", "").replaceAll("L=", "")
-                .replaceAll("ST=", "").replaceAll("C=", "").trim();
 
         return lb;
     }
