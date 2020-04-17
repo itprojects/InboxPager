@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016  ITPROJECTS
+ * Copyright (C) 2016-2020  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.security.PublicKey;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 
 import javax.net.ssl.HostnameVerifier;
@@ -135,31 +139,62 @@ class SocketIO implements Runnable {
     }
 
     String print() {
-        SSLSession session_0 = s.getSession();
-        X509Certificate[] certs = new X509Certificate[1];
-
         String lb = "";
+        SSLSession session_0 = s.getSession();
 
         try {
-            certs = session_0.getPeerCertificateChain();
-
             lb = session_0.getPeerHost() + ":" + session_0.getPeerPort() + "\n\n";
-            for (X509Certificate cert : certs) {
-                    lb = lb.concat("\n" + String.valueOf(((RSAPublicKey)cert.getPublicKey())
-                            .getModulus().bitLength()) + " bit " + cert.getSigAlgName()
-                            + ":\n" + cert.getIssuerDN().getName() + "\n");
+            for (X509Certificate cert : session_0.getPeerCertificateChain()) {
+                lb = lb.concat("\n"
+                        + getKeyLength(cert.getPublicKey())
+                        + cert.getSigAlgName().toUpperCase() + ":\n" + cert.getIssuerDN().getName()
+                        + "\n\n" + "SHA-256:\n" + getKeySHA256Hash(cert) + "\n\n");
             }
 
-            lb = lb.replaceAll("CN=", "").replaceAll("O=", "")
-                    .replaceAll("OU=", "").replaceAll("L=", "")
-                    .replaceAll("ST=", "").replaceAll("C=", "").trim();
+            lb = lb.replaceAll("(CN=|O=|OU=|L=|ST=|C=)", "").trim();
         } catch (SSLPeerUnverifiedException ee) {
             InboxPager.log += ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n";
-        } catch (ClassCastException ce) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + ce.getMessage() + "\n\n";
-            lb = "?? ☉_☉ ??";
         }
 
         return lb;
+    }
+
+    // See About Activity for licenses and links
+    private String getKeyLength(PublicKey pk) {
+        if (pk instanceof RSAPublicKey) {
+            return ((RSAPublicKey) pk).getModulus().bitLength() + " bit RSA Public Key\n";
+        } else if (pk instanceof ECPublicKey) {
+            java.security.spec.ECParameterSpec pk_spec = ((ECPublicKey) pk).getParams();
+
+            return pk_spec == null ? "? Public Key\n"
+                    : pk_spec.getOrder().bitLength() + " bit Elliptic Curve Public Key\n";
+        } else if (pk instanceof DSAPublicKey) {
+            DSAPublicKey pk_dsa = (DSAPublicKey) pk;
+
+            return pk_dsa.getParams() == null ? pk_dsa.getY().bitLength() + " bit DSA Public Key\n"
+                    : pk_dsa.getParams().getP().bitLength() + " bit DSA Public Key\n";
+        } else return "? Public key\n";
+    }
+
+    // See About Activity for license and links
+    private String getKeySHA256Hash(X509Certificate cert) {
+        StringBuilder buff = new StringBuilder();
+
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(cert.getEncoded());
+
+            // Hashed Certificate
+            byte[] sha256 = md.digest();
+            for (byte b : sha256) {
+                // Convert to String
+                buff.append(String.format("%02x", b).toUpperCase()).append(":");
+            }
+            if (buff.length() > 0) buff.deleteCharAt(buff.length() - 1);
+            return buff.toString();
+        } catch (Exception e) {
+            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            return "? ☉_☉ ?";
+        }
     }
 }

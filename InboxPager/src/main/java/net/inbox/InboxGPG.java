@@ -1,6 +1,6 @@
 /*
  * InboxGPG interacts with OpenKeychain encryption package.
- * Copyright (C) 2016-2018  ITPROJECTS
+ * Copyright (C) 2016-2020  ITPROJECTS
  * Copyright (C) 2013-2015 Dominik Schürmann <dominik@dominikschuermann.de>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

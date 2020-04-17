@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016  ITPROJECTS
+ * Copyright (C) 2016-2020  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -829,19 +829,7 @@ public class InboxPager extends AppCompatActivity {
      * Intermediaries' SSL certificates of the last live connection.
      **/
     private void dialog_servers() {
-        if (good_incoming_server) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.ssl_auth_popup_title));
-            builder.setCancelable(true);
-            builder.setMessage(handler.get_last_connection_data());
-            builder.show();
-        } else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.ssl_auth_popup_title));
-            builder.setMessage(getString(R.string.ssl_auth_popup_bad_connection));
-            builder.setPositiveButton(getString(android.R.string.ok), null);
-            builder.show();
-        }
+        Dialogs.dialog_view_ssl(this.good_incoming_server, this.handler, this);
     }
 
     public static DBAccess get_db() {

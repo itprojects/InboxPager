@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2019  ITPROJECTS
+ * Copyright (C) 2019-2020  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

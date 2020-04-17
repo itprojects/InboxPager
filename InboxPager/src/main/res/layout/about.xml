@@ -175,6 +175,26 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textStyle="bold" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20sp"
+                android:layout_marginTop="20sp"
+                android:layout_marginRight="20sp"
+                android:text="@string/cc_by_sa"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="20sp"
+                android:layout_marginTop="5sp"
+                android:layout_marginRight="20sp"
+                android:text="@string/cc_by_sa_long"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
         </LinearLayout>
 
     </ScrollView>

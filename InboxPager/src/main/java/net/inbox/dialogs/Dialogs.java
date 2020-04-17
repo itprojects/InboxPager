@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016  ITPROJECTS
+ * Copyright (C) 2016-2020  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import net.inbox.InboxPager;
 import net.inbox.R;
+import net.inbox.server.Handler;
 
 public class Dialogs {
 
@@ -101,6 +103,24 @@ public class Dialogs {
                     }
                 });
         builder.show();
+        AlertDialog ad_log = builder.show();
+        TextView text_box = ad_log.findViewById(android.R.id.message);
+        if (text_box != null) text_box.setTextIsSelectable(true);
+    }
+
+    public static void dialog_view_ssl(boolean ssl_status, Handler handler, AppCompatActivity ct) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ct);
+        builder.setTitle(ct.getString(R.string.ssl_auth_popup_title));
+        builder.setCancelable(true);
+        if (ssl_status) {
+            builder.setMessage(handler.get_last_connection_data());
+        } else {
+            builder.setMessage(ct.getString(R.string.ssl_auth_popup_bad_connection));
+            builder.setPositiveButton(ct.getString(android.R.string.ok), null);
+        }
+        AlertDialog ad_ssl = builder.show();
+        TextView text_box = ad_ssl.findViewById(android.R.id.message);
+        if (text_box != null) text_box.setTextIsSelectable(true);
     }
 
     public static void toaster(final boolean time, final String msg, final AppCompatActivity ct) {
