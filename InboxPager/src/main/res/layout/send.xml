@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".InboxMessage">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/send_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -49,7 +49,7 @@
                 android:layout_toStartOf="@id/tv_send"
                 android:contentDescription="@string/send_send"
                 android:paddingStart="10sp"
-                android:paddingEnd="10sp"
+                android:paddingEnd="4sp"
                 android:src="@drawable/padlock_error"
                 android:visibility="gone" />
 
@@ -59,13 +59,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="7sp"
+                android:layout_marginEnd="1sp"
                 android:background="@drawable/btn_green"
                 android:text="@string/send_send" />
 
         </RelativeLayout>
 
-    </android.support.v7.widget.Toolbar>
+    </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -99,7 +99,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
-                    android:inputType="text|textNoSuggestions|textMultiLine" />
+                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
 
             </LinearLayout>
 
@@ -131,7 +131,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
-                    android:inputType="text|textNoSuggestions|textMultiLine" />
+                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
 
             </LinearLayout>
 
@@ -163,7 +163,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
-                    android:inputType="text|textNoSuggestions|textMultiLine" />
+                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
 
             </LinearLayout>
 
@@ -188,7 +188,7 @@
                 android:layout_marginEnd="20sp"
                 android:layout_marginRight="20sp"
                 android:hint=""
-                android:inputType="text|textNoSuggestions|textMultiLine"
+                android:inputType="textEmailSubject|textNoSuggestions|textMultiLine"
                 android:maxLength="500" />
 
             <LinearLayout
@@ -271,18 +271,38 @@
                 android:text="@string/send_show_previous"
                 android:visibility="gone"/>
 
-            <TextView
-                android:id="@+id/send_previous"
+            <LinearLayout
+                android:id="@+id/llay_send_previous"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20sp"
-                android:layout_marginLeft="20sp"
-                android:layout_marginEnd="20sp"
-                android:layout_marginRight="20sp"
-                android:layout_marginBottom="15sp"
-                android:textIsSelectable="true"
-                android:hint=""
-                android:visibility="gone" />
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/send_previous"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20sp"
+                    android:layout_marginLeft="20sp"
+                    android:layout_marginEnd="20sp"
+                    android:layout_marginRight="20sp"
+                    android:layout_marginBottom="15sp"
+                    android:textIsSelectable="true"
+                    android:hint=""
+                    android:visibility="visible" />
+
+                <WebView
+                    android:id="@+id/send_contents_previous_webview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20sp"
+                    android:layout_marginLeft="20sp"
+                    android:layout_marginEnd="20sp"
+                    android:layout_marginRight="20sp"
+                    android:layout_marginBottom="15sp"
+                    android:textIsSelectable="true"
+                    android:visibility="visible"/>
+
+            </LinearLayout>
 
         </LinearLayout>
 

@@ -210,6 +210,8 @@ SQLCipher, Permissive, see file
 
 SQLCipher(Java), Apache 2.0
 
+Apache Commons, Apache 2.0
+
 # Translations
 
 In Portuguese by Hanelore

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/edit_account_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -55,7 +55,7 @@
             android:textColor="@color/color_title"
             android:visibility="visible" />
 
-    </android.support.v7.widget.Toolbar>
+    </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -117,7 +117,7 @@
                     android:layout_marginEnd="10sp"
                     android:layout_marginRight="10sp"
                     android:hint="@string/edit_account_email_hint"
-                    android:inputType="text|textNoSuggestions"
+                    android:inputType="textEmailAddress|textNoSuggestions"
                     android:labelFor="@string/edit_account_username" />
 
                 <TextView

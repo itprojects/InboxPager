@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.SortedMap;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,15 +33,17 @@ import net.inbox.db.Message;
 
 public class InboxMessageExpList extends BaseExpandableListAdapter {
 
+    private int current;
     private ArrayList<String> heads;
-    private SortedMap<String, ArrayList<Message>> details;
+    private SortedMap<String, ArrayList<Message>> msgs;
     private Context ctx;
 
-    public InboxMessageExpList(Context ct, ArrayList<String> head,
-                               SortedMap<String, ArrayList<Message>> d) {
+    InboxMessageExpList(int id, Context ct, ArrayList<String> head,
+                        SortedMap<String, ArrayList<Message>> mesgs) {
+        current = id;
         ctx = ct;
         heads = head;
-        details = d;
+        msgs = mesgs;
     }
 
     @Override
@@ -59,7 +63,8 @@ public class InboxMessageExpList extends BaseExpandableListAdapter {
 
     @Override
     public View getGroupView(int list_pos, boolean isExpanded, View v, ViewGroup parent) {
-        String head_mail = (String) getGroup(list_pos);
+        final String head_mail = (String) getGroup(list_pos);
+
         if (v == null) {
             LayoutInflater layoutInflater = (LayoutInflater) ctx
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -68,8 +73,23 @@ public class InboxMessageExpList extends BaseExpandableListAdapter {
         TextView message_group_title = v.findViewById(R.id.message_group_title);
         message_group_title.setText(head_mail);
 
+        // Direct Reply Send Option
+        ImageView iv_reply_to = v.findViewById(R.id.message_group_send_to);
+        iv_reply_to.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Prepare to write a direct reply to sender
+                Intent send_intent = new Intent(ctx.getApplicationContext(), InboxSend.class);
+                Bundle b = new Bundle();
+                b.putInt("db_id", current);
+                b.putString("reply-to", head_mail);
+                ((InboxPager) ctx).startActivityForResult(send_intent.putExtras(b), 10001);
+                ((InboxPager) ctx).overridePendingTransition(R.anim.left_in, R.anim.left_out);
+            }
+        });
+
         // Unread messages from sender
-        ArrayList<Message> ms = details.get(head_mail);
+        ArrayList<Message> ms = msgs.get(head_mail);
         boolean has_unread = false;
         if (ms != null) {
             for (int i = 0;i < ms.size();++i) {
@@ -77,7 +97,6 @@ public class InboxMessageExpList extends BaseExpandableListAdapter {
                     has_unread = true;
                     break;
                 }
-
             }
         }
 
@@ -89,12 +108,12 @@ public class InboxMessageExpList extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int list_pos) {
-        return details.get(heads.get(list_pos)).size();
+        return msgs.get(heads.get(list_pos)).size();
     }
 
     @Override
     public Object getChild(int list_pos, int exp_list_pos) {
-        return details.get(this.heads.get(list_pos)).get(exp_list_pos);
+        return msgs.get(this.heads.get(list_pos)).get(exp_list_pos);
     }
 
     @Override
@@ -103,8 +122,8 @@ public class InboxMessageExpList extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getChildView(int list_pos, final int exp_list_pos, boolean isLastChild,
-                             View v, ViewGroup parent) {
+    public View getChildView(int list_pos, final int exp_list_pos, boolean isLastChild, View v,
+                             ViewGroup parent) {
         Message m = (Message) getChild(list_pos, exp_list_pos);
         if (v == null) {
             LayoutInflater layoutInflater = (LayoutInflater) ctx

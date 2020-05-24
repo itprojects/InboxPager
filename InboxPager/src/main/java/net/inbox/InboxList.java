@@ -60,7 +60,7 @@ public class InboxList extends BaseAdapter {
         TextView tv_title = v.findViewById(R.id.inbox_list_title);
         tv_title.setText(itm.get_inbox());
         TextView tv_count = v.findViewById(R.id.inbox_list_count);
-        if (Integer.valueOf(itm.get_count()) < 1) {
+        if (Integer.parseInt(itm.get_count()) < 1) {
             tv_count.setVisibility(View.GONE);
         } else {
             tv_count.setVisibility(View.VISIBLE);
@@ -88,24 +88,24 @@ class InboxListItem {
         return id;
     }
 
-    public String get_inbox() {
+    String get_inbox() {
         return inbox_name;
     }
 
-    public String get_count() {
+    String get_count() {
         return count;
     }
 
-    public void set_count(int i) {
+    void set_count(int i) {
         if (i < 1) {
             count = "000";
         } else {
             if (i < 10) {
-                count = "00" + String.valueOf(i);
+                count = "00" + i;
             } if (i > 9 && i < 100) {
-                count = "0" + String.valueOf(i);
+                count = "0" + i;
             } else if (i > 999) {
-                count = "+" + String.valueOf(i);
+                count = "+" + i;
             }
         }
     }

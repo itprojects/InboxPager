@@ -17,12 +17,13 @@
 package net.inbox;
 
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
+
+import net.inbox.visuals.Dialogs;
 
 public class About extends AppCompatActivity {
 
@@ -48,14 +49,41 @@ public class About extends AppCompatActivity {
         }
 
         TextView tv_ver = findViewById(R.id.about_ver);
-        tv_ver.setText(String.valueOf(BuildConfig.VERSION_NAME));
+        tv_ver.setText(BuildConfig.VERSION_NAME);
+
+        TextView tv_app_license = findViewById(R.id.tv_app_license);
+        tv_app_license.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.license_long),
+                        (AppCompatActivity) v.getContext());
+            }
+        });
+
+        TextView tv_app_icon = findViewById(R.id.tv_app_icon);
+        tv_app_icon.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.cc_by_sa_link),
+                        (AppCompatActivity) v.getContext());
+            }
+        });
 
         TextView tv_font = findViewById(R.id.tv_font);
         tv_font.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                dialog_license(4);
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.license_long_font),
+                        (AppCompatActivity) v.getContext());
             }
         });
 
@@ -64,7 +92,22 @@ public class About extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                dialog_license(3);
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.license_long_open_keychain),
+                        (AppCompatActivity) v.getContext());
+            }
+        });
+
+        TextView tv_apache_foundation = findViewById(R.id.tv_apache_foundation);
+        tv_apache_foundation.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.license_long_apache_foundation),
+                        (AppCompatActivity) v.getContext());
             }
         });
 
@@ -73,7 +116,10 @@ public class About extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                dialog_license(1);
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.license_long_sql_cipher_java),
+                        (AppCompatActivity) v.getContext());
             }
         });
 
@@ -82,7 +128,21 @@ public class About extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                dialog_license(2);
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.license_long_sql_cipher_other),
+                        (AppCompatActivity) v.getContext());
+            }
+        });
+        TextView tv_stack_of = findViewById(R.id.tv_stack_of);
+        tv_stack_of.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.cc_by_sa_link),
+                        (AppCompatActivity) v.getContext());
             }
         });
     }
@@ -91,27 +151,5 @@ public class About extends AppCompatActivity {
     public void finish() {
         super.finish();
         overridePendingTransition(R.anim.left_in, R.anim.left_out);
-    }
-
-    private void dialog_license(int i) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setTitle(getString(R.string.dialog_license));
-        switch (i) {
-            case 1:
-                builder.setMessage(getString(R.string.license_long_sql_cipher_java));
-                break;
-            case 2:
-                builder.setMessage(getString(R.string.license_long_sql_cipher_other));
-                break;
-            case 3:
-                builder.setMessage(getString(R.string.license_long_open_keychain));
-                break;
-            case 4:
-                builder.setMessage(getString(R.string.license_long_font));
-                break;
-        }
-        builder.setPositiveButton(getString(android.R.string.ok), null);
-        builder.show();
     }
 }

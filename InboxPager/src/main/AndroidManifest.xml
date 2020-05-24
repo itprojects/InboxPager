@@ -33,10 +33,10 @@
             android:configChanges="orientation"
             android:windowSoftInputMode="stateHidden|adjustResize"/>
         <activity
-            android:name=".dialogs.SendFilePicker"
+            android:name=".visuals.SendFilePicker"
             android:configChanges="orientation"/>
         <activity
-            android:name=".dialogs.FileDownloadPicker"
+            android:name=".visuals.FileDownloadPicker"
             android:configChanges="orientation"/>
         <activity android:name=".Settings"/>
         <activity android:name=".InboxGPG" android:label="OpenPGP"/>

@@ -2,18 +2,17 @@
 
     <string name="app_name">Inbox Pager</string>
     <string name="author">Copyright &#169; 2016 &#8211; 2020  ITPROJECTS</string>
-    <string name="disclaimer">DISCLAIMER:\n</string>
-    <string name="disclaimer_text">The author(s) of this software are not liable for ANY damages that this software may cause - accidental or otherwise, under ANY and EVERY law or regulation, and in ANY and EVERY country or territory of the world.
-    </string>
+    <string name="disclaimer">DISCLAIMER:</string>
+    <string name="disclaimer_text">The authors of this software are not liable for ANY damages that this software may cause - accidental or otherwise, under ANY and EVERY law or regulation, and in ANY and EVERY country or territory of the world.</string>
     <string name="dialog_license">License Information</string>
     <string name="license">Application License: General Public License 3</string>
     <string name="license_long" translatable="false">This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\n
         This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\n
         You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
     </string>
-    <string name="license_media_files">Application Icon, CC-BY-SA: Creative Commons Attribution Share Alike 4.0 International Public License </string>
-    <string name="license_font">Dottz Font, SIL-OFL 1.1 License, ITPROJECTS</string>
-    <string name="license_long_font" translatable="false">Copyright (&#169;) 2016 &#8211; 2019 ITPROJECTS\n\nSIL OPEN FONT LICENSE\n\nVersion 1.1 - 26 February 2007\nPREAMBLE\n\nThe goals of the Open Font License (OFL) are to stimulate worldwide development of collaborative font projects,
+    <string name="license_media_files" translatable="false">Application Icon:\nCC-BY-SA, Creative Commons Attribution Share Alike 4.0 International Public License</string>
+    <string name="license_font" translatable="false">Dottz Font:\nSIL-OFL 1.1 License, ITPROJECTS</string>
+    <string name="license_long_font" translatable="false">Copyright (&#169;) 2016 &#8211; 2020 ITPROJECTS\n\nSIL OPEN FONT LICENSE\n\nVersion 1.1 - 26 February 2007\nPREAMBLE\n\nThe goals of the Open Font License (OFL) are to stimulate worldwide development of collaborative font projects,
         to support the font creation efforts of academic and linguistic communities, and to provide a free and open framework in which fonts may be shared and improved in partnership with others.\n\n
         The OFL allows the licensed fonts to be used, studied, modified and redistributed freely as long as they are not sold by themselves. The fonts, including any derivative works, can be bundled, embedded,
         redistributed and/or sold with any software provided that any reserved names are not used by derivative works. The fonts and derivatives, however, cannot be released under any other type of license.
@@ -35,7 +34,14 @@
         IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
         OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.</string>
     <string name="license_open_keychain">OpenKeychain (Java) Apache License, Version 2.0.</string>
-    <string name="license_long_open_keychain" translatable="false">Copyright (&#169;) Copyright (C) 2016 &#8211; 2017  ITPROJECTS\nCopyright (&#169;) 2013 &#8211; 2015 Dominik Schürmann dominik@dominikschuermann.de\n\nLicensed under the Apache License, Version 2.0 (the "License");
+    <string name="license_long_open_keychain" translatable="false">Copyright (&#169;) Copyright (C) 2016 &#8211; 2020  ITPROJECTS\nCopyright (&#169;) 2013 &#8211; 2015 Dominik Schürmann dominik@dominikschuermann.de\n\nLicensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.You may obtain a copy of the License at\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\n
+        Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+        "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and limitations under the License.\n
+    </string>
+    <string name="license_apache_foundation" translatable="false">Apache Software Foundation Classes Apache License, Version 2.0.</string>
+    <string name="license_long_apache_foundation" translatable="false">Copyright (&#169;) 2004 The Apache Software Foundation\n\nLicensed under the Apache License, Version 2.0 (the "License");
         you may not use this file except in compliance with the License.You may obtain a copy of the License at\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\n
         Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
         "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,11 +65,8 @@
         EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </string>
     <string name="cc_by_sa" translatable="false">Stack Overflow Material</string>
-    <string name="cc_by_sa_long" translatable="false">\nLicense:\n\nhttps://creativecommons.org/licenses/by-sa/4.0\nhttps://creativecommons.org/licenses/by-sa/4.0/legalcode\n\nModified X.509 Certificate identification\n\n
-        Suggested by Julio López Torres https://github.com/juliolopeztorres\n\nFrom an answer by HTLee:\nhttps://stackoverflow.com/questions/32573317/how-to-determine-length-of-x509-public-key/43984402#43984402\n\n
-        Modified SHA256 X.509 Certificate fingerprinting\n\nFrom an answer by Ramanarayan:\n
-        https://stackoverflow.com/questions/4803799/how-to-calculate-x-509-certificates-sha-1-fingerprint
-    </string>
+    <string name="cc_by_sa_link" translatable="false">creativecommons.org/licenses/by-sa/4.0\n\ncreativecommons.org/licenses/by-sa/4.0/legalcode</string>
+    <string name="cc_by_sa_long" translatable="false">\nModified X.509\nCertificate identification\n\nSuggested by Julio López Torres\ngithub.com/juliolopeztorres\n\nFrom an answer by HTLee:\nstackoverflow.com/questions/32573317/how-to-determine-length-of-x509-public-key/43984402#43984402\n\nModified SHA256 X.509\nCertificate fingerprinting\n\nFrom an answer by Ramanarayan:\nstackoverflow.com/questions/4803799/how-to-calculate-x-509-certificates-sha-1-fingerprint</string>
 
     <!-- Progress Dialog Spinner -->
     <string name="progress_title">Refreshing</string>
@@ -112,35 +115,32 @@
     <string name="err_msg_write_perms">You do not have the folder permission to save your file in your chosen folder.</string>
     <string name="err_title_no_space">No space</string>
     <string name="err_msg_no_space">You do not seem to have enough space on your device to save this file.</string>
-    <string name="err_msg_qp_warn">This attachment is encoded in the quoted-printable format, which is not fully supported. The file will be saved as text data.</string>
     <string name="err_title_empty_name">Name Required</string>
     <string name="err_title_already_exists">File Already Exists</string>
     <string name="err_title_file_is_duplicate">File is already attached.</string>
     <string name="err_msg_already_exists">Would you like to replace this file?</string>
     <string name="err_msg_empty_name">Your file will be saved under the name:</string>
     <string name="err_title_android_permission">Android Permissions</string>
-    <string name="err_msg_android_permission">You forgot to enable android storage access permissions from Settings > Applications > THIS APP > Permissions.</string>
     <string name="err_wrong_user_or_pass">Wrong user name or password</string>
     <string name="err_read_file">You do not have the permission to read this file.</string>
     <string name="err_size_attachments_title">Attachments Problem</string>
     <string name="err_size_attachments">Your attachments are larger than the outgoing server will allow. Remove some attachments.</string>
-    <string name="err_size_attachments_continue">Ignore &amp; Continue</string>
+    <string name="err_size_attachments_continue">Ignore and Continue</string>
     <string name="err_no_rcpt">No recipient!</string>
     <string name="err_too_many_rcpt">Too many recipients. Maximum is 100.</string>
-    <string name="err_msg_too_heavy">This message is too big. Try removing attachments and/or sending text in multiple messages.</string>
+    <string name="err_msg_too_heavy">Try removing attachments and/or sending text in multiple messages.</string>
     <string name="err_no_8_bit_mime">8-BIT server transfer support missing. Attachment transfer errors are possible.</string>
     <string name="err_no_authentication">Server does not seem to support the authentication types used by this application.</string>
-    <string name="err_no_ehlo">Server does not support the "EHLO" extensions listing command.</string>
-    <string name="err_no_capability">Server does not support the "CAPABILITY" abilities listing command.</string>
-    <string name="err_no_capa">Server does not support the "CAPA" extensions listing command.</string>
-    <string name="err_no_extension">Server does not support either "AUTH/SASL" or "UIDL" extension.</string>
+    <string name="err_no_ehlo">Server does not support the EHLO extensions listing command.</string>
+    <string name="err_no_capability">Server does not support the CAPABILITY listing command.</string>
+    <string name="err_no_capa">Server does not support the CAPA extensions listing command.</string>
+    <string name="err_no_extension">Server does not support either AUTH/SASL or UIDL extension.</string>
     <string name="err_pop_immediate">Server deletes emails after reading.</string>
     <string name="err_pop_expiration">Server deletes emails after %s days.</string>
     <string name="err_server_not_configured">Outgoing server has not been configured correctly.</string>
-    <string name="err_no_full_msg">Full message not found in database.\nDownload from server first.</string>
     <string name="err_not_saved">Could not complete save action.</string>
     <string name="err_imap_attachment_saving">Offline IMAP attachment file saving failed. Download attachment online and delete full message from database.</string>
-    <string name="err_action_failed">Action failed (see log file).</string>
+    <string name="err_action_failed">Action failed (see log).</string>
     <string name="err_refresh">Errors in</string>
     <string name="err_pick_signing_key">Pick a signing key!</string>
     <string name="err_pick_rcpt_keys">Pick recipient keys!</string>
@@ -161,6 +161,7 @@
     <string name="helper_title">Welcome!</string>
     <string name="helper_msg">Have an enjoyable messaging, and remember to setup a data protection password, in the settings menu, or your accounts may get easily compromised.</string>
     <string name="btn_pw">SET PASSWORD</string>
+    <string name="btn_continue">Continue</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_yes">Yes</string>
     <string name="btn_no">No</string>
@@ -184,16 +185,16 @@
     <string name="edit_account_email_hint">your.account@example.com</string>
     <string name="edit_account_username">Username</string>
     <string name="edit_account_pass">Password</string>
-    <string name="edit_account_incoming_server_hint_pop">pop.example.com</string>
+    <string name="edit_account_incoming_server_hint_pop" translatable="false">pop.example.com</string>
     <string name="edit_account_incoming_server_port_hint_pop" translatable="false">995</string>
-    <string name="edit_account_incoming_server_hint_imap">imap.example.com</string>
+    <string name="edit_account_incoming_server_hint_imap" translatable="false">imap.example.com</string>
     <string name="edit_account_incoming_server_port_hint_imap" translatable="false">993</string>
-    <string name="edit_account_imap_or_pop_switchOn">IMAP  pop</string>
-    <string name="edit_account_imap_or_pop_switchOff">POP  imap</string>
-    <string name="edit_account_imap_or_pop_on">IMAP</string>
-    <string name="edit_account_imap_or_pop_off">POP</string>
-    <string name="edit_account_smtp">SMTP</string>
-    <string name="edit_account_smtp_server_hint">smtp.example.com</string>
+    <string name="edit_account_imap_or_pop_switchOn" translatable="false">IMAP  pop</string>
+    <string name="edit_account_imap_or_pop_switchOff" translatable="false">POP  imap</string>
+    <string name="edit_account_imap_or_pop_on" translatable="false">IMAP</string>
+    <string name="edit_account_imap_or_pop_off" translatable="false">POP</string>
+    <string name="edit_account_smtp" translatable="false">SMTP</string>
+    <string name="edit_account_smtp_server_hint" translatable="false">smtp.example.com</string>
     <string name="edit_account_smtp_server_port_hint" translatable="false">465</string>
     <string name="edit_account_auto_check">Allow in all-accounts-refresh</string>
     <string name="edit_account_always_ask_pass">Ask for password every time</string>
@@ -205,7 +206,7 @@
     <string name="edit_account_check_smtp">Try Outgoing</string>
     <string name="edit_account_checking">Checking…</string>
     <string name="edit_account_check_login_types">Authentication:</string>
-    <string name="edit_account_check_other">Other: </string>
+    <string name="edit_account_check_other">Other:</string>
     <string name="edit_account_check_fail">Failed to communicate with server.</string>
     <string name="edit_account_bad_params">Bad parameters</string>
     <string name="edit_account_bad_email">, email</string>
@@ -217,24 +218,24 @@
     <string name="edit_account_not_saved">NOT Saved!</string>
     <string name="edit_account_delete">DELETE</string>
     <string name="edit_account_test_results">Test Results</string>
-    <string name="edit_account_pop1">POP3:110</string>
-    <string name="edit_account_pop2">POP3-Secure:995</string>
-    <string name="edit_account_imap1">IMAP:143</string>
-    <string name="edit_account_imap2">IMAP-Secure:993</string>
-    <string name="edit_account_smtp1">SMTP:25</string>
-    <string name="edit_account_smtp2">SMTP-Secure:465</string>
-    <string name="edit_account_smtp3">SMTP:587</string>
+    <string name="edit_account_pop1" translatable="false">POP3:110</string>
+    <string name="edit_account_pop2" translatable="false">POP3S:995</string>
+    <string name="edit_account_imap1" translatable="false">IMAP:143</string>
+    <string name="edit_account_imap2" translatable="false">IMAPS:993</string>
+    <string name="edit_account_smtp1" translatable="false">SMTP:25</string>
+    <string name="edit_account_smtp2" translatable="false">SMTPS:465</string>
+    <string name="edit_account_smtp3" translatable="false">SMTP:587</string>
 
     <!-- InboxMessage activity -->
     <string name="btn_up_one_level">▲ UP</string>
     <string name="menu_download_msg">Download ➠ Database</string>
     <string name="menu_save_message">Save ➠ Device</string>
-    <string name="menu_write_reply">Write a Reply</string>
     <string name="menu_delete_from_server">Delete From Server</string>
     <string name="menu_delete_full_message">Delete Full Message (DB)</string>
     <string name="menu_delete_full_messages">Delete Full Messages</string>
     <string name="menu_see_full_message">View Full Message</string>
     <string name="menu_see_full_message_title">Full Message</string>
+    <string name="message_reply">REPLY</string>
     <string name="message_action_done">Done</string>
     <string name="message_dialog">Received FROM</string>
     <string name="message_from">FROM</string>
@@ -244,10 +245,8 @@
     <string name="message_subject">SUBJECT</string>
     <string name="message_date">DATE</string>
     <string name="message_contents">MESSAGE</string>
-    <string name="message_contents_loop_no">NO TEXT</string>
     <string name="message_contents_loop_plain">PLAIN</string>
     <string name="message_contents_loop_html">HTML</string>
-    <string name="message_contents_loop_other">OTHER</string>
     <string name="message_no_full_message">Full message deleted from database.</string>
     <string name="message_no_full_messages">Full messages deleted from database.</string>
     <string name="message_keep_in_database">Keep full message in database?</string>
@@ -256,7 +255,7 @@
     <string name="send_send">SEND</string>
     <string name="send_sent">Sent.</string>
     <string name="send_spin">Sending…</string>
-    <string name="send_addresses_hint">A@foo.com, B@foo.net,</string>
+    <string name="send_addresses_hint" translatable="false">A@foo.com, B@foo.net,</string>
     <string name="send_attachments">Attachments</string>
     <string name="send_wait">Wait a few seconds.</string>
     <string name="send_headers_sent">Headers sent. Sending Contents…</string>
@@ -279,12 +278,16 @@
     <string name="sett_vibrates_download_summary">Device will vibrate, when new messages arrive.</string>
     <string name="sett_msg_font_size_title">Font SIZE</string>
     <string name="sett_msg_font_size_summary">Font size for the fields, when viewing a message.</string>
-    <string name="sett_change_pw_title">Security Alteration</string>
-    <string name="sett_change_pw_summary">Set or change internal database password, or deactivate protection.</string>
-    <string name="sett_change_pw_enable">Require Password</string>
+    <string name="sett_enable_pw_title">Password Protection</string>
+    <string name="sett_enable_pw_summary_off">Password Status: DISABLED.</string>
+    <string name="sett_enable_pw_summary_on">Password Status: ENABLED.</string>
+    <string name="sett_change_pw_title">Password</string>
     <string name="sett_change_pw_new">NEW PASSWORD</string>
-    <string name="sett_change_pw_visible">VISIBLE PASSWORD</string>
-    <string name="sett_change_pw_text">Minimum 12 characters long.</string>
+    <string name="sett_change_pw_retype">REPEAT NEW PASS</string>
+    <string name="sett_change_pw_text">>= 12 symbols</string>
+    <string name="sett_change_pw_q">Remove or Change Password?</string>
+    <string name="sett_change_pw_remove">Remove</string>
+    <string name="sett_change_pw_change">Change</string>
 
     <!-- GPG -->
     <string name="open_pgp_dialog_title">Cryptography</string>
@@ -292,7 +295,7 @@
     <string name="open_pgp_ready">READY</string>
     <string name="open_pgp_start">START</string>
     <string name="open_pgp_press_start">Press START button.</string>
-    <string name="open_pgp_none_found">OpenKeychain not found!\nNo encryption/decryption!!</string>
+    <string name="open_pgp_none_found">OpenKeychain not found! No encryption/decryption!!</string>
     <string name="open_pgp_list_items_encrypt">Encrypt message</string>
     <string name="open_pgp_list_items_sign_encrypt">Sign and encrypt message</string>
     <string name="open_pgp_list_items_detach_sign">Sign clear text message</string>
@@ -308,5 +311,7 @@
     <string name="open_pgp_failure">FAILURE!</string>
     <string name="open_pgp_bad_signature">No signatures, bad signature, or a transmission error.</string>
     <string name="open_pgp_encrypt_to_self">Also encrypt to signing key</string>
+    <string name="err_no_full_msg">Full message not found in database. Download from server first.</string>
+    <string name="message_contents_loop_no">NO TEXT</string>
 
 </resources>

@@ -16,33 +16,44 @@
  **/
 package net.inbox;
 
-import android.annotation.SuppressLint;
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
-import net.inbox.dialogs.Dialogs;
-import net.inbox.dialogs.SendFilePicker;
-import net.inbox.dialogs.SpinningStatus;
+import net.inbox.server.Utils;
+import net.inbox.visuals.Dialogs;
+import net.inbox.visuals.SendFilePicker;
+import net.inbox.visuals.SpinningStatus;
 import net.inbox.server.Handler;
 import net.inbox.server.SMTP;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class InboxSend extends AppCompatActivity {
 
@@ -62,7 +73,7 @@ public class InboxSend extends AppCompatActivity {
     private TextView tv_attachments;
     private ImageView iv_encryption;
     private TextView tv_encryption_reset;
-    private TextView tv_previous;
+    private LinearLayout llay_send_previous;
 
     // GPG variables
     private boolean crypto_locked = false;
@@ -100,8 +111,11 @@ public class InboxSend extends AppCompatActivity {
                 good_incoming_server = savedInstanceState.getBoolean("sv_good_incoming_server");
             }
 
+            // Check for extras
+            Bundle buns = getIntent().getExtras();
+
             // Get the database
-            current_inbox = InboxPager.get_db().get_account(getIntent().getExtras().getInt("db_id"));
+            current_inbox = InboxPager.get_db().get_account(getIntent().getIntExtra("db_id", -99));
 
             Toolbar tb = findViewById(R.id.send_toolbar);
             setSupportActionBar(tb);
@@ -112,8 +126,10 @@ public class InboxSend extends AppCompatActivity {
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayShowHomeEnabled(false);
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
-                String s_title = getIntent().getExtras().getString("title");
-                if (s_title != null) send_title.setText(s_title.toUpperCase());
+                if (buns != null) {
+                    String s_title = buns.getString("title");
+                    if (s_title != null) send_title.setText(s_title.toUpperCase());
+                }
             }
 
             TextView tv_send = findViewById(R.id.tv_send);
@@ -220,55 +236,96 @@ public class InboxSend extends AppCompatActivity {
 
             // If replying to a message
             String reply_to;
-            String subject_of = "";
-            if (getIntent().getExtras().containsKey("subject")) {
-                subject_of = getIntent().getExtras().getString("subject");
-                et_subject.setText(subject_of);
-            }
-            if (getIntent().getExtras().containsKey("reply-to")) {
-                reply_to = getIntent().getExtras().getString("reply-to");
-                et_to.setText(reply_to);
-            }
-            if (getIntent().getExtras().containsKey("reply-cc")) {
-                et_cc.setText(getIntent().getExtras().getString("reply-cc"));
-                sw_cc.setChecked(true);
-            }
-            if (getIntent().getExtras().containsKey("previous_letter")) {
-                if (getIntent().getExtras().getString("previous_letter").equals("NO_TEXT")) {
-                    tv_previous = findViewById(R.id.send_previous);
-                    tv_previous.setVisibility(View.GONE);
-                    Switch sw_previous = findViewById(R.id.send_sw_previous);
-                    sw_previous.setVisibility(View.GONE);
-                } else {
-                    tv_previous = findViewById(R.id.send_previous);
-                    tv_previous.setText(getIntent().getExtras().getString("previous_letter"));
-                    Switch sw_previous = findViewById(R.id.send_sw_previous);
-                    sw_previous.setVisibility(View.VISIBLE);
-                    sw_previous.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            String subject_of;
 
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                tv_previous.setVisibility(View.VISIBLE);
-                            } else {
-                                tv_previous.setVisibility(View.GONE);
-                            }
+            if (buns != null) {
+                if (buns.containsKey("subject")) {
+                    subject_of = buns.getString("subject");
+                    et_subject.setText("Re: " + subject_of);
+                }
+                if (buns.containsKey("reply-to")) {
+                    reply_to = buns.getString("reply-to");
+                    et_to.setText(reply_to);
+                }
+                if (buns.containsKey("reply-cc")) {
+                    et_cc.setText(buns.getString("reply-cc"));
+                    sw_cc.setChecked(true);
+                }
+                if (buns.containsKey("previous_letter")) {
+                    if (buns.getString("previous_letter", "ERROR").equals("NO_TEXT")) {
+                        llay_send_previous = findViewById(R.id.llay_send_previous);
+                        llay_send_previous.setVisibility(View.GONE);
+                        Switch sw_previous = findViewById(R.id.send_sw_previous);
+                        sw_previous.setVisibility(View.GONE);
+                    } else {
+                        llay_send_previous = findViewById(R.id.llay_send_previous);
+                        llay_send_previous.setVisibility(View.VISIBLE);
+
+                        TextView tv_previous;
+                        WebView webview;
+
+                        if (buns.getString("previous_letter").contains("<!DOCTYPE html>")) {
+                            webview = findViewById(R.id.send_contents_previous_webview);
+                            webview.setBackgroundColor(Color.TRANSPARENT);
+                            Settings.setup_webview(webview.getSettings());
+                            webview.loadDataWithBaseURL(null,
+                                    buns.getString("previous_letter"),
+                                    "text/html", "UTF-8", null);
+                        } else {
+                            tv_previous = findViewById(R.id.send_previous);
+                            tv_previous.setText(buns.getString("previous_letter"));
                         }
-                    });
-                    sw_previous.setChecked(true);
+
+
+                        Switch sw_previous = findViewById(R.id.send_sw_previous);
+                        sw_previous.setVisibility(View.VISIBLE);
+                        sw_previous.setOnCheckedChangeListener(
+                                new CompoundButton.OnCheckedChangeListener() {
+
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                if (isChecked) {
+                                    llay_send_previous.setVisibility(View.VISIBLE);
+                                } else {
+                                    llay_send_previous.setVisibility(View.GONE);
+                                }
+                            }
+                        });
+                        sw_previous.setChecked(true);
+                    }
                 }
             }
         } catch (Exception e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             finish();
         }
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.send_action_btns, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.log_menu:
+                Dialogs.dialog_view_log(this);
+                break;
+        }
+
+        return true;
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             attachment_paths = data.getStringArrayListExtra("attachments");
-            if (attachment_paths.size() > 0) {
+            if (attachment_paths != null  && attachment_paths.size() > 0) {
                 tv_attachments.setText(String.valueOf(attachment_paths.size()));
             } else {
                 tv_attachments.setText("");
@@ -324,12 +381,14 @@ public class InboxSend extends AppCompatActivity {
                 startActivityForResult(pick_intent.putExtras(b), 19991);
                 overridePendingTransition(0, 0);
             } else {
-                // Permissions to read files missing
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(getString(R.string.err_title_android_permission));
-                builder.setMessage(getString(R.string.err_msg_android_permission));
-                builder.setPositiveButton(getString(android.R.string.ok), null);
-                builder.show();
+                // Missing permissions. Asking for read and write permissions.
+                if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, new String[]{
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE }, 62999);
+                }
             }
         } else {
             Dialogs.toaster(true, getString(R.string.send_unlock_first), this);
@@ -343,98 +402,64 @@ public class InboxSend extends AppCompatActivity {
         // Wait for the checks to complete
         sending_active = true;
 
-        // Testing To
+        int to_count = 0;
+        int cc_count = 0;
+        int bcc_count = 0;
+
         String s_to = et_to.getText().toString().trim();
+        String s_cc = "";
+        String s_bcc = "";
+        if (sw_cc.isChecked()) s_cc = et_cc.getText().toString().trim();
+        if (sw_bcc.isChecked()) s_bcc = et_bcc.getText().toString().trim();
+
+        // Testing To
         if (s_to.isEmpty()) {
             // No recipient = no message
-            Dialogs.dialog_error_line(getString(R.string.err_no_rcpt), this);
+            Dialogs.dialog_simple(null, getString(R.string.err_no_rcpt), this);
+            InboxPager.log = InboxPager.log.concat(getString(R.string.err_no_rcpt) + "\n\n");
             sending_active = false;
             return;
         }
 
-        String[] arr_to = s_to.split(",");
-        int to_count = 0;
-        for (String s_to_name : arr_to) { if (!s_to_name.trim().isEmpty()) ++to_count; }
-        if (to_count == 0) {
-            // No recipient = no message
-            Dialogs.dialog_error_line(getString(R.string.err_no_rcpt), this);
-            sending_active = false;
-            return;
-        }
-        if (arr_to.length != to_count) {
-            ArrayList<String> new_to = new ArrayList<>();
-            for (String s_to_name : arr_to) {
-                if (!s_to_name.trim().isEmpty()) {
-                    new_to.add(s_to_name.trim());
-                }
-            }
-            s_to = "";
-            for (int i = 0;i < new_to.size();++i) {
-                if (i == (new_to.size() - 1)) {
-                    s_to += new_to.get(i);
-                } else {
-                    s_to = s_to.concat(new_to.get(i) + ",");
-                }
-            }
+        HashMap<String, String> adrs = Utils.parse_addresses(new String[]{ s_to, s_cc, s_bcc });
+
+        // Testing TO
+        if (!s_to.trim().isEmpty() && (adrs.get("TO_") != null)) {
+            int ind = adrs.get("TO_").indexOf("|");
+            to_count = Integer.parseInt(adrs.get("TO_").substring(0, ind));
+            s_to = adrs.get("TO_").substring(ind + 1);
         }
         int to_size = s_to.getBytes().length;
 
-        // Testing Carbon Copy
-        String s_cc = "";
-        int cc_count = 0;
-        if (sw_cc.isChecked()) s_cc = et_cc.getText().toString().trim();
-        if (!s_cc.isEmpty()) {
-            String[] arr_cc = s_cc.split(",");
-            for (String s_to_name : arr_cc) { if (!s_to_name.trim().isEmpty()) ++cc_count; }
-            if (arr_cc.length != to_count) {
-                ArrayList<String> new_to = new ArrayList<>();
-                for (String s_to_name : arr_cc) {
-                    if (!s_to_name.trim().isEmpty()) {
-                        new_to.add(s_to_name.trim());
-                    }
-                }
-                s_cc = "";
-                for (int i = 0;i < new_to.size();++i) {
-                    if (i == (new_to.size() - 1)) {
-                        s_cc += new_to.get(i);
-                    } else {
-                        s_cc = s_cc.concat(new_to.get(i) + ",");
-                    }
-                }
-            }
+        if (to_count == 0) {
+            // No recipient = no message
+            Dialogs.dialog_simple(null, getString(R.string.err_no_rcpt), this);
+            InboxPager.log = InboxPager.log.concat(getString(R.string.err_no_rcpt) + "\n\n");
+            sending_active = false;
+            return;
+        }
+
+        // Testing CC
+        if (!s_cc.trim().isEmpty() && (adrs.get("CC_") != null)) {
+            int ind = adrs.get("CC_").indexOf("|");
+            cc_count = Integer.parseInt(adrs.get("CC_").substring(0, ind));
+            s_cc = adrs.get("CC_").substring(ind + 1);
         }
         int cc_size = s_cc.getBytes().length;
 
-        // Testing Blind Carbon Copy
-        String s_bcc = "";
-        int bcc_count = 0;
-        if (sw_bcc.isChecked()) s_bcc = et_bcc.getText().toString().trim();
-        if (!s_bcc.isEmpty()) {
-            String[] arr_bcc = s_bcc.split(",");
-            for (String s_to_name : arr_bcc) { if (!s_to_name.trim().isEmpty()) ++bcc_count; }
-            if (arr_bcc.length != to_count) {
-                ArrayList<String> new_to = new ArrayList<>();
-                for (String s_to_name : arr_bcc) {
-                    if (!s_to_name.trim().isEmpty()) {
-                        new_to.add(s_to_name.trim());
-                    }
-                }
-                s_bcc = "";
-                for (int i = 0;i < new_to.size();++i) {
-                    if (i == (new_to.size() - 1)) {
-                        s_bcc += new_to.get(i);
-                    } else {
-                        s_bcc = s_bcc.concat(new_to.get(i) + ",");
-                    }
-                }
-            }
+        // Testing BCC
+        if (!s_bcc.trim().isEmpty() && (adrs.get("BCC") != null)) {
+            int ind = adrs.get("BCC").indexOf("|");
+            bcc_count = Integer.parseInt(adrs.get("BCC").substring(0, ind));
+            s_bcc = adrs.get("BCC").substring(ind + 1);
         }
         int bcc_size = s_bcc.getBytes().length;
 
         // Testing if there are more than 100 recipients
         if ((to_count + cc_count + bcc_count) > 100) {
             // Too many recipients
-            Dialogs.dialog_error_line(getString(R.string.err_too_many_rcpt), this);
+            Dialogs.dialog_simple(null, getString(R.string.err_too_many_rcpt), this);
+            InboxPager.log = InboxPager.log.concat(getString(R.string.err_too_many_rcpt) + "\n\n");
             sending_active = false;
             return;
         }
@@ -448,7 +473,8 @@ public class InboxSend extends AppCompatActivity {
         // Testing attachments size
         if (attachments_size >= total_size_limit) {
             // Server will refuse the message, attachments too big
-            Dialogs.dialog_error_line(getString(R.string.err_size_attachments), this);
+            Dialogs.dialog_simple(null, getString(R.string.err_size_attachments), this);
+            InboxPager.log = InboxPager.log.concat(getString(R.string.err_size_attachments) + "\n\n");
             sending_active = false;
             return;
         }
@@ -461,7 +487,8 @@ public class InboxSend extends AppCompatActivity {
 
         if (current_total_size >= total_size_limit) {
             // Server will refuse the message, it's too big
-            Dialogs.dialog_error_line(getString(R.string.err_msg_too_heavy), this);
+            Dialogs.dialog_simple(null, getString(R.string.err_msg_too_heavy), this);
+            InboxPager.log = InboxPager.log.concat(getString(R.string.err_msg_too_heavy) + "\n\n");
             sending_active = false;
             return;
         }
@@ -503,7 +530,6 @@ public class InboxSend extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("WrongConstant")
     public void handle_orientation(boolean fixed_or_rotating) {
         if (fixed_or_rotating) {
             InboxPager.orientation = getResources().getConfiguration().orientation;
@@ -512,6 +538,7 @@ public class InboxSend extends AppCompatActivity {
     }
 
     public void connection_security() {
+        if (handler == null) return;
         good_incoming_server = handler.get_hostname_verify();
         if (good_incoming_server) {
             if (handler != null && handler.get_last_connection_data() != null
@@ -519,10 +546,8 @@ public class InboxSend extends AppCompatActivity {
                 good_incoming_server = !handler.get_last_connection_data().isEmpty();
                 iv_ssl_auth.setVisibility(View.VISIBLE);
                 if (good_incoming_server) {
-                    good_incoming_server = true;
                     iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
                 } else {
-                    good_incoming_server = false;
                     iv_ssl_auth.setImageResource(R.drawable.padlock_error);
                 }
             } else {
@@ -638,7 +663,6 @@ public class InboxSend extends AppCompatActivity {
             b.putInt("request-code", 91);
             gpg = gpg.putExtras(b);
             startActivityForResult(gpg, 91, null);
-            overridePendingTransition(R.anim.left_in, R.anim.left_out);
         }
     }
 

@@ -16,34 +16,37 @@
  **/
 package net.inbox;
 
-import android.annotation.SuppressLint;
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.Html;
-import android.text.Spanned;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import net.inbox.db.Attachment;
 import net.inbox.db.DBAccess;
 import net.inbox.db.Message;
-import net.inbox.dialogs.Dialogs;
-import net.inbox.dialogs.FileDownloadPicker;
-import net.inbox.dialogs.SpinningStatus;
+import net.inbox.visuals.Dialogs;
+import net.inbox.visuals.FileDownloadPicker;
+import net.inbox.visuals.SpinningStatus;
 import net.inbox.server.Handler;
 import net.inbox.server.IMAP;
 import net.inbox.server.POP;
@@ -56,6 +59,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.inbox.visuals.Dialogs.dialog_simple;
+
 public class InboxMessage extends AppCompatActivity {
 
     // Prevents intent extras limit of < 1 MB
@@ -64,6 +69,7 @@ public class InboxMessage extends AppCompatActivity {
     private DBAccess db;
     private Handler handler;
 
+    private WebView webview;
     private TextView tv_contents;
     private TextView tv_texts;
     private ImageView iv_ssl_auth;
@@ -126,12 +132,15 @@ public class InboxMessage extends AppCompatActivity {
             // Get the database
             db = InboxPager.get_db();
 
-            if (getIntent().getExtras() != null) {
-                current = db.get_message(getIntent().getExtras().getInt("db_id"));
+            // Check for extras
+            Bundle buns = getIntent().getExtras();
+
+            if (buns != null) {
+                current = db.get_message(buns.getInt("db_id"));
+                current_inbox = buns.getInt("db_inbox");
+                imap_or_pop = buns.getBoolean("imap_or_pop");
+                no_send = buns.getBoolean("no_send");
             }
-            current_inbox = getIntent().getExtras().getInt("db_inbox");
-            imap_or_pop = getIntent().getExtras().getBoolean("imap_or_pop");
-            no_send = getIntent().getExtras().getBoolean("no_send");
 
             // Crypto information
             if (current.get_contents_crypto() != null) {
@@ -153,8 +162,24 @@ public class InboxMessage extends AppCompatActivity {
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayShowHomeEnabled(false);
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
-                String s_title = getIntent().getExtras().getString("title");
-                if (s_title != null) message_title.setText(s_title.toUpperCase());
+                if (buns != null) {
+                    String s_title = buns.getString("title");
+                    if (s_title != null) message_title.setText(s_title.toUpperCase());
+                }
+            }
+
+            TextView tv_reply = findViewById(R.id.tv_reply);
+            tv_reply.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    write_reply();
+                }
+            });
+            if (no_send) {
+                tv_reply.setVisibility(View.GONE);
+            } else {
+                tv_reply.setVisibility(View.VISIBLE);
             }
 
             // Message Attachments Counter
@@ -181,6 +206,10 @@ public class InboxMessage extends AppCompatActivity {
             TextView tv_date = findViewById(R.id.message_date);
             tv_contents = findViewById(R.id.message_contents);
             tv_texts = findViewById(R.id.message_loop);
+
+            webview = findViewById(R.id.message_contents_webview);
+            webview.setBackgroundColor(Color.TRANSPARENT);
+            Settings.setup_webview(webview.getSettings());
 
             // Setting the correct size
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -212,7 +241,9 @@ public class InboxMessage extends AppCompatActivity {
 
                 @Override
                 public void onClick(View v) {
-                    dialog_originating();
+                    // Dialog showing the IP or server of the message sender.
+                    dialog_simple(getString(R.string.message_dialog), current.get_received(),
+                            (AppCompatActivity) v.getContext());
                 }
             });
 
@@ -263,7 +294,7 @@ public class InboxMessage extends AppCompatActivity {
                 iv_gpg_crypto.setVisibility(View.GONE);
             }
         } catch (Exception e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             finish();
         }
     }
@@ -272,11 +303,7 @@ public class InboxMessage extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.message_action_btns, menu);
-        if (no_send) {
-            menu.findItem(R.id.write_reply_menu).setVisible(false);
-        } else {
-            menu.findItem(R.id.write_reply_menu).setVisible(true);
-        }
+
         return true;
     }
 
@@ -302,13 +329,6 @@ public class InboxMessage extends AppCompatActivity {
                 // Save a message to permanent device memory
                 open_folder_picker(true);
                 break;
-            case R.id.write_reply_menu:
-                if (no_send) {
-                    Dialogs.toaster(false, getString(R.string.err_server_not_configured), this);
-                } else {
-                    write_reply();
-                }
-                break;
             case R.id.details_menu:
                 // Display the full message
                 if (current.get_full_msg() == null || current.get_full_msg().isEmpty()) {
@@ -324,6 +344,7 @@ public class InboxMessage extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (resultCode) {
             case 19091:// From InboxGPG
                 crypto_locked = true;
@@ -344,14 +365,14 @@ public class InboxMessage extends AppCompatActivity {
 
                         @Override
                         public void onClick(View v) {
-                            Dialogs.dialog_server_ext
-                                    (getString(R.string.open_pgp_message_signature), msg_signature, ct);
+                            dialog_simple(getString(R.string.open_pgp_message_signature),
+                                    msg_signature, ct);
                         }
                     });
                 }
                 break;
             case 101:// Download called from InboxMessage Full Message
-                chosen_folder = new File(data.getStringExtra("chosen_folder"));
+                chosen_folder = new File(data.getStringExtra("chosen_folder"), "/");
                 save_name_override = data.getStringExtra("chosen_name");
                 if (current.get_full_msg() == null || current.get_full_msg().isEmpty()) {
                     dialog_download_and_keep_full_msg();
@@ -362,7 +383,7 @@ public class InboxMessage extends AppCompatActivity {
             case 102:// Download called from InboxMessage Message Attachment
                 chosen_att = null;
                 String att_which_uuid = data.getStringExtra("chosen_attachment");
-                chosen_folder = new File(data.getStringExtra("chosen_folder"));
+                chosen_folder = new File(data.getStringExtra("chosen_folder"), "/");
                 save_name_override = data.getStringExtra("chosen_name");
                 if (crypto_locked) {
                     for (Attachment at : attachments) {
@@ -373,20 +394,24 @@ public class InboxMessage extends AppCompatActivity {
                     }
                 } else {
                     for (Attachment at : attachments) {
-                        if (at.get_imap_uid().equals(att_which_uuid)) {
-                            chosen_att = at;
-                            break;
+                        if (at.get_imap_uid() != null) {
+                            // IMAP protocol
+                            if (at.get_imap_uid().equals(att_which_uuid)) {
+                                chosen_att = at;
+                                break;
+                            }
+                        } else {
+                            // POP protocol
+                            if (at.get_pop_indx().equals(att_which_uuid)) {
+                                chosen_att = at;
+                                break;
+                            }
                         }
                     }
                 }
 
                 if (chosen_att == null) return;
                 chosen_att.set_name(save_name_override);
-
-                // Quoted-printable warning
-                if (chosen_att.get_transfer_encoding().equalsIgnoreCase("quoted-printable")) {
-                    Dialogs.toaster(false, getString(R.string.err_msg_qp_warn), this);
-                }
 
                 if (crypto_locked) {
                     write_attachment_from_db();
@@ -456,18 +481,18 @@ public class InboxMessage extends AppCompatActivity {
             case "0":
                 break;
             case "1":
-                if (current.get_contents_plain() != null) {
-                    tv_contents.setText(current.get_contents_plain());
+                if (current.get_contents_plain() == null) {
+                    set_contents(true, "");
                 } else {
-                    tv_contents.setText("");
+                    set_contents(true, current.get_contents_plain());
                 }
                 tv_texts.setText(btn_texts_states.get(btn_texts_state)[0]);
                 break;
             case "2":
-                if (current.get_contents_html() != null) {
-                    html_text(current.get_contents_html());
+                if (current.get_contents_html() == null) {
+                    set_contents(false, "");
                 } else {
-                    tv_contents.setText("");
+                    set_contents(false, current.get_contents_html());
                 }
                 tv_texts.setText(btn_texts_states.get(btn_texts_state)[0]);
                 break;
@@ -475,20 +500,28 @@ public class InboxMessage extends AppCompatActivity {
         btn_texts_ready = true;
     }
 
-    private void html_text(String html_txt) {
-        Spanned spn;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            spn = Html.fromHtml(html_txt, Html.FROM_HTML_MODE_LEGACY);
+    // plain is true for plaintext
+    private void set_contents(boolean plain, String txt_html) {
+        if (plain) {
+            tv_contents.setVisibility(View.VISIBLE);
+            webview.setVisibility(View.GONE);
+            tv_contents.setText(txt_html);
         } else {
-            spn = Html.fromHtml(html_txt);
+            tv_contents.setVisibility(View.GONE);
+            webview.setVisibility(View.VISIBLE);
+            webview.loadDataWithBaseURL(null, txt_html, "text/html", current.get_charset_html(), null);
         }
-        tv_contents.setText(spn);
     }
 
     /**
      * Finishes activity to start a new message.
      **/
     private void write_reply() {
+        if (no_send) {
+            Dialogs.toaster(false, getString(R.string.err_server_not_configured), this);
+            return;
+        }
+
         String ret;
         Pattern pat = Pattern.compile(".*<(.*)>.*", Pattern.CASE_INSENSITIVE);
         Matcher mat = pat.matcher(current.get_from());
@@ -520,21 +553,6 @@ public class InboxMessage extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Dialog showing the IP of the message sender.
-     **/
-    private void dialog_originating() {
-        TextView tv_msg = new TextView(this);
-        tv_msg.setTextIsSelectable(true);
-        tv_msg.setPadding(20, 20, 20, 0);
-        tv_msg.setText(current.get_received());
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.message_dialog));
-        builder.setView(tv_msg);
-        builder.setPositiveButton(getString(android.R.string.ok), null);
-        builder.show();
-    }
-
     private void open_folder_picker(boolean full_message) {
         // Decrypted Attachments
         if (!crypto_locked) attachments = db.get_all_attachments_of_msg(current.get_id());
@@ -557,12 +575,14 @@ public class InboxMessage extends AppCompatActivity {
             startActivityForResult(pick_intent.putExtras(b), 19991);
             overridePendingTransition(0, 0);
         } else {
-            // Permissions to read files missing
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.err_title_android_permission));
-            builder.setMessage(getString(R.string.err_msg_android_permission));
-            builder.setPositiveButton(getString(android.R.string.ok), null);
-            builder.show();
+            // Missing permissions. Asking for read and write permissions.
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE }, 61999);
+            }
         }
     }
 
@@ -630,8 +650,8 @@ public class InboxMessage extends AppCompatActivity {
             if (mat.matches()) {
                 chosen_att.set_boundary("--" + mat.group(1));
             } else {
-                InboxPager.log += getString(R.string.err_imap_attachment_saving) + "\n\n";
-                Dialogs.dialog_error_line(getString(R.string.err_imap_attachment_saving), this);
+                InboxPager.log = InboxPager.log.concat(getString(R.string.err_imap_attachment_saving) + "\n\n");
+                dialog_simple(null, getString(R.string.err_imap_attachment_saving), this);
                 return;
             }
         }
@@ -661,7 +681,7 @@ public class InboxMessage extends AppCompatActivity {
                         f_stream.write(data);
                         f_stream.close();
                     } catch (Exception e) {
-                        InboxPager.log += e.getMessage() + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
                         Dialogs.dialog_exception(e, this);
                     }
                 } else {
@@ -671,7 +691,7 @@ public class InboxMessage extends AppCompatActivity {
                 }
             }
         } catch (IOException e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             Dialogs.dialog_exception(e, this);
         }
     }
@@ -714,7 +734,7 @@ public class InboxMessage extends AppCompatActivity {
             f_stream.close();
             Dialogs.toaster(true, getString(R.string.progress_download_complete), this);
         } catch (IOException ioe) {
-            InboxPager.log += ioe.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ioe.getMessage() + "\n\n");
             Dialogs.dialog_exception(ioe, this);
         }
     }
@@ -754,7 +774,6 @@ public class InboxMessage extends AppCompatActivity {
         finish();
     }
 
-    @SuppressLint("WrongConstant")
     public void handle_orientation(boolean fixed_or_rotating) {
         if (fixed_or_rotating) {
             InboxPager.orientation = getResources().getConfiguration().orientation;
@@ -763,6 +782,7 @@ public class InboxMessage extends AppCompatActivity {
     }
 
     public void connection_security() {
+        if (handler == null) return;
         good_incoming_server = handler.get_hostname_verify();
         if (good_incoming_server) {
             if (handler != null && handler.get_last_connection_data() != null
@@ -827,7 +847,7 @@ public class InboxMessage extends AppCompatActivity {
                 } else if (pgp_content) {
                     msg_contents = current.get_contents_crypto();
                     if (msg_contents == null) {
-                        InboxPager.log += getString(R.string.err_missing_crypto_mime) + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(getString(R.string.err_missing_crypto_mime) + "\n\n");
                         Dialogs.toaster(false, getString(R.string.err_missing_crypto_mime), this);
                         return;
                     }
@@ -850,7 +870,7 @@ public class InboxMessage extends AppCompatActivity {
                     if ((start_index > -1 && end_index > -1) && start_index < end_index) {
                         msg_contents = msg_contents.substring(start_index, end_index);
                     } else {
-                        InboxPager.log += getString(R.string.err_missing_crypto_mime) + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(getString(R.string.err_missing_crypto_mime) + "\n\n");
                         Dialogs.toaster(false, getString(R.string.err_missing_crypto_mime), this);
                         return;
                     }
@@ -886,8 +906,8 @@ public class InboxMessage extends AppCompatActivity {
         msg_clear_text = msg_contents;
         b.putInt("request-code", request_code);
         gpg = gpg.putExtras(b);
+
         startActivityForResult(gpg, request_code, null);
-        overridePendingTransition(R.anim.left_in, R.anim.left_out);
     }
 
     /**
@@ -941,11 +961,11 @@ public class InboxMessage extends AppCompatActivity {
                     tv_page_attachments.setVisibility(View.GONE);
                 }
             } else {
-                InboxPager.log += getString(R.string.err_missing_crypto_mime) + "\n\n";
-                Dialogs.dialog_error_line(getString(R.string.err_missing_crypto_mime), this);
+                InboxPager.log = InboxPager.log.concat(getString(R.string.err_missing_crypto_mime) + "\n\n");
+                dialog_simple(null, getString(R.string.err_missing_crypto_mime), this);
             }
         } catch (Exception e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             Dialogs.dialog_exception(e, this);
         }
     }

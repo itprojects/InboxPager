@@ -6,29 +6,6 @@
     android:orientation="vertical"
     android:padding="10sp">
 
-    <Switch
-        android:id="@+id/sw_pw_enable"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layoutDirection="rtl"
-        android:text="@string/sett_change_pw_enable" />
-
-    <CheckBox
-        android:id="@+id/cb_pw"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start"
-        android:text="@string/sett_change_pw_visible" />
-
-    <TextView
-        android:id="@+id/tv_description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingStart="7sp"
-        android:paddingTop="20sp"
-        android:paddingEnd="0sp"
-        android:text="@string/sett_change_pw_text" />
-
     <EditText
         android:id="@+id/et_pw"
         android:layout_width="match_parent"
@@ -38,5 +15,45 @@
         android:hint="@string/sett_change_pw_new"
         android:inputType="textPassword|textNoSuggestions"
         android:maxLines="1" />
+
+    <EditText
+        android:id="@+id/et_pw_retype"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:hint="@string/sett_change_pw_retype"
+        android:inputType="textPassword|textNoSuggestions"
+        android:maxLines="1" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15sp"
+        android:layout_marginBottom="0sp">
+
+        <CheckBox
+            android:id="@+id/cb_pw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginStart="10sp"
+            android:layout_marginEnd="0sp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="👁" />
+
+        <TextView
+            android:id="@+id/tv_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginStart="0sp"
+            android:layout_marginEnd="10sp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="@string/sett_change_pw_text" />
+
+    </RelativeLayout>
 
 </LinearLayout>

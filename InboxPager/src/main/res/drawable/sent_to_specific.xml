@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <layer-list>
+            <item
+                android:state_enabled="true"
+                android:drawable="@drawable/unseen_floating_normal"/>
+            <item
+                android:top="14dp"
+                android:left="-24dp"
+                android:gravity="center"
+                android:state_enabled="true"
+                android:drawable="@drawable/reply_arrow"/>
+        </layer-list>
+    </item>
+</selector>

@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-20  ITPROJECTS
+ * Copyright (C) 2016-2020  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 package net.inbox.server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import net.inbox.InboxMessage;
 import net.inbox.InboxPager;
@@ -27,8 +27,8 @@ import net.inbox.db.Attachment;
 import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
-import net.inbox.dialogs.Dialogs;
-import net.inbox.dialogs.SpinningStatus;
+import net.inbox.visuals.Dialogs;
+import net.inbox.visuals.SpinningStatus;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -253,7 +253,8 @@ public abstract class Handler extends Thread {
         cancel_action();
 
         // Dismiss the spinning dialog
-        InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+        InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
+
         if (!multiple) {
             if (sp != null) sp.unblock = true;
             Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
@@ -284,10 +285,10 @@ public abstract class Handler extends Thread {
 
         // Dismiss the spinning dialog
         if (multiple) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + s + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + s + "\n\n");
         } else {
             sp.unblock = true;
-            Dialogs.dialog_error_line(s, (AppCompatActivity) ctx);
+            Dialogs.dialog_simple(null, s, (AppCompatActivity) ctx);
         }
     }
 

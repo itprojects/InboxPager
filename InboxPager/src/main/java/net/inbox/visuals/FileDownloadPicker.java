@@ -14,24 +14,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
-package net.inbox.dialogs;
+package net.inbox.visuals;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.design.widget.TabLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
+import com.google.android.material.tabs.TabLayout;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.view.animation.AccelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -40,10 +37,13 @@ import android.widget.TextView;
 import net.inbox.InboxPager;
 import net.inbox.R;
 import net.inbox.db.Attachment;
+import net.inbox.server.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
+
+import static net.inbox.visuals.Dialogs.dialog_simple;
 
 public class FileDownloadPicker extends AppCompatActivity {
 
@@ -95,11 +95,12 @@ public class FileDownloadPicker extends AppCompatActivity {
 
                 ViewTreeObserver viewTreeObserver = current_layout.getViewTreeObserver();
                 if (viewTreeObserver.isAlive()) {
-                    viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    viewTreeObserver.addOnGlobalLayoutListener(
+                            new ViewTreeObserver.OnGlobalLayoutListener() {
 
                         @Override
                         public void onGlobalLayout() {
-                            animation_in();
+                            Common.animation_in((AppCompatActivity) current_layout.getContext(), current_layout);
                             current_layout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                         }
                     });
@@ -113,11 +114,8 @@ public class FileDownloadPicker extends AppCompatActivity {
                 }
 
                 // Initial current working directory
-                if (Environment.getExternalStorageDirectory().exists()) {
-                    cwd_path = Environment.getExternalStorageDirectory();
-                } else {
-                    cwd_path = new File("/");
-                }
+                cwd_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                if (!cwd_path.exists()) cwd_path = new File("/");
             }
 
             Toolbar tb = findViewById(R.id.picker_toolbar);
@@ -204,6 +202,7 @@ public class FileDownloadPicker extends AppCompatActivity {
                     } else {
                         cwd_path = new File("/");
                     }
+
                     cwd_files = cwd_path.listFiles();
                     prepare_adapter();
                 }
@@ -233,7 +232,7 @@ public class FileDownloadPicker extends AppCompatActivity {
                 ib_picker_home.callOnClick();
             }
         } catch (Exception e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             finish();
         }
     }
@@ -255,56 +254,7 @@ public class FileDownloadPicker extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        animation_out();
-    }
-
-    protected void animation_in() {
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-            float circle_radius = (float) (Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels));
-            Animator circularReveal = ViewAnimationUtils.createCircularReveal(current_layout,
-                    displayMetrics.widthPixels/2,
-                    displayMetrics.heightPixels/2,
-                    0, circle_radius);
-            circularReveal.setDuration(350);
-            circularReveal.setInterpolator(new AccelerateInterpolator());
-            current_layout.setVisibility(View.VISIBLE);
-            circularReveal.start();
-    }
-
-    protected void animation_out() {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        float circle_radius = (float) (Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels));
-        Animator circularReveal = ViewAnimationUtils.createCircularReveal(current_layout,
-                displayMetrics.widthPixels/2,
-                displayMetrics.heightPixels/2,
-                circle_radius, 0);
-        circularReveal.setDuration(350);
-        circularReveal.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                current_layout.setVisibility(View.INVISIBLE);
-                finish();
-            }
-        });
-        circularReveal.start();
-    }
-
-    private String s_file_size(int sz) {
-        if (sz == 0) {
-            return "0 " + getString(R.string.attch_bytes);
-        } else if (sz < 0) {
-            return "? " + getString(R.string.attch_bytes);
-        } else {
-            if (sz < 1000) {
-                return sz + " " + getString(R.string.attch_bytes);
-            } else if (sz < 1000000) {
-                return  (sz/1000) + " " + getString(R.string.attch_kilobytes);
-            } else {
-                return (sz/1000000) + " " + getString(R.string.attch_megabytes);
-            }
-        }
+        Common.animation_out(this, current_layout);
     }
 
     private void prepare_adapter() {
@@ -312,11 +262,11 @@ public class FileDownloadPicker extends AppCompatActivity {
             picker_listings.clear();
             for (File f : cwd_files) {
                 if (f.isFile()) {
-                    FileDownloadItem ff = new FileDownloadItem(true, f.getName(), f.getAbsolutePath());
-
-                    picker_listings.add(0, ff);
+                    picker_listings.add(0, new FileDownloadItem(true,
+                            f.getName(), f.getAbsolutePath()));
                 } else if (f.isDirectory()) {
-                    picker_listings.add(0, new FileDownloadItem(false, f.getName(), f.getAbsolutePath()));
+                    picker_listings.add(0, new FileDownloadItem(false,
+                            f.getName(), f.getAbsolutePath()));
                 }
             }
             list_view_picker.setAdapter(null);
@@ -333,10 +283,18 @@ public class FileDownloadPicker extends AppCompatActivity {
                     try {
                         if (at.get_imap_uid() == null) {
                             attachments_array.add(0, new AttachmentItem(at.get_size(),
-                                    s_file_size(at.get_size()), at.get_name(), at.get_mime_type(), at.get_pop_indx()));
+                                    Utils.s_file_size(at.get_size(),
+                                            getString(R.string.attch_bytes),
+                                            getString(R.string.attch_kilobytes),
+                                            getString(R.string.attch_megabytes)),
+                                    at.get_name(), at.get_mime_type(), at.get_pop_indx()));
                         } else {
                             attachments_array.add(0, new AttachmentItem(at.get_size(),
-                                    s_file_size(at.get_size()), at.get_name(), at.get_mime_type(), at.get_imap_uid()));
+                                    Utils.s_file_size(at.get_size(),
+                                            getString(R.string.attch_bytes),
+                                            getString(R.string.attch_kilobytes),
+                                            getString(R.string.attch_megabytes)),
+                                    at.get_name(), at.get_mime_type(), at.get_imap_uid()));
                         }
                     } catch (Exception e) {
                         InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
@@ -352,26 +310,23 @@ public class FileDownloadPicker extends AppCompatActivity {
 
     /**
      * Checks for a series of conditions that may prevent file saving.
+     *
+     * UsableSpace is suppressed, because it requires API 26.
      **/
+    @SuppressLint("UsableSpace")
     private void prepare_save() {
         if (full_msg_download) {
             // Cannot write to this folder, permissions on the device
             if (!cwd_path.canWrite()) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(getString(R.string.err_title_write_perms));
-                builder.setMessage(getString(R.string.err_msg_write_perms));
-                builder.setPositiveButton(getString(android.R.string.ok), null);
-                builder.show();
+                dialog_simple(getString(R.string.err_title_write_perms),
+                        getString(R.string.err_msg_write_perms), this);
                 return;
             }
 
             // Not enough space, and also not an exact calculation
             if (cwd_path.getUsableSpace() < full_msg_size) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(getString(R.string.err_title_no_space));
-                builder.setMessage(getString(R.string.err_msg_no_space));
-                builder.setPositiveButton(getString(android.R.string.ok), null);
-                builder.show();
+                dialog_simple(getString(R.string.err_title_no_space),
+                        getString(R.string.err_msg_no_space), this);
                 return;
             }
             name_check(full_msg_title, "");
@@ -392,21 +347,15 @@ public class FileDownloadPicker extends AppCompatActivity {
             if (has_picked) {
                 // Cannot write to this folder, permissions on the device
                 if (!cwd_path.canWrite()) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(getString(R.string.err_title_write_perms));
-                    builder.setMessage(getString(R.string.err_msg_write_perms));
-                    builder.setPositiveButton(getString(android.R.string.ok), null);
-                    builder.show();
+                    dialog_simple(getString(R.string.err_title_write_perms),
+                            getString(R.string.err_msg_write_perms), this);
                     return;
                 }
 
                 // Not enough space, and also not an exact calculation
                 if (cwd_path.getUsableSpace() < att_bytes) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(getString(R.string.err_title_no_space));
-                    builder.setMessage(getString(R.string.err_msg_no_space));
-                    builder.setPositiveButton(getString(android.R.string.ok), null);
-                    builder.show();
+                    dialog_simple(getString(R.string.err_title_no_space),
+                            getString(R.string.err_msg_no_space), this);
                     return;
                 }
                 name_check(att_name, att_mime_id);
@@ -431,7 +380,7 @@ public class FileDownloadPicker extends AppCompatActivity {
                 String s_temp_name;
                 Random randomness = new Random();
                 for (int i = 1; i < 10; i++) {
-                    s_temp_name = String.valueOf(randomness.nextInt(999999999)) + ".txt";
+                    s_temp_name = randomness.nextInt(999999999) + ".txt";
                     f_new_name = new File(cwd_path.getAbsolutePath() + "/" + s_temp_name);
                     if (!f_new_name.exists()) {
                         temp_name = s_temp_name;
@@ -452,7 +401,8 @@ public class FileDownloadPicker extends AppCompatActivity {
                             });
                     builder.show();
                 } else {
-                    InboxPager.log += getString(R.string.err_error).replace(":", "") + "\n\n";
+                    InboxPager.log = InboxPager.log.concat(getString(R.string.err_error)
+                            .replace(":", "") + "\n\n");
                 }
             } else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -483,7 +433,7 @@ public class FileDownloadPicker extends AppCompatActivity {
                                 if (success) {
                                     save_and_end(cwd_path.getAbsolutePath() + "/" + temp_name, temp_id);
                                 } else {
-                                    InboxPager.log += getString(R.string.err_error).replace(":", "") + "\n\n";
+                                    InboxPager.log = InboxPager.log.concat(getString(R.string.err_error).replace(":", "") + "\n\n");
                                 }
                             }
                         });

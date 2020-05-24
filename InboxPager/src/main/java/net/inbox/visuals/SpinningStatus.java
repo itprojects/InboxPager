@@ -14,12 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
-package net.inbox.dialogs;
+package net.inbox.visuals;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import net.inbox.InboxMessage;
 import net.inbox.InboxSend;
@@ -36,9 +36,9 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
     private boolean call_cancel;
     private boolean mass_refresh;
 
-    private WeakReference<AppCompatActivity> act;
-    private ProgressDialog pd;
     private Handler handler;
+    private ProgressDialog pd;
+    private WeakReference<AppCompatActivity> act;
 
     public SpinningStatus(boolean cb, boolean mr, AppCompatActivity at, Handler hand) {
         call_back = cb;
@@ -52,9 +52,8 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
      **/
     @Override
     protected void onPreExecute() {
-        AppCompatActivity appact = act.get();
-        if (appact != null) {
-            pd = new ProgressDialog(appact);
+        if (act.get() != null) {
+            pd = new ProgressDialog(act.get());
             pd.setTitle("?");
             pd.setMessage("?");
             pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -62,8 +61,9 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
             pd.setProgress(0);
             pd.setMax(100);
             pd.setCancelable(false);
-            String cnc = appact.getResources().getString(android.R.string.cancel);
-            pd.setButton(ProgressDialog.BUTTON_NEGATIVE, cnc, new DialogInterface.OnClickListener() {
+            String cnc = act.get().getResources().getString(android.R.string.cancel);
+            pd.setButton(ProgressDialog.BUTTON_NEGATIVE, cnc,
+                    new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     unblock = true;
                     call_cancel = true;
@@ -115,36 +115,38 @@ public class SpinningStatus extends AsyncTask<Void, String, Void> {
         }
 
         // Restore device screen orientation after operation
-        AppCompatActivity appact = act.get();
-        if (appact != null) {
-            if (act.getClass().toString().endsWith(".InboxPager")) {
-                ((InboxPager) appact).handle_orientation(false);
-            } else if (act.getClass().toString().endsWith(".InboxMessage")) {
-                ((InboxMessage) appact).handle_orientation(false);
-            } else if (act.getClass().toString().endsWith(".InboxSend")) {
-                ((InboxSend) appact).handle_orientation(false);
+        String class_name;
+        if (act.get() != null) {
+            class_name = act.get().getClass().toString();
+            if (class_name.endsWith(".InboxPager")) {
+                ((InboxPager) act.get()).handle_orientation(false);
+            } else if (class_name.endsWith(".InboxMessage")) {
+                ((InboxMessage) act.get()).handle_orientation(false);
+            } else if (class_name.endsWith(".InboxSend")) {
+                ((InboxSend) act.get()).handle_orientation(false);
             }
         }
 
         // Continue process after async task
         if (call_back) {
-            if (appact != null) {
-                if (act.getClass().toString().endsWith(".InboxPager")) {
+            if (act.get() != null) {
+                class_name = act.get().getClass().toString();
+                if (class_name.endsWith(".InboxPager")) {
                     if (mass_refresh) {
                         // Refresh the account list
-                        ((InboxPager) appact).mass_refresh();
+                        ((InboxPager) act.get()).mass_refresh();
                     } else {
                         // Set server certificate details
-                        ((InboxPager) appact).connection_security();
+                        ((InboxPager) act.get()).connection_security();
                         // Refresh the message list
-                        ((InboxPager) appact).populate_messages_list_view();
+                        ((InboxPager) act.get()).populate_messages_list_view();
                     }
-                } else if (act.getClass().toString().endsWith(".InboxMessage")) {
+                } else if (class_name.endsWith(".InboxMessage")) {
                     // Set server certificate details
-                    ((InboxMessage) appact).connection_security();
-                } else if (act.getClass().toString().endsWith(".InboxSend")) {
+                    ((InboxMessage) act.get()).connection_security();
+                } else if (class_name.endsWith(".InboxSend")) {
                     // Set server certificate details
-                    ((InboxSend) appact).connection_security();
+                    ((InboxSend) act.get()).connection_security();
                 }
             }
         }

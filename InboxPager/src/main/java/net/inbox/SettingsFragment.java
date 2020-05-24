@@ -17,58 +17,115 @@
 package net.inbox;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
-import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
-public class SettingsFragment extends PreferenceFragment {
+import androidx.appcompat.app.AlertDialog;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
 
-    private boolean dialog_choice = false;
+public class SettingsFragment extends PreferenceFragmentCompat {
+
+    private Context ctx;
     private AlertDialog dialog_pw;
+    private EditText et_pw;
+    private EditText et_pw_retype;
+    private TextView tv_description;
+    private Preference pw_protection;
     private SharedPreferences prefs;
 
     @Override
-    public void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         addPreferencesFromResource(R.xml.settings);
 
-        Preference p1 = getPreferenceManager().findPreference("change_pw");
-        if (p1 != null) {
-            p1.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        ctx = getContext();
+
+        // Application preferences
+        prefs = getPreferenceManager().getSharedPreferences();
+
+        // Enable/Disable password protection
+        pw_protection = getPreferenceManager().findPreference("pw_protection");
+
+        if (pw_protection != null) {
+            if (prefs.getBoolean("pw_protection", false)) {
+                pw_protection.setSummary(getString(R.string.sett_enable_pw_summary_on));
+            } else {
+                pw_protection.setSummary(getString(R.string.sett_enable_pw_summary_off));
+            }
+
+            pw_protection.setOnPreferenceClickListener(
+                    new Preference.OnPreferenceClickListener() {
 
                 @Override
-                public boolean onPreferenceClick(Preference p2) {
-                    prefs = PreferenceManager.getDefaultSharedPreferences(p2.getContext());
-                    dialog_pw(p2.getContext());
+                public boolean onPreferenceClick(Preference p) {
+                    boolean b_pw_enabled = prefs.getBoolean("pw_protection", false);
+
+                    if (b_pw_enabled) {
+                        // Password is set. Offer to change or remove.
+                        AlertDialog.Builder builder = new AlertDialog.Builder(p.getContext());
+                        builder.setTitle(getString(R.string.sett_change_pw_title));
+                        builder.setMessage(getString(R.string.sett_change_pw_q));
+                        builder.setNegativeButton(getString(android.R.string.no), null);
+                        builder.setNeutralButton(getString(R.string.sett_change_pw_remove),
+                                new DialogInterface.OnClickListener() {
+
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        try {
+                                            pw_protection.setSummary(getString(
+                                                    R.string.sett_enable_pw_summary_off));
+                                            prefs.edit().putBoolean("pw_protection", false).apply();
+                                            InboxPager.get_db().rekey_db("cleartext");
+                                            et_pw.setText("");
+                                            et_pw_retype.setText("");
+                                        } catch (Exception e) {
+                                            InboxPager.log = InboxPager.log.concat(
+                                                    e.getMessage() == null ? "!REKEY!" : e.getMessage());
+                                        }
+                                    }
+                        });
+                        builder.setPositiveButton(getString(R.string.sett_change_pw_change),
+                                new DialogInterface.OnClickListener() {
+
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog_pw();
+                                    }
+                        });
+                        builder.show();
+                    } else {
+                        dialog_pw();// No password is set. Offer to set password.
+                    }
+
                     return true;
                 }
             });
         }
     }
 
-    private void dialog_pw(final Context ctx) {
+    private void dialog_pw() {
+        // Clean-up previous
+        et_pw = null;
+        et_pw_retype = null;
+
+        LayoutInflater inflater = getLayoutInflater();
+        View v = inflater.inflate(R.layout.pw, null);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
         builder.setTitle(getString(R.string.sett_change_pw_title));
-        final ViewGroup vg = (ViewGroup) ((ViewGroup) getActivity()
-                .findViewById(android.R.id.content)).getChildAt(0);
-        View v = (LayoutInflater.from(ctx)).inflate(R.layout.pw, vg, false);
-        final Switch sw_enabled = v.findViewById(R.id.sw_pw_enable);
-        final TextView tv_description = v.findViewById(R.id.tv_description);
-        final EditText et_pw = v.findViewById(R.id.et_pw);
-        et_pw.setHint(getString(R.string.sett_change_pw_new));
+        et_pw = v.findViewById(R.id.et_pw);
+        et_pw_retype = v.findViewById(R.id.et_pw_retype);
+        tv_description = v.findViewById(R.id.tv_description);
         final CheckBox cb_pw = v.findViewById(R.id.cb_pw);
         cb_pw.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
 
@@ -76,75 +133,73 @@ public class SettingsFragment extends PreferenceFragment {
             public void onCheckedChanged(CompoundButton v, boolean isChecked) {
                 if (isChecked) {
                     et_pw.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                    et_pw_retype.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
                 } else {
                     et_pw.setInputType(InputType.TYPE_CLASS_TEXT
                             |InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                }
-            }
-        });
-        sw_enabled.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton cb, boolean isChecked) {
-                if (isChecked) {
-                    tv_description.setVisibility(View.VISIBLE);
-                    et_pw.setVisibility(View.VISIBLE);
-                    cb_pw.setVisibility(View.VISIBLE);
-                    dialog_choice = true;
-                } else {
-                    tv_description.setVisibility(View.GONE);
-                    et_pw.setVisibility(View.GONE);
-                    cb_pw.setVisibility(View.GONE);
-                    prefs.edit().putBoolean("enable_pw", false).apply();
-                    InboxPager.get_db().rekey_db("cleartext");
-                    et_pw.setText("");
-                    cb_pw.setChecked(false);
+                    et_pw_retype.setInputType(InputType.TYPE_CLASS_TEXT
+                            |InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 }
             }
         });
 
         builder.setView(v);
         builder.setCancelable(false);
-        builder.setPositiveButton(getString(android.R.string.ok), null);
+        builder.setPositiveButton(getString(R.string.sett_change_pw_change), null);
         builder.setNegativeButton(getString(R.string.btn_cancel), null);
 
-        // Set initial conditions
-        if (prefs.getBoolean("enable_pw", false)) {
-            sw_enabled.setChecked(true);
-            tv_description.setVisibility(View.VISIBLE);
-            et_pw.setVisibility(View.VISIBLE);
-            cb_pw.setVisibility(View.VISIBLE);
-        } else {
-            sw_enabled.setChecked(false);
-            tv_description.setVisibility(View.GONE);
-            et_pw.setVisibility(View.GONE);
-            cb_pw.setVisibility(View.GONE);
-        }
-
         dialog_pw = builder.show();
-        dialog_pw.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener
-                (new View.OnClickListener() {
+
+        dialog_pw.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(
+                new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-
-                //dialog_choice = 0;1 - true , 2 - false
-                if (dialog_choice) {
-                    if (!sw_enabled.isChecked()) {
-                        prefs.edit().putBoolean("enable_pw", false).apply();
-                        InboxPager.get_db().rekey_db("cleartext");
-                        if (dialog_pw != null) dialog_pw.dismiss();
-                    } else if (et_pw.getText().toString().length() < 12) {
-                        et_pw.setTextColor(Color.parseColor("#BA0C0C"));
-                        et_pw.setHintTextColor(Color.parseColor("#BA0C0C"));
-                        tv_description.setTextColor(Color.parseColor("#BA0C0C"));
-                    } else {
-                        prefs.edit().putBoolean("enable_pw", true).apply();
-                        InboxPager.get_db().rekey_db(et_pw.getText().toString());
-                        et_pw.setText("");
-                        cb_pw.setChecked(true);
-                        if (dialog_pw != null) dialog_pw.dismiss();
+                boolean match_retype = false;
+                String npass = "", npassre;
+                try {
+                    npass = et_pw.getText().toString();
+                    npassre = et_pw_retype.getText().toString();
+                    if (npass.equals(npassre) && !npass.equals("")) {
+                        match_retype = true;
                     }
+                } catch (NullPointerException npe) {
+                    //match_retype = false;
+                }
+
+                if (!match_retype) {
+                    error();
+                    return;
+                }
+
+                boolean pass_length = npass.length() >= 12;
+
+                if (!pass_length) {
+                    error();
+                    return;
+                }
+
+                try {
+                    pw_protection.setSummary(getString(R.string.sett_enable_pw_summary_on));
+                    prefs.edit().putBoolean("pw_protection", true).apply();
+                    InboxPager.get_db().rekey_db(et_pw.getText().toString());
+                    et_pw.setText("");
+                    et_pw_retype.setText("");
+                    cb_pw.setChecked(true);
+                    if (dialog_pw != null) dialog_pw.dismiss();
+                } catch (Exception e) {
+                    InboxPager.log = InboxPager.log.concat(
+                            e.getMessage() == null ? "!REKEY!" : e.getMessage());
                 }
             }
         });
+    }
+
+    private void error() {
+        et_pw.setTextColor(Color.parseColor("#BA0C0C"));
+        et_pw.setHintTextColor(Color.parseColor("#BA0C0C"));
+        et_pw_retype.setTextColor(Color.parseColor("#BA0C0C"));
+        et_pw_retype.setHintTextColor(Color.parseColor("#BA0C0C"));
+        tv_description.setTextColor(Color.parseColor("#BA0C0C"));
     }
 }

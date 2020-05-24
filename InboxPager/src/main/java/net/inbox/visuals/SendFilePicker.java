@@ -14,24 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
-package net.inbox.dialogs;
+package net.inbox.visuals;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.design.widget.TabLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
+
+import com.google.android.material.tabs.TabLayout;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.view.animation.AccelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -39,6 +35,7 @@ import android.widget.TextView;
 
 import net.inbox.InboxPager;
 import net.inbox.R;
+import net.inbox.server.Utils;
 
 import java.io.File;
 import java.net.URLConnection;
@@ -96,11 +93,12 @@ public class SendFilePicker extends AppCompatActivity {
 
                 ViewTreeObserver viewTreeObserver = current_layout.getViewTreeObserver();
                 if (viewTreeObserver.isAlive()) {
-                    viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    viewTreeObserver.addOnGlobalLayoutListener(
+                            new ViewTreeObserver.OnGlobalLayoutListener() {
 
                         @Override
                         public void onGlobalLayout() {
-                            animation_in();
+                            Common.animation_in((AppCompatActivity) current_layout.getContext(), current_layout);
                             current_layout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                         }
                     });
@@ -111,7 +109,7 @@ public class SendFilePicker extends AppCompatActivity {
                     if (getIntent().getExtras().containsKey("b_8_bit_absent") && !warned_8_bit_absent) {
                         warned_8_bit_absent = true;
                         getIntent().getExtras().getBoolean("b_8_bit_absent");
-                        Dialogs.dialog_error_line(getString(R.string.err_no_8_bit_mime), this);
+                        Dialogs.dialog_simple(null, getString(R.string.err_no_8_bit_mime), this);
                     }
                     attachments_size = getIntent().getExtras().getLong("l_attachment_size", 0);
                     total_size_limit = getIntent().getExtras().getLong("l_total_size_limit", 0);
@@ -223,8 +221,13 @@ public class SendFilePicker extends AppCompatActivity {
                     }
                 }
             });
+
+            // Select Pick File Tab, if no attachments selected.
+            if (picked_attachments == null || picked_attachments.size() == 0) {
+                (llay_tabs.getTabAt(1)).select();
+            }
         } catch (Exception e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             finish();
         }
     }
@@ -248,58 +251,42 @@ public class SendFilePicker extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        animation_out();
+        Common.animation_out(this, current_layout);
     }
+    /*
+        protected void animation_in() {
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                float circle_radius = (float) (Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels));
+                Animator circularReveal = ViewAnimationUtils.createCircularReveal(current_layout,
+                        displayMetrics.widthPixels/2,
+                        displayMetrics.heightPixels/2,
+                        0, circle_radius);
+                circularReveal.setDuration(420);
+                circularReveal.setInterpolator(new AccelerateInterpolator());
+                current_layout.setVisibility(View.VISIBLE);
+                circularReveal.start();
+        }
 
-    protected void animation_in() {
+        protected void animation_out() {
             DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             float circle_radius = (float) (Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels));
             Animator circularReveal = ViewAnimationUtils.createCircularReveal(current_layout,
                     displayMetrics.widthPixels/2,
                     displayMetrics.heightPixels/2,
-                    0, circle_radius);
-            circularReveal.setDuration(350);
-            circularReveal.setInterpolator(new AccelerateInterpolator());
-            current_layout.setVisibility(View.VISIBLE);
+                    circle_radius, 0);
+            circularReveal.setDuration(420);
+            circularReveal.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    current_layout.setVisibility(View.INVISIBLE);
+                    finish();
+                }
+            });
             circularReveal.start();
-    }
-
-    protected void animation_out() {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        float circle_radius = (float) (Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels));
-        Animator circularReveal = ViewAnimationUtils.createCircularReveal(current_layout,
-                displayMetrics.widthPixels/2,
-                displayMetrics.heightPixels/2,
-                circle_radius, 0);
-        circularReveal.setDuration(350);
-        circularReveal.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                current_layout.setVisibility(View.INVISIBLE);
-                finish();
-            }
-        });
-        circularReveal.start();
-    }
-
-    private String s_file_size(long sz) {
-        if (sz == 0) {
-            return "0 " + getString(R.string.attch_bytes);
-        } else if (sz < 0) {
-            return "? " + getString(R.string.attch_bytes);
-        } else {
-            if (sz < 1000) {
-                return sz + " " + getString(R.string.attch_bytes);
-            } else if (sz < 1000000) {
-                return  (sz/1000) + " " + getString(R.string.attch_kilobytes);
-            } else {
-                return (sz/1000000) + " " + getString(R.string.attch_megabytes);
-            }
         }
-    }
-
+    */
     private void calc_total_files_size() {
         attachments_size = 0;
         for (SendFileItem ffi : picked_attachments) attachments_size += ffi.get_file_size_l();
@@ -311,7 +298,10 @@ public class SendFilePicker extends AppCompatActivity {
             for (File f : cwd_files) {
                 if (f.isFile()) {
                     SendFileItem ff = new SendFileItem(true, f.length(),
-                            s_file_size(f.length()), f.getName(), f.getAbsolutePath(), "");
+                            Utils.s_file_size(f.length(), getString(R.string.attch_bytes),
+                                    getString(R.string.attch_kilobytes),
+                                    getString(R.string.attch_megabytes)),
+                            f.getName(), f.getAbsolutePath(), "");
 
                     picker_listings.add(0, ff);
                 } else if (f.isDirectory()) {
@@ -331,8 +321,12 @@ public class SendFilePicker extends AppCompatActivity {
             for (String s : s_attachment_paths) {
                 try {
                     File f = new File(s);
-                    picked_attachments.add(0, new SendFileItem(true,
-                            f.length(), s_file_size(f.length()), f.getName(), f.getAbsolutePath(),
+                    picked_attachments.add(0, new SendFileItem(true, f.length(),
+                            Utils.s_file_size(f.length(),
+                            getString(R.string.attch_bytes),
+                            getString(R.string.attch_kilobytes),
+                            getString(R.string.attch_megabytes)),
+                            f.getName(), f.getAbsolutePath(),
                             URLConnection.guessContentTypeFromName(f.getName())));
                 } catch (Exception e) {
                     InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
@@ -348,18 +342,15 @@ public class SendFilePicker extends AppCompatActivity {
             // Missing read permission check
             File f_add = new File(uri);
             if (!f_add.canRead()) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(getString(R.string.err_title_android_permission));
-                builder.setMessage(getString(R.string.err_read_file));
-                builder.setPositiveButton(getString(android.R.string.ok), null);
-                builder.show();
+                Dialogs.dialog_simple(getString(R.string.err_title_android_permission),
+                        getString(R.string.err_read_file), this);
                 return;
             }
             // File can be read
             // Check file is not duplicate
             for (SendFileItem ffi: picked_attachments) {
                 if (ffi.get_file_uri().equals(uri)) {
-                    Dialogs.dialog_error_line(getString(R.string.err_title_file_is_duplicate), this);
+                    Dialogs.dialog_simple(null, getString(R.string.err_title_file_is_duplicate), this);
                     return;
                 }
             }
@@ -393,7 +384,11 @@ public class SendFilePicker extends AppCompatActivity {
         if (adding) {
             File f = new File(uri);
             picked_attachments.add(new SendFileItem(false, f.length(),
-                    s_file_size(f.length()), f.getName(), f.getAbsolutePath(),
+                    Utils.s_file_size(f.length(),
+                            getString(R.string.attch_bytes),
+                            getString(R.string.attch_kilobytes),
+                            getString(R.string.attch_megabytes)),
+                    f.getName(), f.getAbsolutePath(),
                     URLConnection.guessContentTypeFromName(f.getName())));
             s_attachment_paths.add(uri);
             Dialogs.toaster(true, getString(R.string.attch_added_attachment)

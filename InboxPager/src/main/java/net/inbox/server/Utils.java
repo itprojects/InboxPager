@@ -21,10 +21,16 @@ import android.util.Base64;
 import net.inbox.InboxPager;
 import net.inbox.db.Message;
 
+import org.apache.commons.codec.QuotedPrintableCodec;
+import org.apache.commons.fileupload.util.mime.MimeUtility;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.UUID;
@@ -50,7 +56,7 @@ public class Utils {
         mat = pat.matcher(buff.trim());
         if (mat.matches()) {
             msg_body = mat.group(1);
-            if (msg_body.trim().length() < 5) return null;
+            if (msg_body != null && msg_body.trim().length() < 5) return null;
         } else return null;
 
         // Array values correspond to index (1 or 1.1), and contents
@@ -114,7 +120,7 @@ public class Utils {
                     pat = Pattern.compile("\\(\"(\\w{0,5}NAME)\".*", Pattern.CASE_INSENSITIVE);
                     mat = pat.matcher(txt[1].substring(char_positions.get(char_positions.size() - 1), i));
                     if (mat.matches()) {
-                        int sub_index = mat.group(1).equalsIgnoreCase("name") ?
+                        int sub_index = mat.group(1).equalsIgnoreCase("NAME") ?
                                 txt[1].indexOf("\") ", i) : txt[1].indexOf("\")) ", i);
                         if (sub_index > 0) i = sub_index;
                     }
@@ -169,9 +175,9 @@ public class Utils {
             int ii = 0;
             for (String[] t : structure) {
                 if (t[1].matches("\"(" + t_composite + ")\".*")) {
-                    t[0] = txt[0].equals("-1") ? (txt[0] + "." + String.valueOf(++i)) : txt[0];
+                    t[0] = txt[0].equals("-1") ? (txt[0] + "." + (++i)) : txt[0];
                 } else {
-                    t[0] = txt[0] + "." + String.valueOf(++ii);
+                    t[0] = txt[0] + "." + (++ii);
                 }
             }
         }
@@ -184,6 +190,7 @@ public class Utils {
      **/
     static ArrayList<String[]> imap_parse_nodes(ArrayList<String[]> structure,
         String[] arr_texts_plain, String[] arr_texts_html) {
+
         if (structure == null) return null;
         if (structure.size() == 1) {
             imap_parse_text_params(structure.get(0), arr_texts_plain, arr_texts_html);
@@ -204,7 +211,7 @@ public class Utils {
             Iterator<String[]> texts_iterator = structure.iterator();
             while (texts_iterator.hasNext()) {
                 String[] txt_tmp = texts_iterator.next();
-                if (txt_tmp[0].matches("(0|1).*")) {
+                if (txt_tmp[0].matches("([01]).*")) {
                     pat = Pattern.compile("\"(" + t_composite + ")\".*", Pattern.CASE_INSENSITIVE);
                     mat = pat.matcher(txt_tmp[1]);
                     if (mat.matches()) {
@@ -303,7 +310,7 @@ public class Utils {
             }
         }
 
-        String temp = "";
+        String temp;
         try {
             temp = str_attach[1].substring(type.length() + 5);
         } catch (Exception e) {
@@ -387,7 +394,7 @@ public class Utils {
         mat = pat.matcher(temp);
         if (mat.matches()) {
             name = mat.group(1);
-            pat = Pattern.compile(".*\\}(.*)", Pattern.CASE_INSENSITIVE);
+            pat = Pattern.compile(".*\\}(.*)", Pattern.CASE_INSENSITIVE);// Keep \\}
             mat = pat.matcher(name);
             if (mat.matches()) {
                 temp = mat.group(1);
@@ -397,8 +404,8 @@ public class Utils {
                 name = content_disposition_name(false, temp);
             }
         } else {
-            //B64|QP
-            Utils.parse_line_B64_QP(name);
+            // Convert encoded-word from RFC 2047 to text.
+            Utils.parse_encoded_word(name);
         }
 
         // Message attachments, (uid, mime-type, name, transfer-encoding, size)
@@ -555,7 +562,7 @@ public class Utils {
                         if (l == 0) {
                             p.index = p.index.concat(String.valueOf(p.sequence[l]));
                         } else {
-                            p.index = p.index.concat("." + String.valueOf(p.sequence[l]));
+                            p.index = p.index.concat("." + (p.sequence[l]));
                         }
                     }
                 }
@@ -577,8 +584,8 @@ public class Utils {
                         parts.get(i).name = mat.group(2).trim();
                         // From B64, QP, or URL to text
                         if (parts.get(i).name.length() > 0) {
-                            if (validate_B64_QP(parts.get(i).name)) {
-                                parts.get(i).name = split_B64_QP(parts.get(i).name);
+                            if (is_encoded_word(parts.get(i).name)) {
+                                parts.get(i).name = parse_encoded_word(parts.get(i).name);
                             } else {
                                 parts.get(i).name = content_disposition_name(false, parts.get(i).name);
                             }
@@ -706,8 +713,8 @@ public class Utils {
                 if (arr[4].equalsIgnoreCase("BASE64")) {
                     txt_tmp = Utils.parse_BASE64(txt_tmp);
                 } else if (arr[4].equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                    txt_tmp = Utils.parse_quoted_printable(txt_tmp.replaceAll("\n", "")
-                                    .replaceAll("\r", "").replaceAll("\t", ""),
+                    txt_tmp = Utils.parse_quoted_printable(txt_tmp
+                                    .replaceAll("([\r\n\t])", ""),
                             (arr[5].isEmpty() ? arr[5] : "UTF-8"));
                 }
                 msg.set_contents_plain(txt_tmp);
@@ -726,8 +733,8 @@ public class Utils {
                     str = "";
                     hold = "";
                 } else if (arr[4].equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                    txt_tmp = Utils.parse_quoted_printable(txt_tmp.replaceAll("\n", "")
-                                    .replaceAll("\r", "").replaceAll("\t", ""),
+                    txt_tmp = Utils.parse_quoted_printable(txt_tmp
+                                    .replaceAll("([\r\n\t])", ""),
                             (arr[5].isEmpty() ? arr[5] : "UTF-8"));
                 }
                 msg.set_contents_html(txt_tmp);
@@ -741,122 +748,66 @@ public class Utils {
      * Find content-type and boundary in given String.
      **/
     public static String[] content_type_boundary(String s) {
-        boolean semi_col = false;
-        String[] str_arr = s.replaceAll("\r", "").split("\n");
-        String ct = "";
-        for (String st : str_arr) {
-            if (st.toLowerCase().startsWith("content-type:")) {
-                ct = st.trim();
-                if (ct.endsWith(";")) {
-                    semi_col = true;
-                } else break;
-            } else if (semi_col) {
-                ct = ct.concat(st);
-                if (ct.endsWith(";")) {
-                    semi_col = true;
-                } else break;
-            }
-        }
+        Pattern pat = Pattern.compile("^content-type:\\s(.*?);.*",
+                Pattern.CASE_INSENSITIVE);
 
-        if (ct.length() == 0) {
-            ct = s.trim();
-        } else ct = ct.substring(13);
+        String sss = s.replaceAll("([\r\n\t])", "");
 
-        String boundary = "--";
-        str_arr = ct.split(";");
-        for (String t : str_arr) {
-            if (t.toLowerCase().contains("boundary=")) {
-                boundary = boundary.concat(t.trim().substring(9).replaceAll("\"", ""));
-            }
-        }
+        String bounds = null;
+        String content_type = null;
 
-        return new String[]{ ct, boundary };
+        Matcher mat = pat.matcher(sss);
+        if (mat.matches()) content_type = mat.group(1) + ";";
+
+        pat = Pattern.compile("(.*?)boundary=\"(.*?)\".*", Pattern.CASE_INSENSITIVE);
+        mat = pat.matcher(sss);
+        if (mat.matches()) bounds = "--" + mat.group(2);
+
+        return new String[]{ content_type, bounds };
     }
 
     public static String boundary() {
-        return ("=__" + UUID.randomUUID().toString().replace("-","").substring(0, 30));
+        return ("=__" + UUID.randomUUID().toString().replaceAll("-","")
+                .substring(0, 30));
     }
 
-    static boolean validate_B64_QP(String s) {
+    /**
+     * Checks given string for encoded-word (RFC 2047).
+     **/
+    static boolean is_encoded_word(String s) {
         return !s.isEmpty() && (s.contains("=?") && s.contains("?="));
     }
 
-    static String split_B64_QP(String s) {
-        String ret = "";
-        StringBuilder sb = new StringBuilder();
-        boolean in_bracket = false;
-        for (int i = 0;i < s.length();++i) {
-            if (s.charAt(i) == '=' && (i + 1) <= (s.length() - 1)) {
-                if (s.charAt(i + 1) == '=') continue;
-                if (s.charAt(i + 1) == '?' && !in_bracket) {
-                    if (sb.length() > 0) {
-                        ret = ret.concat(parse_line_B64_QP(sb.toString()));
-                        sb.setLength(0);
-                    }
-                    sb.append(s.charAt(i));
-                    sb.append(s.charAt(++i));
-                    in_bracket = true;
-                } else {
-                    sb.append(s.charAt(i));
-                }
-            } else if (s.charAt(i) == '?' && i < (s.length() - 1)) {
-                sb.append(s.charAt(i));
-                if (s.charAt(i + 1) == '=') {
-                    sb.append(s.charAt(++i));
-                    in_bracket = false;
-                    ret = ret.concat(parse_line_B64_QP(sb.toString()));
-                    sb.setLength(0);
-                } else if (s.charAt(i + 1) == 'B' || s.charAt(i + 1) == 'b'
-                        || s.charAt(i + 1) == 'Q' || s.charAt(i + 1) == 'q') {
-                    sb.append(s.charAt(++i));
-                    sb.append(s.charAt(++i));
-                }
-            } else {
-                sb.append(s.charAt(i));
-            }
-        }
-
-        if (sb.length() > 0) {
-            ret += sb.toString();
-            sb.setLength(0);
-        }
-        return ret;
-    }
-
     /**
-     * Converts from BASE64 to text. Kkg1YTQtdC= -> Text 1 contents.
+     * Converts from BASE64 to text. SGVsbG8sIFdvcmxkIQo= -> Hello, World!.
      **/
-    static String parse_BASE64(String s) {
+    static String parse_BASE64(String b64_text) {
         String ret = "";
-        String[] st = s.split("\r\n");
-        for (String tmp : st) {
-            ret = ret.concat(new String(Base64.decode(tmp.replaceAll("\r", "")
-                    .replaceAll("\n", "")
-                    .replaceAll("=", ""), Base64.DEFAULT)));
+        String[] lines = b64_text.split("\r\n");
+        for (String l : lines) {
+            ret = ret.concat(new String(Base64.decode(
+                    l.replaceAll("([\r\n=])", ""), Base64.DEFAULT)));
         }
         return ret;
     }
 
-    static String parse_BASE64_encoding(String s, String enc) {
-        String ret = "";
+    static String parse_BASE64_encoded(String b64_text, String enc) {
         try {
             if (enc.equalsIgnoreCase("UTF-8") || enc.equals("-1")) {
-                ret = new String(Base64.decode(s.replaceAll("\r", "")
-                        .replaceAll("\n", "")
-                        .replaceAll("=", ""), Base64.DEFAULT));
+                return new String(Base64.decode(
+                        b64_text.replaceAll("([\r\n=])", ""), Base64.DEFAULT));
             } else {
-                ret = new String(Base64.decode(s.replaceAll("\r", "")
-                        .replaceAll("\n", "")
-                        .replaceAll("=", ""), Base64.DEFAULT), enc);
+                return new String(Base64.decode(
+                        b64_text.replaceAll("([\r\n=])", ""), Base64.DEFAULT), enc);
             }
         } catch (UnsupportedEncodingException e) {
-            InboxPager.log += "!!1:" + e.getMessage() + "\n\n";
-            return s;
+            InboxPager.log = InboxPager.log.concat("!B64!PARSE!" + e.getMessage() + "\n\n");
+            return b64_text;
         }
-        return ret;
     }
 
     /**
+     * Encoded-word decoding.
      * Decides appropriate non-ascii string encoding.
      * Converts from BASE64 or Quoted Printable to UTF-8.
      *
@@ -865,80 +816,29 @@ public class Utils {
      * =?utf-8?Q?=D6=93=D4=BE=D1?=
      * =?charset?encoding?encoded-text?=
      **/
-    private static String parse_line_B64_QP(String s) {
-        s = s.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", "");
-        pat = Pattern.compile("=\\?(.*)\\?(\\w)\\?(.*)\\?=", Pattern.CASE_INSENSITIVE);
-        mat = pat.matcher(s);
-        if (mat.matches()) {
-            if (mat.group(2).matches("(B|b)")) {
-                if (s.isEmpty()) return "";
-                byte[] arr_bytes = Base64.decode(mat.group(3).replaceAll("=", ""), Base64.DEFAULT);
-                try {
-                    return new String((new String(arr_bytes, mat.group(1))).getBytes(), "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    InboxPager.log += "!!2:" + e.getMessage() + "\n\n";
-                    return s;
-                }
-            } else if (mat.group(2).matches("(Q|q)")) {
-                if (mat.group(3).isEmpty()) {
-                    return "";
-                } else {
-                    return parse_quoted_printable(mat.group(3), mat.group(1));
-                }
-            } else {
-                return s;
-            }
-        } else return s;
+    static String parse_encoded_word(String enc_word) {
+        try {
+            return MimeUtility.decodeText(enc_word);
+        } catch (Exception e) {
+            InboxPager.log = InboxPager.log.concat("!ENCODED!WORD!" + e.getMessage() + "\n\n");
+            return enc_word;
+        }
     }
 
     /**
      * Convert an ASCII Quoted Printable to UTF-8 string.
      *
-     * i.e.: (not a real word)
-     * =?utf-8?Q?=D6=93=D4=BE=D1?=
-     * =?charset?encoding?encoded-text?=
+     * Creme de la creme:
+     * Cr=C3=A8me de la cr=C3=A8me
      **/
     static String parse_quoted_printable(String s, String encoding) {
-        String s_tmp;
         try {
-            s_tmp = new String(s.getBytes(), encoding);
-        } catch (UnsupportedEncodingException e) {
-            InboxPager.log += "!!3:" + e.getMessage() + "\n\n";
-            return s;
-        }
-        if (s_tmp.endsWith("=")) s_tmp = s_tmp.substring(0, s_tmp.length() - 1);
-        String str;
-        int len = s_tmp.length();
-        byte[] ascii_bytes = new byte[s_tmp.length()];
-        int count = 0;
-        for (int i = 0;i < len;++i) {
-            if (s_tmp.charAt(i) == '=' && (i + 2) <= (len - 1)) {
-                if (s_tmp.charAt(i + 1) == '\r' && s_tmp.charAt(i + 2) == '\n') {
-                    // Skip this line
-                    i += 2;
-                } else {
-                    try {
-                        str = Character.toString(s_tmp.charAt(i + 1))
-                                + Character.toString(s_tmp.charAt(i + 2));
-                        ascii_bytes[count] = (byte) Integer.parseInt(str, 16);
-                    } catch (Exception e) {
-                        continue;
-                    }
-                    ++count;
-                    i += 2;
-                }
-            }  else {
-                ascii_bytes[count] = (byte) s_tmp.charAt(i);
-                ++count;
-            }
-        }
-        try {
-            byte[] reduced = new byte[count];
-            System.arraycopy(ascii_bytes, 0, reduced, 0, count);
-            return new String(reduced, encoding);
-        } catch (UnsupportedEncodingException e) {
-            InboxPager.log += "!!4:" + e.getMessage() + "\n\n";
-            return s;
+            // true applies 5 strict QP rules, false applies 2 QP rules
+            QuotedPrintableCodec QPC = new QuotedPrintableCodec(Charset.forName(encoding), false);
+            return QPC.decode(s);
+        } catch (Exception de) {
+            InboxPager.log = InboxPager.log.concat(de.getMessage() + "\n\n");
+            return "!QP!ERROR!";
         }
     }
 
@@ -963,7 +863,7 @@ public class Utils {
                         return URLDecoder.decode(mat.group(3), mat.group(1));
                     } else {
                         return new String(URLDecoder.decode(mat.group(3), mat.group(1))
-                                .getBytes(), "UTF-8");
+                                .getBytes(), StandardCharsets.UTF_8);
                     }
                 } else {
                     return filename;
@@ -976,12 +876,7 @@ public class Utils {
     }
 
     static String to_ascii(String s) {
-        try {
-            return new String(s.getBytes("US-ASCII"));
-        } catch (UnsupportedEncodingException enc) {
-            InboxPager.log += "!!6:" + enc.getMessage() + "\n\n";
-            return s;
-        }
+        return new String(s.getBytes(StandardCharsets.US_ASCII));
     }
 
     public static boolean all_ascii(String s) {
@@ -991,5 +886,63 @@ public class Utils {
 
     public static String to_base64_utf8(String s) {
         return "=?utf-8?B?" + Base64.encodeToString(s.getBytes(), Base64.NO_WRAP) + "?=";
+    }
+
+    public static String s_file_size(long sz, String B, String KB, String MB) {
+        if (sz == 0) {
+            return "0 " + B;
+        } else if (sz < 0) {
+            return "? " + B;
+        } else {
+            if (sz < 1000) {
+                return sz + " " + B;
+            } else if (sz < 1000000) {
+                return  (sz/1000) + " " + KB;
+            } else {
+                return (sz/1000000) + " " + MB;
+            }
+        }
+    }
+
+    // Counting address1@server.com, address2@server.com
+    public static HashMap<String, String> parse_addresses(String[] addresses) {
+        HashMap<String, String> addrs = new HashMap<>();
+
+        int n = 0;
+        for (String addressees : addresses) {
+            ++n;
+            if (addressees == null) continue;
+
+            // Parse
+            ArrayList<String> reflow_addr = new ArrayList<>();
+            for (String blob : addressees.split(",")) {
+                String adder = blob.trim();
+                if (!adder.isEmpty() && adder.contains("@")) reflow_addr.add(adder);
+            }
+
+            // Serialize
+            String serialized = "";
+            for (int i = 0;i < reflow_addr.size();++i) {
+                if (i == (reflow_addr.size() - 1)) {
+                    serialized += reflow_addr.get(i);
+                } else {
+                    serialized = serialized.concat(reflow_addr.get(i) + ", ");
+                }
+            }
+
+            switch (n) {
+                case 1:
+                    addrs.put("TO_", reflow_addr.size() + "|" + serialized);
+                    break;
+                case 2:
+                    addrs.put("CC_", reflow_addr.size() + "|" + serialized);
+                    break;
+                case 3:
+                    addrs.put("BCC", reflow_addr.size() + "|" + serialized);
+                    break;
+            }
+        }
+
+        return addrs;
     }
 }

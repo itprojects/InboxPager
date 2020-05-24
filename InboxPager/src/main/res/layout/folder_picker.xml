@@ -7,9 +7,9 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:visibility="gone"
-    tools:context=".dialogs.SendFilePicker">
+    tools:context=".visuals.SendFilePicker">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/picker_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -69,7 +69,7 @@
             android:textColor="@color/color_title"
             android:visibility="visible" />
 
-    </android.support.v7.widget.Toolbar>
+    </androidx.appcompat.widget.Toolbar>
 
     <TextView
         android:id="@+id/tv_location"
@@ -81,22 +81,22 @@
         android:singleLine="true"
         android:background="@color/color_home_bar_background" />
 
-    <android.support.design.widget.TabLayout
+    <com.google.android.material.tabs.TabLayout
         android:id="@+id/llay_tabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <android.support.design.widget.TabItem
+        <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/send_attachments" />
 
-        <android.support.design.widget.TabItem
+        <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/folder_title" />
 
-    </android.support.design.widget.TabLayout>
+    </com.google.android.material.tabs.TabLayout>
 
     <ListView
         android:id="@+id/list_view_attachments"

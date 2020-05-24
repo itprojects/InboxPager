@@ -17,7 +17,7 @@
 package net.inbox.server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Base64;
 
 import net.inbox.InboxPager;
@@ -26,7 +26,7 @@ import net.inbox.R;
 import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
-import net.inbox.dialogs.Dialogs;
+import net.inbox.visuals.Dialogs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -108,7 +108,7 @@ public class SMTP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
         }
 
         if (!excepted) {
@@ -119,7 +119,7 @@ public class SMTP extends Handler {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
                     }
 
                     if (current_inbox.get_smtp_extensions() != null
@@ -163,10 +163,10 @@ public class SMTP extends Handler {
                                 }
                             }
                         }
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_smtp),
+                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_smtp),
                                 tested, (AppCompatActivity) ctx);
                     } else {
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_smtp),
+                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_smtp),
                                 ctx.getString(R.string.edit_account_check_fail),
                                 (AppCompatActivity) ctx);
                     }
@@ -578,8 +578,8 @@ public class SMTP extends Handler {
                 write_limited(st.toCharArray());
             }
             // Message-ID
-            st = "Message-ID: <" + String.valueOf(Math.random() * 1000);
-            st += String.valueOf(System.currentTimeMillis()) + ">";
+            st = "Message-ID: <" + (Math.random() * 1000);
+            st += System.currentTimeMillis() + ">";
             write(st);
             if (data.msg_current.get_subject() != null
                     && !data.msg_current.get_subject().isEmpty()) {
@@ -716,7 +716,7 @@ public class SMTP extends Handler {
                 }
             });
         } catch (InterruptedException e) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
         }
     }
 

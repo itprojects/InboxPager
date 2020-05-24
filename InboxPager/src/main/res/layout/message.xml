@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".InboxMessage">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/message_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -25,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_alignParentStart="true"
-                android:layout_toStartOf="@+id/ssl_auth_img_vw"
+                android:layout_toStartOf="@+id/llay_right"
                 android:ellipsize="end"
                 android:fontFamily="@font/dottz"
                 android:letterSpacing="0.1"
@@ -42,36 +42,53 @@
                 android:textColor="@color/color_title"
                 android:visibility="visible" />
 
-            <ImageView
-                android:id="@+id/ssl_auth_img_vw"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@id/message_attachments"
-                android:contentDescription="@string/message_contents"
-                android:paddingStart="10sp"
-                android:paddingEnd="10sp"
-                android:src="@drawable/padlock_error"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/message_attachments"
+            <LinearLayout
+                android:id="@+id/llay_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:drawableEnd="@drawable/attachment"
-                android:fontFamily="@font/dottz"
-                android:paddingLeft="4sp"
-                android:paddingTop="4sp"
-                android:paddingRight="4sp"
-                android:paddingBottom="4sp"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="3" />
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/ssl_auth_img_vw"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="@string/message_contents"
+                    android:paddingStart="10sp"
+                    android:paddingEnd="2sp"
+                    android:src="@drawable/padlock_error"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/message_attachments"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableEnd="@drawable/attachment"
+                    android:fontFamily="@font/dottz"
+                    android:paddingTop="4sp"
+                    android:paddingBottom="4sp"
+                    android:paddingStart="2sp"
+                    android:paddingEnd="6sp"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="3" />
+
+                <TextView
+                    android:id="@+id/tv_reply"
+                    style="@style/action_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="1sp"
+                    android:background="@drawable/btn_green"
+                    android:text="@string/message_reply" />
+
+            </LinearLayout>
 
         </RelativeLayout>
 
-    </android.support.v7.widget.Toolbar>
+    </androidx.appcompat.widget.Toolbar>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -271,6 +288,25 @@
                 android:layout_marginBottom="15sp"
                 android:hint="@string/message_contents_loop_no"
                 android:textIsSelectable="true" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <WebView
+                    android:id="@+id/message_contents_webview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20sp"
+                    android:layout_marginLeft="20sp"
+                    android:layout_marginEnd="20sp"
+                    android:layout_marginRight="20sp"
+                    android:layout_marginBottom="15sp"
+                    android:hint="@string/message_contents_loop_no"
+                    android:textIsSelectable="true"
+                    android:visibility="gone"/>
+            </LinearLayout>
 
         </LinearLayout>
 

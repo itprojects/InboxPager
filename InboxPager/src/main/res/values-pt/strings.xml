@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Inbox Pager</string>
-    <string name="author">Copyright &#169; 2016 &#8211; 2019  ITPROJECTS</string>
+    <string name="author">Copyright &#169; 2016 &#8211; 2020  ITPROJECTS</string>
     <string name="disclaimer">AVISO LEGAL:\n</string>
     <string name="disclaimer_text">Os autores desse software não são responsáveis por QUAISQUER danos que esse software poderá causar, acidentalmente ou não, independentemente de QUALQUER e TODA legislação ou regulação, seja de QUALQUER país ou território do mundo.</string>
     <string name="dialog_license">Informação De Licença</string>
     <string name="license">Aplicação De Licença: General Public License 3</string>
-    <string name="license_media_files">Aplicação Do Ícone, CC-BY-SA: Creative Commons Attribution Share Alike 4.0 International Public License</string>
     <string name="progress_title">Atualizando</string>
     <string name="progress_refreshing">Procurando por mudanças.</string>
     <string name="progress_nothing">Sem (novas) mensagens.</string>
@@ -39,11 +38,9 @@
     <string name="err_msg_write_perms">Voce não possui permissão para salvar seu arquivo no diretório escolhido.</string>
     <string name="err_title_no_space">Sem espaço</string>
     <string name="err_msg_no_space">Parece que voce não possui espaço suficiente nesse dispositivo para salvar o arquivo.</string>
-    <string name="err_msg_qp_warn">Esse anexo está codificado no formato quoted-printable. Ele não é suportado totalmente. O arquivo será salvo como dados de texto.</string>
     <string name="err_title_already_exists">Arqauijo Já Existe</string>
     <string name="err_msg_already_exists">Gostaria de substituir o arquivo?</string>
     <string name="err_title_android_permission">Permissões Do Android</string>
-    <string name="err_msg_android_permission">Voce esqueceu de habilitar as permissões de armazenamento no Android em Configurações > Aplicativos E Notificações > ESTE APLICATIVO > Permissões Do Aplicativo.</string>
     <string name="err_wrong_user_or_pass">Usuário ou senha incorretos</string>
     <string name="err_read_file">Voce não tem permissão para ler esse arquivo.</string>
     <string name="err_size_attachments">Seus anexos são maiores que a capacidade de saída permitida do servidor. Remova alguns arquivos.</string>
@@ -62,7 +59,7 @@
     <string name="err_no_full_msg">Mensagem completa não encontrada no banco de dados!\nFaça primeiro o download da mensagem do servidor.</string>
     <string name="err_not_saved">Não foi possível concluir a ação de salvar.</string>
     <string name="err_imap_attachment_saving">Falha na gravação do arquivo de anexo servidor IMAP off-line. Baixar anexo online, excluir mensagem completa do banco de dados.</string>
-    <string name="err_action_failed">Falha da ação, veja o arquivo de registro \'log\'.</string>
+    <string name="err_action_failed">Falha da ação (ver log).</string>
     <string name="err_refresh">Erros em</string>
     <string name="err_pick_signing_key">Escolha uma chave de assinatura!</string>
     <string name="err_pick_rcpt_keys">Escolha as chaves do destinatário!</string>
@@ -96,17 +93,9 @@
     <string name="activity_add_account_title">Adicionar Conta</string>
     <string name="activity_edit_account_title">Editar Esta Conta</string>
     <string name="edit_account_email">Nome Da Conta</string>
-    <string name="edit_account_email_hint">sua.conta@exemplo.com</string>
+    <string name="edit_account_email_hint">sua.conta@exemplo.pt</string>
     <string name="edit_account_username">Usuário</string>
     <string name="edit_account_pass">Senha</string>
-    <string name="edit_account_incoming_server_hint_pop">pop.exemplo.com</string>
-    <string name="edit_account_incoming_server_hint_imap">imap.examplo.com</string>
-    <string name="edit_account_imap_or_pop_switchOn">IMAP  pop</string>
-    <string name="edit_account_imap_or_pop_switchOff">POP  imap</string>
-    <string name="edit_account_imap_or_pop_on">IMAP</string>
-    <string name="edit_account_imap_or_pop_off">POP</string>
-    <string name="edit_account_smtp">SMTP</string>
-    <string name="edit_account_smtp_server_hint">smtp.examplo.com</string>
     <string name="edit_account_auto_check">Permitir atualizações em todas as contas</string>
     <string name="edit_account_always_ask_pass">Sempre solicitar senha?</string>
     <string name="edit_account_auto_save_full_msgs">Manter mensagens completas no banco de dados</string>
@@ -129,17 +118,9 @@
     <string name="edit_account_not_saved">NÃO Salvo!</string>
     <string name="edit_account_delete">APAGAR</string>
     <string name="edit_account_test_results">Resultados Dos Testes</string>
-    <string name="edit_account_pop1">POP3:110</string>
-    <string name="edit_account_pop2">POP3-Secure:995</string>
-    <string name="edit_account_imap1">IMAP:143</string>
-    <string name="edit_account_imap2">IMAP-Secure:993</string>
-    <string name="edit_account_smtp1">SMTP:25</string>
-    <string name="edit_account_smtp2">SMTP-Secure:465</string>
-    <string name="edit_account_smtp3">SMTP:587</string>
     <string name="btn_up_one_level">▲ ACIMA</string>
     <string name="menu_download_msg">Baixar ➠ Banco De Dados</string>
     <string name="menu_save_message">Salvar ➠ Dispositivo</string>
-    <string name="menu_write_reply">Escrever uma resposta</string>
     <string name="menu_delete_from_server">Excluir Do Servidor</string>
     <string name="menu_delete_full_message">Excluir Mensagem Completa (BD)</string>
     <string name="menu_delete_full_messages">Excluir Mensagem Completa</string>
@@ -157,14 +138,12 @@
     <string name="message_contents_loop_no">SEM TEXTO</string>
     <string name="message_contents_loop_plain">PLANO</string>
     <string name="message_contents_loop_html">HTML</string>
-    <string name="message_contents_loop_other">OUTROS</string>
     <string name="message_no_full_message">Mensagem completa excluída do banco de dados.</string>
     <string name="message_no_full_messages">Mensagem completa excluída do banco de dados.</string>
     <string name="message_keep_in_database">Manter mensagem completa no banco de dados?</string>
     <string name="send_send">ENVIAR</string>
     <string name="send_sent">Enviado.</string>
     <string name="send_spin">Enviando</string>
-    <string name="send_addresses_hint">A@foo.com, B@foo.net,</string>
     <string name="send_attachments">Anexos</string>
     <string name="send_wait">Espere alguns segundos.</string>
     <string name="send_headers_sent">Cabeçalhos enviados. Enviando Conteúdos.</string>
@@ -183,12 +162,9 @@
     <string name="sett_vibrates_download_summary">O dispositivo vibrará quando novas mensagens chegarem.</string>
     <string name="sett_msg_font_size_title">Fonte TAMANHO</string>
     <string name="sett_msg_font_size_summary">Tamanho da fonte para os campos, ao visualizar uma mensagem..</string>
-    <string name="sett_change_pw_title">Alteração de segurança</string>
-    <string name="sett_change_pw_summary">Defina ou altere a senha do banco de dados interno ou desative a proteção.</string>
-    <string name="sett_change_pw_enable">Senha Solicitada</string>
+    <string name="sett_change_pw_title">Senha</string>
     <string name="sett_change_pw_new">NOVA SENHA</string>
-    <string name="sett_change_pw_visible">SENHA VISÍVEL</string>
-    <string name="sett_change_pw_text">Mínimo 12 caracteres.</string>
+    <string name="sett_change_pw_text">>= 12 caracteres.</string>
     <string name="open_pgp_dialog_title">Criptografia</string>
     <string name="open_pgp_reset">RESET</string>
     <string name="open_pgp_ready">PRONTO</string>
@@ -215,10 +191,9 @@
     <string name="file_title">Selecionar arquivo</string>
     <string name="err_size_attachments_title">Problema de Anexos</string>
     <string name="err_title_file_is_duplicate">O arquivo já está anexado.</string>
-    <string name="err_size_attachments_continue">Ignorar &amp; Continuar</string>
+    <string name="err_size_attachments_continue">Ignorar e Continuar</string>
     <string name="attch_added_attachment">Adicionado:</string>
     <string name="license_open_keychain">OpenKeychain (Java) Licença Apache, Versão 2,0.</string>
-    <string name="license_font">Dottz Font, SIL-OFL 1.1 Licença, ITPROJECTS</string>
     <string name="license_sql_cipher_java">SQLCipher (Java) Licença Apache, Versão 2,0.</string>
     <string name="license_sql_cipher_other">SQLCipher (Outros Componentes)</string>
     <string name="ex_ran_out_of_ram">RAM insuficiente. Livre mais memória virtual.</string>
@@ -228,4 +203,13 @@
     <string name="err_title_empty_name">Nome Obrigatório</string>
     <string name="err_msg_empty_name">Seu arquivo será salvo o nome:</string>
     <string name="send_show_previous">Mostrar mensagem anterior</string>
+    <string name="sett_enable_pw_title">Proteção com Senha</string>
+    <string name="sett_change_pw_retype">Repetir Nova Senha</string>
+    <string name="sett_enable_pw_summary_off">Palavra-passe: NÃO ESTÁ FUNCIONANDO.</string>
+    <string name="sett_enable_pw_summary_on">Palavra-passe: ESTÁ FUNCIONANDO.</string>
+    <string name="sett_change_pw_remove">Remover</string>
+    <string name="sett_change_pw_change">Alteração</string>
+    <string name="sett_change_pw_q">Remover ou Alterar Palavra-Passe?</string>
+    <string name="btn_continue">Continuar</string>
+    <string name="message_reply">RESPONDER</string>
 </resources>

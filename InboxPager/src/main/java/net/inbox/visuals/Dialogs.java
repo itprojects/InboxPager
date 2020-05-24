@@ -14,12 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
-package net.inbox.dialogs;
+package net.inbox.visuals;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,30 +29,17 @@ import net.inbox.server.Handler;
 
 public class Dialogs {
 
-    public static void dialog_server_ext(final String s1, final String s2, final AppCompatActivity ct) {
+    public static void dialog_simple(final String title, final String msg, final AppCompatActivity ct) {
         ct.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                builder.setTitle(s1);
-                builder.setMessage(s2);
+                if (title == null) builder.setTitle(ct.getString(R.string.app_name));
+                else builder.setTitle(title);
+                builder.setMessage(msg);
                 builder.setCancelable(true);
                 builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-                builder.show();
-            }
-        });
-    }
-
-    public static void dialog_error_line(final String s, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                builder.setTitle(ct.getString(R.string.app_name));
-                builder.setMessage(s);
-                builder.setCancelable(true);
-                builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-                builder.show();
+                make_text_selectable(builder.show());
             }
         });
     }
@@ -71,7 +58,7 @@ public class Dialogs {
                 builder.setMessage(str);
                 builder.setCancelable(true);
                 builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-                builder.show();
+                make_text_selectable(builder.show());
             }
         });
     }
@@ -85,7 +72,7 @@ public class Dialogs {
                 builder.setMessage(msg);
                 builder.setCancelable(true);
                 builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-                builder.show();
+                make_text_selectable(builder.show());
             }
         });
     }
@@ -99,27 +86,28 @@ public class Dialogs {
         builder.setNeutralButton(ct.getString(R.string.btn_log_clear),
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        InboxPager.log = "";
+                        InboxPager.log = " ";
                     }
                 });
         builder.show();
-        AlertDialog ad_log = builder.show();
-        TextView text_box = ad_log.findViewById(android.R.id.message);
-        if (text_box != null) text_box.setTextIsSelectable(true);
+        make_text_selectable(builder.show());
     }
 
     public static void dialog_view_ssl(boolean ssl_status, Handler handler, AppCompatActivity ct) {
         AlertDialog.Builder builder = new AlertDialog.Builder(ct);
         builder.setTitle(ct.getString(R.string.ssl_auth_popup_title));
         builder.setCancelable(true);
+        builder.setPositiveButton(ct.getString(android.R.string.ok), null);
         if (ssl_status) {
             builder.setMessage(handler.get_last_connection_data());
         } else {
             builder.setMessage(ct.getString(R.string.ssl_auth_popup_bad_connection));
-            builder.setPositiveButton(ct.getString(android.R.string.ok), null);
         }
-        AlertDialog ad_ssl = builder.show();
-        TextView text_box = ad_ssl.findViewById(android.R.id.message);
+        make_text_selectable(builder.show());
+    }
+
+    private static void make_text_selectable(AlertDialog adg) {
+        TextView text_box = adg.findViewById(android.R.id.message);
         if (text_box != null) text_box.setTextIsSelectable(true);
     }
 

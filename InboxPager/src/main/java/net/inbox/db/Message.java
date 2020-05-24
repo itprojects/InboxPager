@@ -24,6 +24,7 @@ public class Message {
     private String cc;
     private String bcc;
     private String from;
+    private String from_basic;// not in db
     private String content_type;
     private String content_transfer_encoding;
     private String charset_plain;
@@ -65,6 +66,10 @@ public class Message {
 
     public String get_from() {
         return from;
+    }
+
+    public String get_from_basic() {
+        return from_basic;
     }
 
     public String get_content_type() {
@@ -159,8 +164,12 @@ public class Message {
         bcc = s;
     }
 
-    public void set_from(String s) {
-        from = s;
+    public void set_from(String addr) {
+        from = addr;
+    }
+
+    public void set_from_basic(String addr) {
+        from_basic = addr;
     }
 
     public void set_content_type(String s) {

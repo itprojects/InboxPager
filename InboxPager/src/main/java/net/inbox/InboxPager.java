@@ -18,7 +18,6 @@ package net.inbox;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,17 +25,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
-import android.media.AudioManager;
-import android.media.ToneGenerator;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.preference.PreferenceManager;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.preference.PreferenceManager;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -56,8 +55,8 @@ import android.widget.TextView;
 import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
-import net.inbox.dialogs.Dialogs;
-import net.inbox.dialogs.SpinningStatus;
+import net.inbox.visuals.Dialogs;
+import net.inbox.visuals.SpinningStatus;
 import net.inbox.server.Handler;
 import net.inbox.server.IMAP;
 import net.inbox.server.POP;
@@ -66,24 +65,25 @@ import net.sqlcipher.database.SQLiteDatabase;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.SortedMap;
 
 public class InboxPager extends AppCompatActivity {
 
-    public static String log;
+    public static String log = "\n";
 
     // Show first use help
     private boolean show_help = false;
     private boolean refresh;
 
-    public static int orientation = -1;
+    public static int orientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 
     public static String open_key_chain = "org.sufficientlysecure.keychain";
 
     private static DBAccess db;
     private static SharedPreferences prefs;
-    private static ToneGenerator beep;
-    private static Vibrator vvv;
+    private static Vibrator vib;
+    private static Ringtone ring;
 
     private Handler handler;
     private boolean unlocked;
@@ -133,7 +133,7 @@ public class InboxPager extends AppCompatActivity {
             show_help = savedInstanceState.getBoolean("sv_show_help");
             good_incoming_server = savedInstanceState.getBoolean("sv_good_incoming_server");
             current_inbox = savedInstanceState.getInt("sv_current_inbox");
-            if (current_inbox != -2) {
+            if (current_inbox != -2 && db != null) {
                 // Loading known ID inbox
                 current = db.get_account(current_inbox);
             } else {
@@ -150,11 +150,14 @@ public class InboxPager extends AppCompatActivity {
             // Initial values that don't have a preference screen
             prefs.edit().putBoolean("imap_or_pop", true).apply();
             prefs.edit().putBoolean("using_smtp", false).apply();
-            prefs.edit().putBoolean("enable_pw", false).apply();
+            prefs.edit().putBoolean("pw_protection", false).apply();
             show_help = true;
         }
 
-        if (unlocked && prefs.getBoolean("enable_pw", false)) {
+        ring = RingtoneManager.getRingtone(getApplicationContext(),
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+
+        if (unlocked && prefs.getBoolean("pw_protection", false)) {
             // Initial entry view
             View v = View.inflate(this, R.layout.pager, null);
             setContentView(v);
@@ -170,7 +173,7 @@ public class InboxPager extends AppCompatActivity {
                     activity_load();
                 }
             });
-        } else if (show_help || !prefs.getBoolean("enable_pw", false)) {
+        } else if (show_help || !prefs.getBoolean("pw_protection", false)) {
             init_db("cleartext");
 
             // Initial entry view
@@ -224,7 +227,7 @@ public class InboxPager extends AppCompatActivity {
             builder.setCancelable(true);
             builder.setTitle(getString(R.string.helper_title));
             builder.setMessage(getString(R.string.helper_msg));
-            builder.setPositiveButton(getString(android.R.string.ok), null);
+            builder.setPositiveButton(getString(R.string.btn_continue), null);
             builder.setNegativeButton(getString(R.string.btn_pw),
                     new AlertDialog.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -316,6 +319,7 @@ public class InboxPager extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 || requestCode == 10) {
             if (refresh) {
                 refresh = false;
@@ -382,7 +386,7 @@ public class InboxPager extends AppCompatActivity {
             }
             unlocked = true;
         } catch (Exception e) {
-            log += e.getMessage() + "\n\n";
+            log = log.concat(e.getMessage() + "\n\n");
             unlocked = false;
             et_pw.setBackgroundColor(Color.parseColor("#BA0C0C"));
             et_pw.setHintTextColor(Color.WHITE);
@@ -412,11 +416,8 @@ public class InboxPager extends AppCompatActivity {
     }
 
     private void activity_load() {
-        // Init notification sound
-        beep = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 1000);
-
         // Init vibrations
-        vvv = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         Toolbar tb = findViewById(R.id.toolbar);
         setSupportActionBar(tb);
@@ -443,6 +444,13 @@ public class InboxPager extends AppCompatActivity {
 
         // No accounts message is visible if the user has not init-ed the app
         tv_background = findViewById(R.id.text_background);
+        tv_background.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                drawer_flip();
+            }
+        });
 
         // Setting up the SSL authentication application
         iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
@@ -484,11 +492,7 @@ public class InboxPager extends AppCompatActivity {
         drawer_toggle.setToolbarNavigationClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (llay_drawer.isDrawerVisible(GravityCompat.START)) {
-                    llay_drawer.closeDrawer(GravityCompat.START);
-                } else {
-                    llay_drawer.openDrawer(GravityCompat.START);
-                }
+                drawer_flip();
             }
         });
 
@@ -500,10 +504,20 @@ public class InboxPager extends AppCompatActivity {
         set_current_inbox();
     }
 
+    private void drawer_flip() {
+        if (llay_drawer.isDrawerVisible(GravityCompat.START)) {
+            llay_drawer.closeDrawer(GravityCompat.START);
+        } else {
+            llay_drawer.openDrawer(GravityCompat.START);
+        }
+    }
+
     public void populate_accounts_list_view() {
         ArrayList<Inbox> list_accounts = db.get_all_accounts();
 
         if (list_accounts.size() == 0) {
+            al_accounts_items = new ArrayList<>();
+
             tv_background.setText(getString(R.string.no_accounts));
             tv_background.setVisibility(View.VISIBLE);
 
@@ -655,10 +669,12 @@ public class InboxPager extends AppCompatActivity {
             tv_background.setVisibility(View.GONE);
             msg_list_view.setVisibility(View.VISIBLE);
 
-            InboxMessageExpList msg_list_adapter = new InboxMessageExpList(this,
+            InboxMessageExpList msg_list_adapter = new InboxMessageExpList(current_inbox, this,
                     new ArrayList<>(al_messages.keySet()), al_messages);
             msg_list_view.setAdapter(msg_list_adapter);
-            msg_list_view.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            msg_list_view.setOnChildClickListener(
+                    new ExpandableListView.OnChildClickListener() {
+
                 @Override
                 public boolean onChildClick(ExpandableListView parent, View v,
                                             int group_pos, int child_pos, long id) {
@@ -686,6 +702,20 @@ public class InboxPager extends AppCompatActivity {
                     startActivityForResult(i.putExtras(b), 1000);
                     overridePendingTransition(R.anim.left_in, R.anim.left_out);
 
+                    return false;
+                }
+            });
+
+            // Direct Reply Send Option
+            msg_list_view.setOnItemLongClickListener(
+                    new ExpandableListView.OnItemLongClickListener() {
+
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    if (view.findViewById(R.id.message_group) != null
+                            && (view.getId() == view.findViewById(R.id.message_group).getId())) {
+                        view.findViewById(R.id.message_group_send_to).setVisibility(View.VISIBLE);
+                    }
                     return false;
                 }
             });
@@ -762,7 +792,6 @@ public class InboxPager extends AppCompatActivity {
         handler.default_action(false, current, this);
     }
 
-    @SuppressLint("WrongConstant")
     public void handle_orientation(boolean fixed_or_rotating) {
         if (fixed_or_rotating) {
             orientation = getResources().getConfiguration().orientation;
@@ -771,13 +800,9 @@ public class InboxPager extends AppCompatActivity {
     }
 
     /**
-     * Dialog account information - i.e. # messages, # unread.
+     * Dialog account information - i.e. # messages, # unread, # bytes.
      **/
     private void dialog_statistical() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.stats_title));
-        String msg = current.get_messages() + " " + getString(R.string.stats_messages) + ", "
-                + current.get_unseen() + " " + getString(R.string.stats_unseen) + ", ";
         int sz = current.get_total_size();
         String total_size = "";
         if (sz < 1024) {
@@ -787,18 +812,12 @@ public class InboxPager extends AppCompatActivity {
         } else {
             total_size += (sz/1048576) + " " + getString(R.string.attch_megabytes);
         }
-        msg += total_size;
-        builder.setMessage(msg);
-        builder.setPositiveButton(getString(android.R.string.ok),
 
-                new DialogInterface.OnClickListener() {
+        String msg = String.format(Locale.getDefault(), "%d %s, %s %s, %s",
+                current.get_messages(), getString(R.string.stats_messages), current.get_unseen(),
+                getString(R.string.stats_unseen), total_size);
 
-                    public void onClick(DialogInterface dialog,int id) {
-                        dialog.dismiss();
-                    }
-                });
-        builder.setCancelable(true);
-        builder.show();
+        Dialogs.dialog_simple(getString(R.string.stats_title), msg, this);
     }
 
     public void connection_security() {
@@ -837,9 +856,8 @@ public class InboxPager extends AppCompatActivity {
     }
 
     public static void notify_update() {
-        boolean beeps = prefs.getBoolean("beeps", false);
-        boolean vibrate = prefs.getBoolean("vibrates", false);
-        if (beeps) beep.startTone(ToneGenerator.TONE_PROP_BEEP2);
-        if (vibrate) vvv.vibrate(1000);
+        if (!ring.isPlaying() && prefs.getBoolean("beeps", false)) ring.play();
+
+        if (prefs.getBoolean("vibrates", false)) vib.vibrate(1000);
     }
 }

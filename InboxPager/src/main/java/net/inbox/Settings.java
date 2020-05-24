@@ -17,10 +17,11 @@
 package net.inbox;
 
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
+import androidx.fragment.app.FragmentActivity;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
 
-public class Settings extends PreferenceActivity {
+public class Settings extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,13 +30,29 @@ public class Settings extends PreferenceActivity {
         // Prevent Android Switcher leaking data via screenshots
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
                 WindowManager.LayoutParams.FLAG_SECURE);
-        getFragmentManager().beginTransaction().replace
-                (android.R.id.content, new SettingsFragment()).commit();
+
+        getSupportFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
     }
 
     @Override
     public void finish() {
         super.finish();
         overridePendingTransition(R.anim.left_in, R.anim.left_out);
+    }
+
+    // Sandbox WebView, prepare for use.
+    public static void setup_webview(WebSettings web_settings) {
+        web_settings.setAllowFileAccess(false);
+        web_settings.setLoadsImagesAutomatically(false);
+        web_settings.setDatabaseEnabled(false);
+        web_settings.setBlockNetworkImage(true);
+        web_settings.setBlockNetworkLoads(true);
+        web_settings.setJavaScriptEnabled(false);
+        web_settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        web_settings.setAppCacheEnabled(false);
+        web_settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        web_settings.setSaveFormData(false);
+        web_settings.setGeolocationEnabled(false);
+        web_settings.setSupportZoom(true);
     }
 }

@@ -22,9 +22,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -38,7 +38,7 @@ import android.widget.TextView;
 
 import net.inbox.db.Inbox;
 import net.inbox.db.DBAccess;
-import net.inbox.dialogs.Dialogs;
+import net.inbox.visuals.Dialogs;
 import net.inbox.server.Handler;
 import net.inbox.server.IMAP;
 import net.inbox.server.POP;
@@ -103,8 +103,10 @@ public class InboxPreferences extends AppCompatActivity {
                 current_inbox = savedInstanceState.getInt("sv_current_inbox");
             } else {
                 // Launching the corresponding ADD or EDIT operation
-                add_mode = getIntent().getExtras().getBoolean("add");
-                current_inbox = getIntent().getExtras().getInt("db_id");
+                if (getIntent().getExtras() != null) {
+                    add_mode = getIntent().getExtras().getBoolean("add");
+                    current_inbox = getIntent().getExtras().getInt("db_id");
+                }
             }
 
             current.set_id(current_inbox);
@@ -246,7 +248,7 @@ public class InboxPreferences extends AppCompatActivity {
                         int i_port = 0;
                         String s_port = et_imap_or_pop_server_port.getText().toString();
                         if (!s_port.isEmpty()) {
-                            i_port = Integer.valueOf(s_port);
+                            i_port = Integer.parseInt(s_port);
                         }
                         if (initial_imap_or_pop_port == i_port && i_port != 0) {
                             // Changed protocol, but not port!
@@ -293,7 +295,7 @@ public class InboxPreferences extends AppCompatActivity {
             initial_switch_value = current.get_imap_or_pop();
             initial_imap_or_pop_port = current.get_imap_or_pop_port();
         } catch (Exception e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             finish();
         }
     }

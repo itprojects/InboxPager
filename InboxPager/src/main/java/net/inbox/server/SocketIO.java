@@ -77,43 +77,43 @@ class SocketIO implements Runnable {
         try {
             SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
             s = (SSLSocket) sf.createSocket(server, port);
+
             HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
-            if (hv.verify(server, s.getSession())) {
-                try {
-                    StringBuilder sb = new StringBuilder();
-                    w = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
-                    r = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                    int i;
-                    boolean cr = false;
-                    while ((i = r.read()) != -1) {
-                        if (i == 10 && cr) {
-                            sb.append((char) i);
-                            sb.deleteCharAt(sb.length() - 1);
-                            sb.deleteCharAt(sb.length() - 1);
-                            handler.reply(sb.toString());
-                            sb.setLength(0);
-                        } else if (i == 13) {
-                            cr = true;
-                            sb.append((char) i);
-                        } else {
-                            cr = false;
-                            sb.append((char) i);
-                        }
-                    }
-                } catch (IOException ee) {
-                    if (r != null) r.close();
-                }
-                if (w != null) w.close();
-                if (r != null) r.close();
-                if (s != null && !s.isClosed()) s.close();
-            } else {
-                closing();
-                handler.last_connection_hostname = false;
-                throw new javax.net.ssl.SSLException("'"+ server + "' != '"
-                        + s.getSession().getPeerHost() + "'");
+            if (!hv.verify(server, s.getSession())) {
+                InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field)
+                        + "Possibly Unverified Host: '" + server + "' != '"
+                        + s.getSession().getPeerHost() + "'" + "\n\n");
             }
+
+            try {
+                StringBuilder sb = new StringBuilder();
+                w = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
+                r = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                int i;
+                boolean cr = false;
+                while ((i = r.read()) != -1) {
+                    if (i == 10 && cr) {
+                        sb.append((char) i);
+                        sb.deleteCharAt(sb.length() - 1);
+                        sb.deleteCharAt(sb.length() - 1);
+                        handler.reply(sb.toString());
+                        sb.setLength(0);
+                    } else if (i == 13) {
+                        cr = true;
+                        sb.append((char) i);
+                    } else {
+                        cr = false;
+                        sb.append((char) i);
+                    }
+                }
+            } catch (IOException ee) {
+                if (r != null) r.close();
+            }
+            if (w != null) w.close();
+            if (r != null) r.close();
+            if (s != null && !s.isClosed()) s.close();
         } catch (Exception e) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
             handler.excepted = true;
             handler.error_dialog(e);
         }
@@ -123,7 +123,7 @@ class SocketIO implements Runnable {
         try {
             if (s != null && !s.isClosed()) s.close();
         } catch (IOException e) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
         }
     }
 
@@ -147,13 +147,15 @@ class SocketIO implements Runnable {
             for (X509Certificate cert : session_0.getPeerCertificateChain()) {
                 lb = lb.concat("\n"
                         + getKeyLength(cert.getPublicKey())
-                        + cert.getSigAlgName().toUpperCase() + ":\n" + cert.getIssuerDN().getName()
-                        + "\n\n" + "SHA-256:\n" + getKeySHA256Hash(cert) + "\n\n");
+                        + cert.getSigAlgName().toUpperCase() + ":\n"
+                        + cert.getIssuerDN().getName() + "\n\nSHA-256:\n"
+                        + getKeySHA256Hash(cert) + "\n\n");
             }
 
-            lb = lb.replaceAll("(CN=|O=|OU=|L=|ST=|C=)", "").trim();
+            lb = lb.replaceAll("(CN=|O=|OU=|L=|ST=|C=)", "")
+                    .replaceAll(",", ", ").trim();
         } catch (SSLPeerUnverifiedException ee) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n");
         }
 
         return lb;
@@ -166,8 +168,8 @@ class SocketIO implements Runnable {
         } else if (pk instanceof ECPublicKey) {
             java.security.spec.ECParameterSpec pk_spec = ((ECPublicKey) pk).getParams();
 
-            return pk_spec == null ? "? Public Key\n"
-                    : pk_spec.getOrder().bitLength() + " bit Elliptic Curve Public Key\n";
+            return pk_spec == null ? "? Public Key\n" : pk_spec.getOrder().bitLength()
+                    + " bit Elliptic Curve Public Key\n";
         } else if (pk instanceof DSAPublicKey) {
             DSAPublicKey pk_dsa = (DSAPublicKey) pk;
 
@@ -193,7 +195,7 @@ class SocketIO implements Runnable {
             if (buff.length() > 0) buff.deleteCharAt(buff.length() - 1);
             return buff.toString();
         } catch (Exception e) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
             return "? ☉_☉ ?";
         }
     }

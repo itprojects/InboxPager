@@ -21,10 +21,11 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Base64;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -32,7 +33,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import net.inbox.dialogs.Dialogs;
+import net.inbox.visuals.Common;
+import net.inbox.visuals.Dialogs;
 import net.inbox.server.Utils;
 
 import org.openintents.openpgp.IOpenPgpService2;
@@ -48,6 +50,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class InboxGPG extends AppCompatActivity {
@@ -93,6 +96,8 @@ public class InboxGPG extends AppCompatActivity {
 
     private OpenPgpServiceConnection open_pgp_service_connection;
 
+    private View current_layout;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,6 +123,23 @@ public class InboxGPG extends AppCompatActivity {
                 gpg_actions = savedInstanceState.getStringArray("sv_gpg_actions");
                 rcpt_mailboxes = savedInstanceState.getStringArray("sv_rcpt_mailboxes");
                 attachment_paths = savedInstanceState.getStringArrayList("sv_attachment_paths");
+            } else {
+                // Animation parameters
+                current_layout = this.findViewById(R.id.openpgp_activity);
+                current_layout.setVisibility(View.INVISIBLE);
+
+                ViewTreeObserver viewTreeObserver = current_layout.getViewTreeObserver();
+                if (viewTreeObserver.isAlive()) {
+                    viewTreeObserver.addOnGlobalLayoutListener(
+                            new ViewTreeObserver.OnGlobalLayoutListener() {
+
+                                @Override
+                                public void onGlobalLayout() {
+                                    Common.animation_in((AppCompatActivity) current_layout.getContext(), current_layout);
+                                    current_layout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                                }
+                            });
+                }
             }
 
             Toolbar tb = findViewById(R.id.send_toolbar);
@@ -193,7 +215,7 @@ public class InboxGPG extends AppCompatActivity {
 
             init_ui();
         } catch (Exception e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             finish();
         }
     }
@@ -217,9 +239,13 @@ public class InboxGPG extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        Common.animation_out(this, current_layout);
+    }
+
+    @Override
     public void finish() {
         super.finish();
-        overridePendingTransition(R.anim.right_in, R.anim.right_out);
     }
 
     @Override
@@ -507,7 +533,7 @@ public class InboxGPG extends AppCompatActivity {
             OpenPgpApi api = new OpenPgpApi(this, open_pgp_service_connection.getService());
             api.executeApiAsync(data, is, os, new ResultsCallback(os, REQUEST_CODE_CLEARTEXT_SIGN));
         } catch (OutOfMemoryError e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             toaster(false, getString(R.string.ex_ran_out_of_ram));
         }
     }
@@ -526,7 +552,7 @@ public class InboxGPG extends AppCompatActivity {
             OpenPgpApi api = new OpenPgpApi(this, open_pgp_service_connection.getService());
             api.executeApiAsync(data, is, null, new ResultsCallback(null, REQUEST_CODE_DETACHED_SIGN));
         } catch (OutOfMemoryError e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             toaster(false, getString(R.string.ex_ran_out_of_ram));
         }
     }
@@ -557,7 +583,7 @@ public class InboxGPG extends AppCompatActivity {
             OpenPgpApi api = new OpenPgpApi(this, open_pgp_service_connection.getService());
             api.executeApiAsync(data, is, os, new ResultsCallback(os, REQUEST_CODE_ENCRYPT));
         } catch (OutOfMemoryError e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             toaster(false, getString(R.string.ex_ran_out_of_ram));
         }
     }
@@ -588,7 +614,7 @@ public class InboxGPG extends AppCompatActivity {
             OpenPgpApi api = new OpenPgpApi(this, open_pgp_service_connection.getService());
             api.executeApiAsync(data, is, os, new ResultsCallback(os, REQUEST_CODE_SIGN_AND_ENCRYPT));
         } catch (OutOfMemoryError e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             toaster(false, getString(R.string.ex_ran_out_of_ram));
         }
     }
@@ -604,7 +630,7 @@ public class InboxGPG extends AppCompatActivity {
             OpenPgpApi api = new OpenPgpApi(this, open_pgp_service_connection.getService());
             api.executeApiAsync(data, is, os, new ResultsCallback(os, REQUEST_CODE_DECRYPT_AND_VERIFY));
         } catch (OutOfMemoryError e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             toaster(false, getString(R.string.ex_ran_out_of_ram));
         }
     }
@@ -624,7 +650,7 @@ public class InboxGPG extends AppCompatActivity {
                 api.executeApiAsync(data, is, null, new ResultsCallback
                         (null, REQUEST_CODE_DECRYPT_AND_VERIFY_DETACHED));
             } catch (OutOfMemoryError e) {
-                InboxPager.log += e.getMessage() + "\n\n";
+                InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
                 toaster(false, getString(R.string.ex_ran_out_of_ram));
             }
         }
@@ -647,7 +673,7 @@ public class InboxGPG extends AppCompatActivity {
 
                     @Override
                     public void onError(Exception e) {
-                        InboxPager.log += e.getMessage() + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
                         toaster(true, e.getMessage());
                     }
                 }
@@ -659,22 +685,17 @@ public class InboxGPG extends AppCompatActivity {
      * Converts String to ByteArrayInputStream.
      **/
     private InputStream get_input_stream(boolean mime, boolean clear) throws OutOfMemoryError {
-        InputStream is = null;
-        try {
-            if (mime) {
-                if (clear) {
-                    msg_crypto = mime_serialization().replaceAll("\n", "\r\n");
-                    is = new ByteArrayInputStream(msg_crypto.getBytes("UTF-8"));
-                } else {
-                    is = new ByteArrayInputStream(mime_serialization().getBytes("UTF-8"));
-                }
+        InputStream is;
+        if (mime) {
+            if (clear) {
+                msg_crypto = mime_serialization().replaceAll("\n", "\r\n");
+                is = new ByteArrayInputStream(msg_crypto.getBytes(StandardCharsets.UTF_8));
             } else {
-                if (msg_contents == null) return null;
-                is = new ByteArrayInputStream(msg_contents.getBytes("UTF-8"));
+                is = new ByteArrayInputStream(mime_serialization().getBytes(StandardCharsets.UTF_8));
             }
-        } catch (UnsupportedEncodingException e) {
-            InboxPager.log += e.getMessage() + "\n\n";
-            Dialogs.toaster(false, e.getMessage(), this);
+        } else {
+            if (msg_contents == null) return null;
+            is = new ByteArrayInputStream(msg_contents.getBytes(StandardCharsets.UTF_8));
         }
         return is;
     }
@@ -816,7 +837,7 @@ public class InboxGPG extends AppCompatActivity {
                                     if (spinner_gpg_action.getSelectedItemPosition() != 2) {
                                         // Signing and/or encryption
                                         msg_crypto = os.toString("UTF-8");
-                                        if (msg_crypto != null && msg_crypto.length() > 700) {
+                                        if (msg_crypto.length() > 700) {
                                             tv_cipher_text.setText(msg_crypto.substring(0, 700));
                                         } else tv_cipher_text.setText(msg_crypto);
                                     }
@@ -826,7 +847,7 @@ public class InboxGPG extends AppCompatActivity {
                                     // Encrypted and/or signed, decryption
                                     if (msg_encrypted) {
                                         msg_crypto = os.toString("UTF-8");
-                                        if (msg_crypto != null && msg_crypto.length() > 700) {
+                                        if (msg_crypto.length() > 700) {
                                             tv_message.setText(msg_crypto.substring(0, 700));
                                         } else tv_message.setText(msg_crypto);
                                     }
@@ -837,7 +858,7 @@ public class InboxGPG extends AppCompatActivity {
                                     break;
                             }
                         } catch (UnsupportedEncodingException e) {
-                            InboxPager.log += e.getMessage() + "\n\n";
+                            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
                         }
                     }
 
@@ -859,8 +880,8 @@ public class InboxGPG extends AppCompatActivity {
                             break;
                         }
                         case REQUEST_CODE_DETACHED_SIGN: {
-                            byte[] detached_sig
-                                    = result.getByteArrayExtra(OpenPgpApi.RESULT_DETACHED_SIGNATURE);
+                            byte[] detached_sig = result.getByteArrayExtra(
+                                    OpenPgpApi.RESULT_DETACHED_SIGNATURE);
                             msg_signature = new String(detached_sig);
                             tv_signature.setText(msg_signature);
                             msg_integrity = result.getStringExtra("signature_micalg");
@@ -885,14 +906,14 @@ public class InboxGPG extends AppCompatActivity {
                         InboxGPG.this.startIntentSenderFromChild
                                 (InboxGPG.this, pi.getIntentSender(), request_code, null, 0, 0, 0);
                     } catch (IntentSender.SendIntentException e) {
-                        InboxPager.log += e.getMessage() + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
                     }
                     break;
                 }
                 case OpenPgpApi.RESULT_CODE_ERROR: {
                     toaster(true, getString(R.string.open_pgp_failure));
-                    InboxPager.log += ((OpenPgpError) result.getParcelableExtra(OpenPgpApi.RESULT_ERROR))
-                            .getMessage() + "\n\n";
+                    InboxPager.log = InboxPager.log.concat(((OpenPgpError) result.getParcelableExtra(OpenPgpApi.RESULT_ERROR))
+                            .getMessage() + "\n\n");
                     msg_ready = false;
                     break;
                 }
@@ -923,13 +944,13 @@ public class InboxGPG extends AppCompatActivity {
                         act.startIntentSenderFromChild(
                                 act, pi.getIntentSender(), requestCode, null, 0, 0, 0);
                     } catch (IntentSender.SendIntentException e) {
-                        InboxPager.log += e.getMessage() + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
                     }
                     break;
                 }
                 case OpenPgpApi.RESULT_CODE_ERROR: {
-                    InboxPager.log += ((OpenPgpError) result.getParcelableExtra(OpenPgpApi.RESULT_ERROR))
-                            .getMessage() + "\n\n";
+                    InboxPager.log = InboxPager.log.concat(((OpenPgpError) result.getParcelableExtra(OpenPgpApi.RESULT_ERROR))
+                            .getMessage() + "\n\n");
                     break;
                 }
             }

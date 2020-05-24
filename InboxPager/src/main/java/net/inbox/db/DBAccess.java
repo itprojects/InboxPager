@@ -17,8 +17,10 @@
 package net.inbox.db;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -27,7 +29,6 @@ import android.content.Context;
 
 import net.inbox.InboxPager;
 import net.sqlcipher.Cursor;
-import net.sqlcipher.SQLException;
 import net.sqlcipher.database.SQLiteDatabase;
 import net.sqlcipher.database.SQLiteOpenHelper;
 
@@ -150,12 +151,10 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public void rekey_db(String s) {
-        try {
-            dbw.execSQL("PRAGMA rekey = '" + s + "'");
-            System.gc();
-        } catch (SQLException e) {
-            InboxPager.log += e.getMessage();
-        }
+        // Previous Method
+        // dbw.execSQL("PRAGMA rekey = '" + s + "'");
+        dbw.query(String.format("PRAGMA rekey = '%s'", s));
+        System.gc();
     }
 
     public void add_account(Inbox current) {
@@ -275,14 +274,11 @@ public class DBAccess extends SQLiteOpenHelper {
         Cursor cursor = dbw.query(table_accounts, new String[] { key_unseen }, "id = " + id,
                 null, null, null, null);
 
-        if (cursor.moveToFirst()) {
-            current_count = cursor.getInt(0);
-        }
+        if (cursor.moveToFirst()) current_count = cursor.getInt(0);
 
         // Updating unread messages count for account
-        if (current_count != -1 && current_count != count) {
-            dbw.execSQL("UPDATE " + table_accounts + " SET unseen=" + count + " WHERE id = " + id);
-        }
+        if (current_count != -1 && current_count != count) dbw.execSQL("UPDATE " + table_accounts
+                + " SET unseen=" + count + " WHERE id = " + id);
 
         // Prevent memory issues
         cursor.close();
@@ -306,6 +302,7 @@ public class DBAccess extends SQLiteOpenHelper {
             cursor.close();
         } catch (Exception e) {
             // A rare exception.
+            InboxPager.log = InboxPager.log.concat(e.getMessage() == null ? "!DB!" : e.getMessage());
         }
         return count;
     }
@@ -362,15 +359,11 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public void delete_account(int id) {
-        if (table_exists(table_attachments)) {
-            dbw.delete(table_attachments, key_account + " = " + id, null);
-        }
-        if (table_exists(table_messages)) {
-            dbw.delete(table_messages, key_account + " = " + id, null);
-        }
-        if (table_exists(table_accounts)) {
-            dbw.delete(table_accounts, key_id + " = " + id, null);
-        }
+        if (table_exists(table_attachments)) dbw.delete(table_attachments, key_account + " = " + id, null);
+
+        if (table_exists(table_messages)) dbw.delete(table_messages, key_account + " = " + id, null);
+
+        if (table_exists(table_accounts)) dbw.delete(table_accounts, key_id + " = " + id, null);
     }
 
     public void add_message(Message current) {
@@ -589,7 +582,18 @@ public class DBAccess extends SQLiteOpenHelper {
         Cursor cursor = dbw.query(table_messages, new String[] {"*"}, "account = " + id,
                 null, null, null, null);
 
-        SortedMap<String, ArrayList<Message>> messages = new TreeMap<>();
+        ArrayList<Message> msgs = new ArrayList<>();
+        HashMap<String, String> msg_set_unique_addr = new HashMap<>();
+
+        // Sender email@example.com has a Message list
+        SortedMap<String, ArrayList<Message>> messages = new TreeMap<>(new Comparator<String>() {
+            @Override public int compare(String s1, String s2) {
+                return s1.compareToIgnoreCase(s2);
+            }
+        });
+
+        int ind;
+        String addr;
         Message current;
         if (cursor.moveToFirst()) {
             do {
@@ -601,19 +605,57 @@ public class DBAccess extends SQLiteOpenHelper {
                 current.set_uid(cursor.getString(12));
                 current.set_attachments(cursor.getInt(22));
                 current.set_seen(cursor.getInt(23) == 1);
-                if (messages.containsKey(current.get_from())) {
-                    ArrayList<Message> message_list = messages.get(current.get_from());
-                    message_list.add(0, current);
+
+                // Splitting John Doe <john.doe@example.com>
+                addr = current.get_from();
+                ind = addr.indexOf("<");
+                if (ind > -1) {
+                    current.set_from_basic(addr.substring(ind + 1, addr.indexOf(">")));
+                    current.set_from(addr);
+                    msg_set_unique_addr.put(current.get_from_basic(), current.get_from());
                 } else {
-                    ArrayList<Message> message_list = new ArrayList<>();
-                    message_list.add(0, current);
-                    messages.put(current.get_from(), message_list);
+                    current.set_from_basic(addr);
+                    if (!msg_set_unique_addr.containsKey(current.get_from_basic())) {
+                        msg_set_unique_addr.put(current.get_from_basic(), null);
+                    }
                 }
+
+                msgs.add(current);
             } while (cursor.moveToNext());
         }
 
         // Prevent memory issues
         cursor.close();
+
+        // Grouping. Note: code beyond this line needs a functional programming update.
+
+        // Removing null values for addresses such as email@example.com, no <>
+        for (Map.Entry<String, String> e : msg_set_unique_addr.entrySet()) {
+            if (e.getValue() == null) e.setValue(e.getKey());
+        }
+
+        // Add messages to SortedMap for email address
+        for (Message msg : msgs) {
+            if (messages.containsKey(msg.get_from_basic())) {
+                ArrayList<Message> message_list = messages.get(msg.get_from_basic());
+                try {
+                    message_list.add(0, msg);
+                } catch (Exception e) {
+                    InboxPager.log = InboxPager.log.concat(e.getMessage() == null ? "!MSG!" : e.getMessage());
+                }
+            } else {
+                ArrayList<Message> message_list = new ArrayList<>();
+                message_list.add(0, msg);
+                messages.put(msg.get_from_basic(), message_list);
+            }
+        }
+
+        // Renaming keys/branches of SortedMap
+        for (Map.Entry<String, String> e : msg_set_unique_addr.entrySet()) {
+            if (!e.getValue().equals(e.getKey())) {
+                messages.put(e.getValue(), messages.remove(e.getKey()));
+            }
+        }
 
         return messages;
     }

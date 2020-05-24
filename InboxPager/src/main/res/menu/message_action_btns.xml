@@ -12,7 +12,6 @@
             <item android:id="@+id/delete_from_local_menu" android:title="@string/menu_delete_full_message"/>
             <item android:id="@+id/download_message_menu" android:title="@string/menu_download_msg"/>
             <item android:id="@+id/save_message_menu" android:title="@string/menu_save_message"/>
-            <item android:id="@+id/write_reply_menu" android:title="@string/menu_write_reply"/>
             <item android:id="@+id/details_menu" android:title="@string/menu_see_full_message"/>
         </menu>
     </item>

@@ -17,7 +17,7 @@
 package net.inbox.server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Base64;
 
 import net.inbox.InboxMessage;
@@ -26,7 +26,7 @@ import net.inbox.R;
 import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
-import net.inbox.dialogs.Dialogs;
+import net.inbox.visuals.Dialogs;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -230,10 +230,10 @@ public class IMAP extends Handler {
                                 }
                             }
                         }
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
+                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_incoming),
                                 tested, (AppCompatActivity) ctx);
                     } else {
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
+                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_incoming),
                                 ctx.getString(R.string.edit_account_check_fail),
                                 (AppCompatActivity) ctx);
                     }
@@ -622,7 +622,7 @@ public class IMAP extends Handler {
     }
 
     private void tag() {
-        tag = "a" + String.valueOf(num);
+        tag = "a" + num;
         ++num;
     }
 
@@ -954,25 +954,25 @@ public class IMAP extends Handler {
                     if (mat.matches()) received = received.concat(rows[i].trim() + "\n");
                 } else if (sto.startsWith("to:")) {
                     str_tmp = rows[i].substring(3).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_to(str_tmp);
                 } else if (sto.startsWith("subject:")) {
                     str_tmp = rows[i].substring(8).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_subject(str_tmp);
                 } else if (sto.startsWith("message-id:")) {
                     data.msg_current.set_message_id(rows[i].substring(11).trim());
                 } else if (sto.startsWith("from:")) {
                     str_tmp = rows[i].substring(5).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_from(str_tmp);
                 } else if (sto.startsWith("cc:")) {
                     str_tmp = rows[i].substring(3).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_cc(str_tmp);
                 } else if (sto.startsWith("bcc:")) {
                     str_tmp = rows[i].substring(4).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_bcc(str_tmp);
                 } else if (sto.startsWith("date:")) {
                     data.msg_current.set_date(rows[i].substring(5).trim());
@@ -1041,7 +1041,6 @@ public class IMAP extends Handler {
         if (go) {
             tag();
             String cmd_tmp;
-            String[] arr_tmp;
             switch (indx) {
                 case 1:
                     cmd_tmp = "BODY[" + data.msg_text_plain[1] + "]";
@@ -1075,7 +1074,7 @@ public class IMAP extends Handler {
 
                     // Convert to text from BASE64 or QUOTED-PRINTABLE
                     if (data.msg_text_plain[3].equalsIgnoreCase("BASE64")) {
-                        str_plain = Utils.parse_BASE64_encoding(str_plain,
+                        str_plain = Utils.parse_BASE64_encoded(str_plain,
                                 data.msg_current.get_charset_plain());
                         data.msg_current.set_content_transfer_encoding("BASE64");
                     } else if (data.msg_text_plain[3].equalsIgnoreCase("QUOTED-PRINTABLE")) {
@@ -1093,7 +1092,7 @@ public class IMAP extends Handler {
 
                     // Convert to text from BASE64 or QUOTED-PRINTABLE
                     if (data.msg_text_html[3].equalsIgnoreCase("BASE64")) {
-                        str_html = Utils.parse_BASE64_encoding(str_html,
+                        str_html = Utils.parse_BASE64_encoded(str_html,
                                 data.msg_current.get_charset_html());
                         data.msg_current.set_content_transfer_encoding("BASE64");
                     } else if (data.msg_text_html[3].equalsIgnoreCase("QUOTED-PRINTABLE")) {
@@ -1182,7 +1181,7 @@ public class IMAP extends Handler {
 
             tag();
             write(tag + " UID FETCH " + data.msg_current.get_uid()
-                    + " BODY[" + String.valueOf(data.att_item.get_imap_uid()) + "]");
+                    + " BODY[" + data.att_item.get_imap_uid() + "]");
         } else {
             // Removing trailing ')'
             for (int i = data.sbuffer.length() - 1;i >= 0 ;i--) {
@@ -1220,11 +1219,17 @@ public class IMAP extends Handler {
                             data.fstream.write(Base64.decode(sb_tmp.toString().getBytes(),
                                     Base64.DEFAULT));
                         }
-                        if (data.fstream != null) data.fstream.close();
+                    } else if (data.att_item.get_transfer_encoding()
+                            .equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                        // QUOTED-PRINTABLE, data problems: removes \n line endings
+                        data.fstream.write(Utils.parse_quoted_printable(
+                                data.sbuffer.toString(), "utf-8").getBytes());
                     } else {
+                        // 7BIT, 8BIT, BINARY
                         data.fstream.write(data.sbuffer.toString().getBytes());
-                        if (data.fstream != null) data.fstream.close();
                     }
+
+                    if (data.fstream != null) data.fstream.close();
                 }
                 if (sp != null) {
                     on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));

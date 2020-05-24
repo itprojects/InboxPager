@@ -17,7 +17,7 @@
 package net.inbox.server;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Base64;
 
 import net.inbox.InboxMessage;
@@ -26,7 +26,7 @@ import net.inbox.R;
 import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
-import net.inbox.dialogs.Dialogs;
+import net.inbox.visuals.Dialogs;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -193,7 +193,7 @@ public class POP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
         }
 
         if (!excepted) {
@@ -204,7 +204,7 @@ public class POP extends Handler {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
                     }
 
                     if (current_inbox.get_imap_or_pop_extensions() != null
@@ -246,10 +246,10 @@ public class POP extends Handler {
                                 }
                             }
                         }
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
+                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_incoming),
                                 tested, (AppCompatActivity) ctx);
                     } else {
-                        Dialogs.dialog_server_ext(ctx.getString(R.string.edit_account_check_incoming),
+                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_incoming),
                                 ctx.getString(R.string.edit_account_check_fail),
                                 (AppCompatActivity) ctx);
                     }
@@ -416,7 +416,7 @@ public class POP extends Handler {
             if (io_sock != null) write("RSET");
             if (io_sock != null) write("QUIT");
         } catch (Exception e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
         }
         over = true;
         if (multiple) continue_pager();
@@ -448,7 +448,7 @@ public class POP extends Handler {
                 case "AUTH":
                     if (!current_inbox.get_imap_or_pop_extensions().contains("UIDL")
                             || !current_inbox.get_imap_or_pop_extensions().contains("SASL")) {
-                        Dialogs.dialog_error_line(ctx.getString(R.string.err_no_extension),
+                        Dialogs.dialog_simple(null, ctx.getString(R.string.err_no_extension),
                                 (AppCompatActivity) ctx);
                         data.sequence.clear();
                         data.sequence.add("QUIT");
@@ -507,7 +507,7 @@ public class POP extends Handler {
                         if (data.message_uids.size() < 1) {
                             // Message not present
                             on_ui_thread("-1", ctx.getString(R.string.progress_not_found));
-                            InboxPager.log += ctx.getString(R.string.progress_not_found) + "\n\n";
+                            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.progress_not_found) + "\n\n");
                             cmd_start = false;
                         } else {
                             pop_retr_full_msg(true);
@@ -538,7 +538,7 @@ public class POP extends Handler {
                         if (data.message_uids.size() < 1) {
                             // Message not present
                             on_ui_thread("-1", ctx.getString(R.string.progress_not_found));
-                            InboxPager.log += ctx.getString(R.string.progress_not_found) + "\n\n";
+                            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.progress_not_found) + "\n\n");
                             cmd_start = false;
                         } else {
                             pop_delete_msg(true);
@@ -666,10 +666,10 @@ public class POP extends Handler {
                         String st = s.substring(7).trim().replace("\r", "");
                         if (!st.equals("NEVER")) {
                             if (st.equals("0")) {
-                                Dialogs.dialog_error_line(ctx.getString(R.string.err_pop_immediate),
+                                Dialogs.dialog_simple(null, ctx.getString(R.string.err_pop_immediate),
                                         (AppCompatActivity) ctx);
                             } else {
-                                Dialogs.dialog_error_line(String.format(ctx.getString(R.string
+                                Dialogs.dialog_simple(null, String.format(ctx.getString(R.string
                                         .err_pop_expiration), st), (AppCompatActivity) ctx);
                             }
                         }
@@ -925,25 +925,25 @@ public class POP extends Handler {
                     if (mat.matches()) received = received.concat(rows[i].trim() + "\n");
                 } else if (sto.startsWith("to:")) {
                     str_tmp = rows[i].substring(3).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_to(str_tmp);
                 } else if (sto.startsWith("subject:")) {
                     str_tmp = rows[i].substring(8).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_subject(str_tmp);
                 } else if (sto.startsWith("message-id:")) {
                     data.msg_current.set_message_id(rows[i].substring(11).trim());
                 } else if (sto.startsWith("from:")) {
                     str_tmp = rows[i].substring(5).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_from(str_tmp);
                 } else if (sto.startsWith("cc:")) {
                     str_tmp = rows[i].substring(3).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_cc(str_tmp);
                 } else if (sto.startsWith("bcc:")) {
                     str_tmp = rows[i].substring(4).trim();
-                    if (Utils.validate_B64_QP(str_tmp)) str_tmp = Utils.split_B64_QP(str_tmp);
+                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
                     data.msg_current.set_bcc(str_tmp);
                 } else if (sto.startsWith("date:")) {
                     data.msg_current.set_date(rows[i].substring(5).trim());
@@ -959,7 +959,7 @@ public class POP extends Handler {
                             }
                         }
                     }
-                    str = str.replaceAll("\r", "").replaceAll("\n", "");
+                    str = str.replaceAll("[\r\n]", "");
                     data.msg_current.set_content_type(str);
 
                     // Checking for signed and/or encrypted i.e. PGP/MIME
@@ -987,43 +987,47 @@ public class POP extends Handler {
             write(tag + " " + data.message_nums.get(data.msg_index - 1));
         } else {
             data.msg_current.set_full_msg(data.sbuffer.toString());
-            pat = Pattern.compile(".*boundary=\"(.*)\".*", Pattern.CASE_INSENSITIVE);
+            pat = Pattern.compile(".*(boundary=\")(.*?)\".*",
+                    Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
             mat = pat.matcher(data.msg_current.get_content_type());
             if (mat.matches()) {
-                // Mime type
-                pop_parse_mime_msg("--" + mat.group(1).replaceAll("\"", "").replaceAll("\n", ""));
+                // MIME type
+                pop_parse_mime_msg("--" + mat.group(2));
             } else {
-                pat = Pattern.compile(".*text/(\\w+)(.*);(.*)charset=(.*)",
-                        Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+                // No MIME, just text
+                pat = Pattern.compile(".*(charset=)(.*?)(;|$).*", Pattern.CASE_INSENSITIVE);
                 mat = pat.matcher(data.msg_current.get_content_type());
 
                 // Converting mime body to non-transfer-encoding readable body
                 if (data.msg_current.get_content_transfer_encoding() != null) {
-                    if (data.msg_current.get_content_transfer_encoding().equalsIgnoreCase("base64")) {
-                        data.sbuffer = new StringBuilder(Utils.parse_BASE64
-                                (data.sbuffer.substring(data.hdr)));
+                    if (data.msg_current.get_content_transfer_encoding()
+                            .equalsIgnoreCase("BASE64")) {
+                        data.sbuffer = new StringBuilder(Utils
+                                .parse_BASE64(data.sbuffer.substring(data.hdr)));
                     } else if (data.msg_current.get_content_transfer_encoding()
-                            .equalsIgnoreCase("quoted-printable")) {
-                        if (mat.matches()) {
-                            data.sbuffer = new StringBuilder(Utils.parse_quoted_printable
-                                    (data.sbuffer.substring(data.hdr), mat.group(4)));
-                        } else {
-                            data.sbuffer = new StringBuilder(Utils.parse_quoted_printable
-                                    (data.sbuffer.substring(data.hdr), "utf-8"));
-                        }
+                            .equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                        data.sbuffer = new StringBuilder(Utils.parse_quoted_printable(
+                                data.sbuffer.substring(data.hdr),
+                                mat.matches() ? mat.group(2).trim()
+                                        .replaceAll("\"", "") : "utf-8"));
                     }
                 }
 
+                pat = Pattern.compile(".*(text/)(.*?);.*", Pattern.CASE_INSENSITIVE);
+                mat = pat.matcher(data.msg_current.get_content_type());
                 if (mat.matches()) {
-                    if (mat.group(1).toLowerCase().equals("plain")) {
-                        data.msg_current.set_charset_plain(mat.group(4).replaceAll("\"", "")
-                                .replaceAll("\n", "").toUpperCase());
-                        data.msg_current.set_contents_plain(data.sbuffer.substring(data.hdr));
-                    } else if (mat.group(1).toLowerCase().equals("html")) {
-                        data.msg_current.set_charset_html(mat.group(4).replaceAll("\"", "")
-                                .replaceAll("\n", "").toUpperCase());
-                        data.msg_current.set_contents_html(data.sbuffer.substring(data.hdr));
+                    if (mat.group(2).equalsIgnoreCase("PLAIN")) {
+                        data.msg_current.set_charset_plain(mat.group(2)
+                                .replaceAll("([\"\n])", "")
+                                .toUpperCase());
+                        data.msg_current.set_contents_plain(data.sbuffer.toString());
+                    } else if (mat.group(2).equalsIgnoreCase("HTML")) {
+                        data.msg_current.set_charset_html(mat.group(2)
+                                .replaceAll("[\"\n]", "")
+                                .toUpperCase());
+                        data.msg_current.set_contents_html(data.sbuffer.toString());
                     } else {
+                        // Not PLAIN or HTML
                         data.msg_current.set_contents_other(data.sbuffer.substring(data.hdr));
                     }
                 }
@@ -1054,24 +1058,22 @@ public class POP extends Handler {
     private void pop_parse_mime_msg(String boundary) {
         // Message reduced to only MIME
         String buff = data.msg_current.get_full_msg();
-        int index_boundary = buff.indexOf(boundary, 0);
+        int index_boundary = buff.indexOf(boundary);
         int index_boundary_two = buff.indexOf(boundary + "--", index_boundary);
         buff = buff.substring(index_boundary, index_boundary_two + boundary.length() + 2);
 
         // Converting mime body to non-transfer-encoding readable body
         if (data.msg_current.get_content_transfer_encoding() != null) {
-            if (data.msg_current.get_content_transfer_encoding().equalsIgnoreCase("base64")) {
+            if (data.msg_current.get_content_transfer_encoding().equalsIgnoreCase("BASE64")) {
                 buff = Utils.parse_BASE64(buff);
             } else if (data.msg_current.get_content_transfer_encoding()
-                    .equalsIgnoreCase("quoted-printable")) {
+                    .equalsIgnoreCase("QUOTED-PRINTABLE")) {
                 pat = Pattern.compile(".*(charset|charset\\*)=(.*)",
                         Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
                 mat = pat.matcher(data.msg_current.get_content_type());
-                if (mat.matches()) {
-                    buff = Utils.parse_quoted_printable(buff, mat.group(1));
-                } else {
-                    buff = Utils.parse_quoted_printable(buff, "utf-8");
-                }
+                String c_set = "utf-8";
+                if (mat.matches()) c_set = mat.group(1);
+                buff = Utils.parse_quoted_printable(buff, c_set);
             }
         }
 
@@ -1119,15 +1121,18 @@ public class POP extends Handler {
                         }
                     }
                     if (sb_tmp.length() > 0) {
-                        f_stream.write(Base64.decode(sb_tmp.toString().getBytes(),
-                                Base64.DEFAULT));
+                        f_stream.write(Base64.decode(sb_tmp.toString().getBytes(), Base64.DEFAULT));
                     }
-                    f_stream.close();
+                } else if (data.att_item.get_transfer_encoding()
+                        .equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                    // QUOTED-PRINTABLE, data problems: removes \n line endings
+                    f_stream.write(Utils.parse_quoted_printable(att, "utf-8").getBytes());
                 } else {
-                    // 7BIT, 8BIT, BINARY, QUOTED-PRINTABLE
+                    // 7BIT, 8BIT, BINARY
                     f_stream.write(att.getBytes());
-                    f_stream.close();
                 }
+
+                f_stream.close();
             }
             if (sp != null) {
                 on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
@@ -1136,7 +1141,7 @@ public class POP extends Handler {
                         (AppCompatActivity) ctx);
             }
         } catch (IOException e) {
-            InboxPager.log += e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             error_dialog(e);
             if (sp != null) {
                 on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
@@ -1161,7 +1166,7 @@ public class POP extends Handler {
                             (AppCompatActivity) ctx);
                 }
             } catch (IOException ioe) {
-                InboxPager.log += ioe.getMessage() + "\n\n";
+                InboxPager.log = InboxPager.log.concat(ioe.getMessage() + "\n\n");
                 error_dialog(ioe);
                 if (sp != null) {
                     on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
