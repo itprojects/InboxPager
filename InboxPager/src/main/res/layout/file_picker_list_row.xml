@@ -10,7 +10,8 @@
         android:layout_centerVertical="true"
         android:layout_alignParentStart="true"
         android:paddingStart="4dp"
-        android:paddingEnd="0dp"/>
+        android:paddingEnd="0dp"
+        android:contentDescription="@string/empty_string" />
 
     <TextView android:id="@+id/pick_file_name"
         android:layout_width="wrap_content"
@@ -59,6 +60,7 @@
         android:layout_alignParentEnd="true"
         android:paddingStart="4dp"
         android:paddingEnd="0dp"
-        android:src="@drawable/attachment" />
+        android:src="@drawable/attachment"
+        android:contentDescription="@string/empty_string" />
 
 </RelativeLayout>

@@ -17,6 +17,7 @@
 package net.inbox.db;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,7 +37,7 @@ public class DBAccess extends SQLiteOpenHelper {
 
     private SQLiteDatabase dbw;
 
-    private static final int db_version = 1;
+    private static final int db_version = 1;// increment if db fields change
     private static final String db_name = "pages";
 
     // Tables
@@ -100,8 +101,18 @@ public class DBAccess extends SQLiteOpenHelper {
     private final String key_transfer_encoding = "transfer_encoding";// 7BIT, 8BIT, BASE64
     private final String key_size = "size";// OCTETS (= 8bits)
 
+    // Debug: hexdump -C pages > myfile
     public DBAccess(Context context) {
         super(context, db_name, null, db_version);
+    }
+
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+
+        // auto_vacuum helps reduce the size of the database,
+        // alternatively the database will bloat.
+        db.execSQL("PRAGMA auto_vacuum = INCREMENTAL");
     }
 
     @Override
@@ -152,12 +163,22 @@ public class DBAccess extends SQLiteOpenHelper {
 
     public void rekey_db(String s) {
         // Previous Method
-        // dbw.execSQL("PRAGMA rekey = '" + s + "'");
         dbw.query(String.format("PRAGMA rekey = '%s'", s));
         System.gc();
     }
 
-    public void add_account(Inbox current) {
+    /**
+     * Checks then cleans and defragments database, improving overall speed.
+     * This function does not need to be run everyday, so checking for date.
+     **/
+    public void vacuum_db() {
+        if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) == 1) {
+            dbw.execSQL("VACUUM");
+            System.gc();
+        }
+    }
+
+    public int add_account(Inbox current) {
         ContentValues values = new ContentValues();
         values.put(key_messages, current.get_messages());
         values.put(key_recent, current.get_recent());
@@ -184,6 +205,8 @@ public class DBAccess extends SQLiteOpenHelper {
 
         // Setting the ID to the newly added item
         current.set_id(ret);
+
+        return ret;
     }
 
     public void update_account(Inbox current) {
@@ -249,6 +272,7 @@ public class DBAccess extends SQLiteOpenHelper {
         } else return null;
     }
 
+    // Legacy code
     public int get_global_unseen_count() {
         Cursor cursor = dbw.query(table_accounts, new String[] { key_unseen }, null,
                 null, null, null, null);

@@ -151,6 +151,10 @@ public class InboxPager extends AppCompatActivity {
             prefs.edit().putBoolean("imap_or_pop", true).apply();
             prefs.edit().putBoolean("using_smtp", false).apply();
             prefs.edit().putBoolean("pw_protection", false).apply();
+            prefs.edit().putString("list_cipher_types", "AES").apply();
+            prefs.edit().putString("list_cipher_modes", "CBC").apply();
+            prefs.edit().putString("list_cipher_paddings", "PKCS7").apply();
+
             show_help = true;
         }
 
@@ -326,11 +330,16 @@ public class InboxPager extends AppCompatActivity {
                 populate_accounts_list_view();
             } else if (resultCode == Activity.RESULT_OK) {
                 if (data.getBooleanExtra("status", false)) populate_accounts_list_view();
+                current_inbox = data.getIntExtra("new_inbox_id", -2);
+                set_current_inbox();
             }
         } else if (requestCode == 100) {
-            populate_accounts_list_view();
-            current_inbox = -2;
-            set_current_inbox();
+            if (data != null && data.hasExtra("inbox_deleted")
+                    && data.getBooleanExtra("inbox_deleted", false)) {
+                populate_accounts_list_view();
+                current_inbox = -2;
+                set_current_inbox();
+            }
         } else if (resultCode == 10101) {
             // Prepare to write a reply message
             Intent send_intent = new Intent(getApplicationContext(), InboxSend.class);
@@ -338,7 +347,9 @@ public class InboxPager extends AppCompatActivity {
             b.putInt("db_id", current.get_id());
             b.putString("title", current.get_email());
             b.putString("reply-to", data.getStringExtra("reply-to"));
-            if (data.hasExtra("reply-cc")) b.putString("reply-cc", data.getStringExtra("reply-cc"));
+            if (data.hasExtra("reply-cc")) {
+                b.putString("reply-cc", data.getStringExtra("reply-cc"));
+            }
             b.putString("subject", data.getStringExtra("subject"));
             b.putString("previous_letter", data.getStringExtra("previous_letter"));
             startActivityForResult(send_intent.putExtras(b), 10001);
@@ -372,18 +383,17 @@ public class InboxPager extends AppCompatActivity {
     }
 
     private void init_db(String s) {
-        boolean db_exists = getDatabasePath("pages").exists();
-
         SQLiteDatabase.loadLibs(this);
 
         // Initializing database
         db = new DBAccess(this);
         try {
-            if (db_exists) {
+            if (getDatabasePath("pages").exists()) {
                 db.activate_db(s);
             } else {
                 db.activate_db("cleartext");
             }
+            db.vacuum_db();
             unlocked = true;
         } catch (Exception e) {
             log = log.concat(e.getMessage() + "\n\n");

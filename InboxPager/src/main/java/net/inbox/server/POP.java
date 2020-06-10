@@ -18,6 +18,8 @@ package net.inbox.server;
 
 import android.content.Context;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
+
 import android.util.Base64;
 
 import net.inbox.InboxMessage;
@@ -26,11 +28,11 @@ import net.inbox.R;
 import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
+import net.inbox.visuals.Common;
 import net.inbox.visuals.Dialogs;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +41,7 @@ import java.util.regex.Pattern;
 
 public class POP extends Handler {
 
-    private class DataPOP extends Data {
+    private static class DataPOP extends Data {
         // Command sequence index
         int cmd_index = 0;
 
@@ -68,7 +70,7 @@ public class POP extends Handler {
 
         // Used in saving attachments and text
         Attachment att_item;
-        FileOutputStream f_stream;
+        OutputStream os;
 
         /**
          * Resets all message data, for a new instance.
@@ -296,7 +298,7 @@ public class POP extends Handler {
     }
 
     @Override
-    public void attachment_action(int aid, Attachment att, String save_path, Context ct) {
+    public void attachment_action(int aid, Attachment att, Object doc_file, Context ct) {
         current_inbox = db.get_account(aid);
         ctx = ct;
 
@@ -315,7 +317,13 @@ public class POP extends Handler {
 
         data.att_item = att;
         data.msg_current = db.get_message(att.get_message());
-        data.a_file = new File(save_path + "/" + data.att_item.get_name());
+        if (doc_file == null) {
+            data.a_file = null;
+        } else {
+            Common.check_write_give((AppCompatActivity) ctx, ((DocumentFile) doc_file).getUri());
+            data.a_file = ((DocumentFile) doc_file).createFile("application/octet-stream",
+                    data.att_item.get_name());
+        }
 
         on_ui_thread(ctx.getString(R.string.progress_downloading), data.att_item.get_name());
 
@@ -331,7 +339,7 @@ public class POP extends Handler {
     }
 
     @Override
-    public void msg_action(int aid, Message msg, String save_path, boolean sv, Context ct) {
+    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, Context ct) {
         current_inbox = db.get_account(aid);
         ctx = ct;
 
@@ -350,10 +358,12 @@ public class POP extends Handler {
 
         data.msg_current = msg;
         data.save_in_db = sv;
-        if (save_path == null) {
+        if (doc_file == null) {
             data.a_file = null;
         } else {
-            data.a_file = new File(save_path);
+            Common.check_write_give((AppCompatActivity) ctx, ((DocumentFile) doc_file).getUri());
+            data.a_file = ((DocumentFile) doc_file).createFile("application/octet-stream",
+                    data.msg_current.get_subject() + ".eml");
         }
 
         on_ui_thread(ctx.getString(R.string.progress_downloading), msg.get_subject());
@@ -913,65 +923,62 @@ public class POP extends Handler {
             tag = "TOP";
             write("TOP " + data.message_nums.get(data.msg_index - 1) + " 0");
         } else {
-            String received = "";
-            String str_tmp;
-            String[] rows = data.sbuffer.toString().split("\n");
-            for (int i = 0;i < rows.length;++i) {
-                String sto = rows[i].trim().toLowerCase();
-                if (sto.startsWith("received:")) {
-                    pat = Pattern.compile("Received: from (.+?) \\((.+?)\\).*",
-                            Pattern.CASE_INSENSITIVE);
-                    mat = pat.matcher(rows[i]);
-                    if (mat.matches()) received = received.concat(rows[i].trim() + "\n");
-                } else if (sto.startsWith("to:")) {
-                    str_tmp = rows[i].substring(3).trim();
-                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
-                    data.msg_current.set_to(str_tmp);
-                } else if (sto.startsWith("subject:")) {
-                    str_tmp = rows[i].substring(8).trim();
-                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
-                    data.msg_current.set_subject(str_tmp);
-                } else if (sto.startsWith("message-id:")) {
-                    data.msg_current.set_message_id(rows[i].substring(11).trim());
-                } else if (sto.startsWith("from:")) {
-                    str_tmp = rows[i].substring(5).trim();
-                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
-                    data.msg_current.set_from(str_tmp);
-                } else if (sto.startsWith("cc:")) {
-                    str_tmp = rows[i].substring(3).trim();
-                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
-                    data.msg_current.set_cc(str_tmp);
-                } else if (sto.startsWith("bcc:")) {
-                    str_tmp = rows[i].substring(4).trim();
-                    if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
-                    data.msg_current.set_bcc(str_tmp);
-                } else if (sto.startsWith("date:")) {
-                    data.msg_current.set_date(rows[i].substring(5).trim());
-                } else if (sto.startsWith("content-type:")) {
-                    String str = rows[i].substring(13);
-                    if (str.trim().endsWith(";")) {
-                        if ((i + 1) < rows.length) {
-                            str += rows[i + 1];
-                            if (str.trim().endsWith(";")) {
-                                if ((i + 2) < rows.length) {
-                                    str += rows[i + 2];
-                                }
-                            }
-                        }
-                    }
-                    str = str.replaceAll("[\r\n]", "");
-                    data.msg_current.set_content_type(str);
-
-                    // Checking for signed and/or encrypted i.e. PGP/MIME
-                    str = data.msg_current.get_content_type().toLowerCase();
-                    data.crypto_contents = str.contains("multipart/encrypted")
-                            || str.contains("multipart/signed");
-                } else if (sto.startsWith("content-transfer-encoding:")) {
-                    data.msg_current.set_content_transfer_encoding(rows[i].substring(26).trim());
-                }
-            }
-            data.msg_current.set_received(received);
             data.hdr = data.sbuffer.length() - 1;
+
+            // Processing minimum headers required are From: and Date:
+            HashMap<String, String> heads = Utils.parse_headers(data.sbuffer.toString());
+
+            if (heads.get("received:") != null) data.msg_current.set_received(heads.get("received:"));
+
+            if (heads.get("to:") != null) {
+                String str_tmp = heads.get("to:");
+                if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
+                data.msg_current.set_to(str_tmp);
+            }
+
+            if (heads.get("subject:") != null) {
+                String str_tmp = heads.get("subject:");
+                if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
+                data.msg_current.set_subject(str_tmp);
+            }
+
+            if (heads.get("message-id:") != null) {
+                data.msg_current.set_message_id(heads.get("message-id:"));
+            }
+
+            if (heads.get("from:") != null) {
+                String str_tmp = heads.get("from:");
+                if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
+                data.msg_current.set_from(str_tmp);
+            }
+
+            if (heads.get("cc:") != null) {
+                String str_tmp = heads.get("cc:");
+                if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
+                data.msg_current.set_cc(str_tmp);
+            }
+
+            if (heads.get("bcc:") != null) {
+                String str_tmp = heads.get("bcc:");
+                if (Utils.is_encoded_word(str_tmp)) str_tmp = Utils.parse_encoded_word(str_tmp);
+                data.msg_current.set_bcc(str_tmp);
+            }
+
+            if (heads.get("date:") != null) {
+                data.msg_current.set_date(heads.get("date:"));
+            }
+
+            if (heads.get("content-type:") != null) {
+                String str_tmp = "Content-Type: " + heads.get("content-type:");
+                data.msg_current.set_content_type(str_tmp);
+                data.crypto_contents = str_tmp.matches("(?i).*multipart/encrypted.*")
+                        || str_tmp.matches("(?i).*multipart/signed.*");
+            } else data.msg_current.set_content_type("Content-Type: text/other; charset=utf-8");
+
+            if (heads.get("content-transfer-encoding:") != null) {
+                data.msg_current.set_content_transfer_encoding(heads.get("content-transfer-encoding:"));
+            }
+
             clear_buff();
         }
     }
@@ -987,50 +994,39 @@ public class POP extends Handler {
             write(tag + " " + data.message_nums.get(data.msg_index - 1));
         } else {
             data.msg_current.set_full_msg(data.sbuffer.toString());
-            pat = Pattern.compile(".*(boundary=\")(.*?)\".*",
-                    Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-            mat = pat.matcher(data.msg_current.get_content_type());
-            if (mat.matches()) {
-                // MIME type
-                pop_parse_mime_msg("--" + mat.group(2));
-            } else {
-                // No MIME, just text
-                pat = Pattern.compile(".*(charset=)(.*?)(;|$).*", Pattern.CASE_INSENSITIVE);
-                mat = pat.matcher(data.msg_current.get_content_type());
 
-                // Converting mime body to non-transfer-encoding readable body
-                if (data.msg_current.get_content_transfer_encoding() != null) {
-                    if (data.msg_current.get_content_transfer_encoding()
-                            .equalsIgnoreCase("BASE64")) {
-                        data.sbuffer = new StringBuilder(Utils
-                                .parse_BASE64(data.sbuffer.substring(data.hdr)));
-                    } else if (data.msg_current.get_content_transfer_encoding()
-                            .equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                        data.sbuffer = new StringBuilder(Utils.parse_quoted_printable(
-                                data.sbuffer.substring(data.hdr),
-                                mat.matches() ? mat.group(2).trim()
-                                        .replaceAll("\"", "") : "utf-8"));
-                    }
-                }
+            // 0=content_type, 1=boundary, 2=charset
+            String[] content_type = Utils.content_type_boundary(data.msg_current.get_content_type());
 
-                pat = Pattern.compile(".*(text/)(.*?);.*", Pattern.CASE_INSENSITIVE);
-                mat = pat.matcher(data.msg_current.get_content_type());
-                if (mat.matches()) {
-                    if (mat.group(2).equalsIgnoreCase("PLAIN")) {
-                        data.msg_current.set_charset_plain(mat.group(2)
-                                .replaceAll("([\"\n])", "")
-                                .toUpperCase());
-                        data.msg_current.set_contents_plain(data.sbuffer.toString());
-                    } else if (mat.group(2).equalsIgnoreCase("HTML")) {
-                        data.msg_current.set_charset_html(mat.group(2)
-                                .replaceAll("[\"\n]", "")
-                                .toUpperCase());
-                        data.msg_current.set_contents_html(data.sbuffer.toString());
+            if (content_type[1] == null) {
+                // No MIME, text only email
+                if (content_type[0].matches("(?i)^TEXT/PLAIN.*")) {
+                    // Converting mime body to non-transfer-encoding readable body
+                    if (data.msg_current.get_content_transfer_encoding() != null) {
+                        data.msg_current.set_contents_plain(Utils.parse_transfer_encoding(
+                                data.msg_current.get_content_transfer_encoding(),
+                                data.sbuffer.substring(data.hdr), content_type[2]));
                     } else {
-                        // Not PLAIN or HTML
-                        data.msg_current.set_contents_other(data.sbuffer.substring(data.hdr));
+                        data.msg_current.set_contents_plain(data.sbuffer.toString());
                     }
+                    data.msg_current.set_charset_plain(content_type[2]);
+                } else if (content_type[0].matches("(?i)^TEXT/HTML.*")) {
+                    // Converting mime body to non-transfer-encoding readable body
+                    if (data.msg_current.get_content_transfer_encoding() != null) {
+                        data.msg_current.set_contents_html(Utils.parse_transfer_encoding(
+                                data.msg_current.get_content_transfer_encoding(),
+                                data.sbuffer.substring(data.hdr), content_type[2]));
+                    } else {
+                        data.msg_current.set_contents_html(data.sbuffer.toString());
+                    }
+                    data.msg_current.set_charset_html(content_type[2]);
+                } else {
+                    // Not PLAIN or HTML
+                    data.msg_current.set_contents_other(data.sbuffer.substring(data.hdr));
                 }
+            } else {
+                // MIME type, multipart email
+                pop_parse_mime_msg(content_type[1]);
             }
 
             clear_buff();
@@ -1064,10 +1060,10 @@ public class POP extends Handler {
 
         // Converting mime body to non-transfer-encoding readable body
         if (data.msg_current.get_content_transfer_encoding() != null) {
-            if (data.msg_current.get_content_transfer_encoding().equalsIgnoreCase("BASE64")) {
+            if (data.msg_current.get_content_transfer_encoding().matches("(?i).*BASE64.*")) {
                 buff = Utils.parse_BASE64(buff);
             } else if (data.msg_current.get_content_transfer_encoding()
-                    .equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                    .matches("(?i).*QUOTED-PRINTABLE.*")) {
                 pat = Pattern.compile(".*(charset|charset\\*)=(.*)",
                         Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
                 mat = pat.matcher(data.msg_current.get_content_type());
@@ -1099,7 +1095,7 @@ public class POP extends Handler {
         try {
             // Converting transfer encoding
             if (data.att_item != null) {
-                FileOutputStream f_stream = new FileOutputStream(data.a_file.getAbsoluteFile());
+                data.os = ctx.getContentResolver().openOutputStream(data.a_file.getUri(),"rw");
 
                 // Parsing file download
                 if (data.att_item.get_transfer_encoding().equalsIgnoreCase("BASE64")) {
@@ -1108,8 +1104,8 @@ public class POP extends Handler {
                     for (int i = 0; i < att.length(); ++i) {
                         if (att.charAt(i) == '\n') {
                             if (CR) {
-                                f_stream.write(Base64.decode
-                                        (sb_tmp.toString().getBytes(), Base64.DEFAULT));
+                                data.os.write(Base64.decode(sb_tmp.toString().getBytes(),
+                                        Base64.DEFAULT));
                                 sb_tmp.setLength(0);
                                 CR = false;
                             }
@@ -1121,18 +1117,18 @@ public class POP extends Handler {
                         }
                     }
                     if (sb_tmp.length() > 0) {
-                        f_stream.write(Base64.decode(sb_tmp.toString().getBytes(), Base64.DEFAULT));
+                        data.os.write(Base64.decode(sb_tmp.toString().getBytes(), Base64.DEFAULT));
                     }
                 } else if (data.att_item.get_transfer_encoding()
                         .equalsIgnoreCase("QUOTED-PRINTABLE")) {
                     // QUOTED-PRINTABLE, data problems: removes \n line endings
-                    f_stream.write(Utils.parse_quoted_printable(att, "utf-8").getBytes());
+                    data.os.write(Utils.parse_quoted_printable(att, "utf-8").getBytes());
                 } else {
                     // 7BIT, 8BIT, BINARY
-                    f_stream.write(att.getBytes());
+                    data.os.write(att.getBytes());
                 }
-
-                f_stream.close();
+                data.os.flush();
+                data.os.close();
             }
             if (sp != null) {
                 on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
@@ -1156,9 +1152,12 @@ public class POP extends Handler {
         if (data.a_file != null) {
             // Prepare for direct file write
             try {
-                data.f_stream = new FileOutputStream(data.a_file);
-                data.f_stream.write(data.msg_current.get_full_msg().getBytes());
-                if (data.f_stream != null) data.f_stream.close();
+                data.os = ctx.getContentResolver().openOutputStream(data.a_file.getUri(),"rw");
+                if (data.os != null) {
+                    data.os.write(data.msg_current.get_full_msg().getBytes());
+                    data.os.flush();
+                    data.os.close();
+                }
                 if (sp != null) {
                     on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
                     sp.unblock = true;

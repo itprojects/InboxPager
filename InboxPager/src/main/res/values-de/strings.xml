@@ -12,10 +12,9 @@
     <string name="progress_title">Erfrischend</string>
     <string name="progress_refreshing">Nach Änderungen suchen…</string>
     <string name="progress_nothing">Keine neue Nachrichten.</string>
-    <string name="open_pgp_failure">FEHLER!</string>
+    <string name="crypto_failure">FEHLER!</string>
     <string name="open_pgp_message_signature">SIGNATUR</string>
     <string name="open_pgp_recipients">EMPFÄNGER</string>
-    <string name="open_pgp_start">START</string>
     <string name="open_pgp_ready">BEREIT</string>
     <string name="open_pgp_reset">RESET</string>
     <string name="sett_change_pw_change">Veränderung</string>
@@ -23,7 +22,7 @@
     <string name="sett_change_pw_text">>= 12 Symbole</string>
     <string name="open_pgp_dialog_title">Kryptographie</string>
     <string name="sett_change_pw_q">Passwort entfernen oder ändern?</string>
-    <string name="open_pgp_press_start">Drücke den Startknopf.</string>
+    <string name="open_pgp_press_start">Drücke den GPGknopf.</string>
     <string name="open_pgp_rcpt_key_cross">❌ Empfängerschlüssel</string>
     <string name="open_pgp_rcpt_key_check">✓ Empfängerschlüssel</string>
     <string name="open_pgp_signing_key_cross">❌ Signaturschlüssel</string>
@@ -32,10 +31,10 @@
     <string name="open_pgp_message_encrypted_block">VERSCHLÜSSELTE NACHRICHT</string>
     <string name="open_pgp_bad_signature">Keine Unterschriften, schlechte Unterschrift, oder ein Übertragungsfehler.</string>
     <string name="open_pgp_encrypt_to_self">Auch zum Signaturschlüssel verschlüsseln</string>
-    <string name="open_pgp_list_items_encrypt">Verschlüsseln von Nachrichten</string>
-    <string name="open_pgp_list_items_sign_encrypt">Signieren und Verschlüsseln von Nachrichten</string>
-    <string name="open_pgp_list_items_detach_sign">Klartextzeichen signieren</string>
-    <string name="open_pgp_list_items_decrypt_and_verify">Entschlüsseln und Verifizieren</string>
+    <string name="open_pgp_list_items_encrypt">VERSCHLÜSSELN VON NACHRICHTEN</string>
+    <string name="open_pgp_list_items_sign_encrypt">SIGNIEREN UND VERSCHLÜSSELN VON NACHRICHTEN</string>
+    <string name="open_pgp_list_items_detach_sign">KLARTEXTZEICHEN SIGNIEREN</string>
+    <string name="open_pgp_list_items_decrypt_and_verify">ENTSCHLÜSSELN UND VERIFIZIEREN</string>
     <string name="open_pgp_none_found">OpenKeychain nicht gefunden! Keine Verschlüsselung/Entschlüsselung!!</string>
     <string name="sett_change_pw_new">NEUES PASSWORT</string>
     <string name="sett_change_pw_retype">WIEDERHOLEN SIE NEUEN PASS</string>
@@ -45,7 +44,7 @@
     <string name="sett_enable_pw_title">Passwortschutz</string>
     <string name="sett_msg_font_size_title">Schriftgröße</string>
     <string name="sett_msg_font_size_summary">Schriftgröße für die Felder, Beim Anzeigen einer Nachricht.</string>
-    <string name="btn_up_one_level">▲ AUFWÄRTS</string>
+    <string name="picker_pick">WÄHLEN</string>
     <string name="message_action_done">Fertig</string>
     <string name="message_dialog">Empfangen VON</string>
     <string name="message_from">VON</string>
@@ -62,14 +61,12 @@
     <string name="btn_continue">Fortsetzen</string>
     <string name="btn_cancel">Abbrechen</string>
     <string name="btn_yes">Ja</string>
-    <string name="btn_no">Nein</string>
     <string name="btn_log_clear">Löschen</string>
     <string name="menu_about">Über</string>
     <string name="attch_bytes">B</string>
     <string name="attch_kilobytes">KB</string>
     <string name="attch_megabytes">MB</string>
     <string name="activity_pager_title">Pager</string>
-    <string name="err_error">Error:</string>
     <string name="sett_vibrates_download_summary">Gerät vibriert, wenn neue Nachrichten eintreffen.</string>
     <string name="sett_vibrates_download_title">Vibration bei neuen Nachrichten</string>
     <string name="sett_beeps_download_summary">Das Gerät gibt einen Piepton aus, wenn neue Nachrichten eintreffen.</string>
@@ -98,8 +95,6 @@
     <string name="send_cleartext_content">Der Betreff der Nachricht wird NICHT verschlüsselt. Möchten Sie den Betreff der Nachricht für mehr Datenschutz entfernen?</string>
     <string name="menu_see_full_message_title">Vollständige Nachricht</string>
     <string name="message_no_full_message">Vollständige Nachricht aus Datenbank gelöscht.</string>
-    <string name="message_no_full_messages">Vollständige Nachrichten, die aus der Datenbank gelöscht wurden.</string>
-    <string name="message_keep_in_database">Vollständige Nachricht in der Datenbank beibehalten?</string>
     <string name="menu_see_full_message">Vollständige Nachricht anzeigen</string>
     <string name="menu_delete_full_messages">Vollständige Nachrichten löschen</string>
     <string name="menu_delete_full_message">Vollständige Nachricht löschen (DB)</string>
@@ -144,7 +139,6 @@
     <string name="progress_authenticated">Authentifiziert.</string>
     <string name="stats_title">Kontosituation</string>
     <string name="progress_connecting">Anschließen mit</string>
-    <string name="progress_keep_msg">Cache behalten</string>
     <string name="progress_download_complete">Download abgeschlossen.</string>
     <string name="activity_pw">PASSWORT</string>
     <string name="menu_refresh">Aktualisierung</string>
@@ -153,10 +147,9 @@
     <string name="menu_add_account">Konto hinzufügen</string>
     <string name="no_accounts">E-Mail-Nachrichtenkonten hinzufügen</string>
     <string name="select_account">Posteingang auswählen</string>
-    <string name="file_title">Datei auswählen</string>
-    <string name="folder_title">Ordner auswählen</string>
+    <string name="file_title">DATEI</string>
+    <string name="folder_title">ORDNER</string>
     <string name="ex_field">Ausnahme:</string>
-    <string name="file_use_this">umbenennen und speichern</string>
     <string name="err_title_write_perms">Schreiben verboten</string>
     <string name="err_title_no_space">Kein Speicherplatz</string>
     <string name="err_msg_write_perms">Sie haben nicht die Ordnerberechtigung, um Ihre Datei in dem von Ihnen ausgewählten Ordner zu speichern.</string>
@@ -178,11 +171,7 @@
     <string name="ex_ran_out_of_ram">Nicht genug RAM. Geben Sie mehr virtuellen Speicher frei.</string>
     <string name="drawer_open">Öffnen Sie die Posteingangsliste</string>
     <string name="drawer_close">Schließen Sie die Posteingangsliste</string>
-    <string name="err_title_empty_name">Name erforderlich</string>
-    <string name="err_title_already_exists">Die Datei existiert bereits</string>
     <string name="err_title_file_is_duplicate">Datei ist bereits angehängt.</string>
-    <string name="err_msg_already_exists">Möchten Sie diese Datei ersetzen?</string>
-    <string name="err_msg_empty_name">Ihre Datei wird unter dem Namen gespeichert:</string>
     <string name="err_title_android_permission">Android Zulassungen</string>
     <string name="err_wrong_user_or_pass">Falscher Benutzername oder falsches Passwort</string>
     <string name="err_read_file">Sie haben nicht die Berechtigung, diese Datei zu lesen.</string>
@@ -201,7 +190,7 @@
     <string name="err_pick_signing_key">Wählen Sie einen Signaturschlüssel!</string>
     <string name="err_pick_rcpt_keys">Empfängerschlüssel auswählen!</string>
     <string name="err_missing_crypto_mime">Fehlende kryptografische Nachrichtendaten!</string>
-    <string name="err_imap_attachment_saving">Das Speichern der Offline-IMAP-Anhangsdatei ist fehlgeschlagen. Laden Sie den Anhang online herunter und löschen Sie die vollständige Nachricht aus der Datenbank.</string>
+    <string name="err_imap_attachment_saving">Das Speichern der Offline-Anhangsdatei ist fehlgeschlagen. Laden Sie den Anhang online herunter und löschen Sie die vollständige Nachricht aus der Datenbank.</string>
     <string name="helper_msg">Haben Sie eine angenehme Nachricht, und denken Sie daran, ein Datenschutzkennwort einzurichten, im Einstellungsmenü, oder Ihre Konten können leicht kompromittiert werden.</string>
     <string name="err_pop_expiration">Der Server löscht E-Mails nach %s Tagen.</string>
     <string name="err_pop_immediate">Der Server löscht E-Mails nach dem Lesen.</string>
@@ -212,4 +201,28 @@
     <string name="menu_switch_pop_imap_dialog">Beim Umschalten zwischen IMAP und POP müssen alle lokalen Nachrichten gelöscht und dann vom Server hinzugefügt werden. Fortsetzen?</string>
     <string name="ssl_auth_popup_bad_connection">Möglicherweise haben SIE ÜBERHAUPT KEINE SICHERHEIT! Der Remote-Server hatte fehlerhafte oder fehlende SSL/TLS-Zertifikate, oder der Hostname kann nicht überprüft werden.</string>
     <string name="message_reply">ANTWORTEN</string>
+    <string name="menu_delete_messages_keep_settings">Nachrichten löschen, Einstellungen beibehalten</string>
+    <string name="message_del_messages">Aus der Datenbank gelöschte Nachrichten.</string>
+    <string name="message_date_original">"Datum der ursprünglichen Nachricht:\n\n"</string>
+    <string name="ex_no_remote_address">Mailserver nicht gefunden.</string>
+    <string name="ex_no_internet">Kein Internet! Überprüfen Sie Ihre Verbindung.</string>
+    <string name="crypto_key_32_symbols">=&lt; 32 Symbole</string>
+    <string name="sett_crypto_type_title">Kryptogramm-Verschlüsselungsalgorithmus</string>
+    <string name="sett_crypto_type_summary">AES/Twofish. Dies verschlüsselt keine Anhänge.</string>
+    <string name="sett_crypto_mode_title">Kryptogramm-Verschlüsselungsmodus</string>
+    <string name="sett_crypto_mode_summary">CBC/CTR/ECB/ICM/OFB. Dies verschlüsselt keine Anhänge.</string>
+    <string name="sett_crypto_padding_summary">PKCS/TBC. Dies verschlüsselt keine Anhänge.</string>
+    <string name="crypto_success">ERFOLG!</string>
+    <string name="crypto_unsupported">NICHT UNTERSTÜTZT</string>
+    <string name="crypto_encrypt">&#128274; Verschlüsseln</string>
+    <string name="crypto_decrypt">&#128275; Entschlüsseln</string>
+    <string name="crypto_bad_message">Nachricht hat kein BASE64.</string>
+    <string name="sett_crypto_padding_title">Kryptogramm-Textauffüllung</string>
+    <string name="crypto_title">Verschlüsselter Text</string>
+    <string name="crypto_plain_warning">Text der Nachricht mit dem unten stehenden Schlüssel verschlüsseln oder entschlüsseln.</string>
+    <string name="crypto_no_text">Fehlender Nachrichtentext.</string>
+    <string name="crypto_invalid_key">Ungültiger SCHLÜSSEL ODER LÄNGE.</string>
+    <string name="crypto_failed_encryption">Verschlüsselung fehlgeschlagen für %s/%s/%s.</string>
+    <string name="crypto_failed_decryption">Entschlüsselung fehlgeschlagen für %s/%s/%s.</string>
+    <string name="crypto_failed_unpadding">Entfernen der Polsterung fehlgeschlagen %s.</string>
 </resources>

@@ -99,6 +99,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
+                    android:autofillHints="@string/empty_string"
                     android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
 
             </LinearLayout>
@@ -119,7 +120,7 @@
                     android:textAppearance="@android:style/TextAppearance"
                     android:textColor="@color/color_message_headers" />
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/send_cc_check"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -131,6 +132,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
+                    android:autofillHints="@string/empty_string"
                     android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
 
             </LinearLayout>
@@ -151,7 +153,7 @@
                     android:textAppearance="@android:style/TextAppearance"
                     android:textColor="@color/color_message_headers" />
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/send_bcc_check"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -163,6 +165,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
+                    android:autofillHints="@string/empty_string"
                     android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
 
             </LinearLayout>
@@ -187,7 +190,8 @@
                 android:layout_marginLeft="20sp"
                 android:layout_marginEnd="20sp"
                 android:layout_marginRight="20sp"
-                android:hint=""
+                android:hint="@string/empty_string"
+                android:autofillHints="@string/empty_string"
                 android:inputType="textEmailSubject|textNoSuggestions|textMultiLine"
                 android:maxLength="500" />
 
@@ -211,7 +215,7 @@
                     android:id="@+id/send_attachments_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10sp"
+                    android:layout_marginStart="13sp"
                     android:fontFamily="@font/dottz"
                     android:textAppearance="@android:style/TextAppearance"
                     android:textColor="@color/color_message_headers" />
@@ -225,19 +229,28 @@
                     android:textColor="@color/color_message_headers" />
 
                 <ImageView
-                    android:id="@+id/iv_encryption"
+                    android:id="@+id/iv_encryption_txt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginStart="3sp"
-                    android:contentDescription="@string/send_encrypt"
-                    android:src="@drawable/padlock_open" />
+                    android:layout_marginStart="7sp"
+                    android:contentDescription="@string/crypto_title"
+                    android:src="@drawable/padlock_txt" />
 
-                <TextView
-                    android:id="@+id/tv_encryption_reset"
+                <ImageView
+                    android:id="@+id/iv_encryption_pgp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="3sp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="7sp"
+                    android:contentDescription="@string/send_encrypt"
+                    android:src="@drawable/padlock_pgp_open" />
+
+                <TextView
+                    android:id="@+id/tv_encryption_pgp_reset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="7sp"
                     android:text="@string/open_pgp_reset"
                     android:textAppearance="@android:style/TextAppearance.Small"
                     android:textColor="@color/color_orange"
@@ -254,10 +267,11 @@
                 android:layout_marginEnd="20sp"
                 android:layout_marginRight="20sp"
                 android:layout_marginBottom="15sp"
-                android:hint=""
+                android:hint="@string/empty_string"
+                android:autofillHints="@string/empty_string"
                 android:inputType="text|textNoSuggestions|textMultiLine" />
 
-            <Switch
+            <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/send_sw_previous"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -276,19 +290,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/send_previous"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="20sp"
-                    android:layout_marginLeft="20sp"
-                    android:layout_marginEnd="20sp"
-                    android:layout_marginRight="20sp"
-                    android:layout_marginBottom="15sp"
-                    android:textIsSelectable="true"
-                    android:hint=""
-                    android:visibility="visible" />
 
                 <WebView
                     android:id="@+id/send_contents_previous_webview"

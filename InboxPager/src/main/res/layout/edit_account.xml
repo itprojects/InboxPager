@@ -94,6 +94,7 @@
                     android:layout_marginEnd="10sp"
                     android:layout_marginRight="10sp"
                     android:hint="@string/edit_account_email_hint"
+                    android:autofillHints="@string/empty_string"
                     android:inputType="textEmailAddress|textNoSuggestions"
                     android:labelFor="@string/edit_account_email" />
 
@@ -117,6 +118,7 @@
                     android:layout_marginEnd="10sp"
                     android:layout_marginRight="10sp"
                     android:hint="@string/edit_account_email_hint"
+                    android:autofillHints="@string/empty_string"
                     android:inputType="textEmailAddress|textNoSuggestions"
                     android:labelFor="@string/edit_account_username" />
 
@@ -139,10 +141,11 @@
                     android:layout_marginEnd="10sp"
                     android:layout_marginRight="10sp"
                     android:hint="@string/edit_account_pass"
+                    android:autofillHints="@string/empty_string"
                     android:inputType="textPassword|textNoSuggestions"
                     android:labelFor="@string/edit_account_pass" />
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/sw_imap_or_pop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -174,6 +177,7 @@
                         android:ems="4"
                         android:gravity="center_horizontal"
                         android:hint="@string/edit_account_incoming_server_port_hint_imap"
+                        android:autofillHints="@string/empty_string"
                         android:inputType="number|textNoSuggestions"
                         android:maxLength="5" />
 
@@ -186,6 +190,7 @@
                         android:ems="13"
                         android:gravity="center_horizontal"
                         android:hint="@string/edit_account_incoming_server_hint_imap"
+                        android:autofillHints="@string/empty_string"
                         android:inputType="textNoSuggestions" />
 
                 </LinearLayout>
@@ -215,6 +220,7 @@
                     android:ems="4"
                     android:gravity="center_horizontal"
                     android:hint="@string/edit_account_smtp_server_port_hint"
+                    android:autofillHints="@string/empty_string"
                     android:inputType="number|textNoSuggestions"
                     android:maxLength="5" />
 
@@ -227,6 +233,7 @@
                     android:ems="13"
                     android:gravity="center_horizontal"
                     android:hint="@string/edit_account_smtp_server_hint"
+                    android:autofillHints="@string/empty_string"
                     android:inputType="textNoSuggestions" />
 
             </LinearLayout>
@@ -302,11 +309,18 @@
                     android:text="@string/edit_account_auto_save_full_msgs" />
 
                 <Button
-                    android:id="@+id/btn_delete_all_full_msgs"
+                    android:id="@+id/btn_delete_full_msgs"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/menu_delete_full_messages" />
+
+                <Button
+                    android:id="@+id/btn_delete_msgs_keep"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/menu_delete_messages_keep_settings" />
 
             </LinearLayout>
 

@@ -119,7 +119,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         et_pw_retype = null;
 
         LayoutInflater inflater = getLayoutInflater();
-        View v = inflater.inflate(R.layout.pw, null);
+        View v = inflater.inflate(R.layout.pw_app, null);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
         builder.setTitle(getString(R.string.sett_change_pw_title));
@@ -136,9 +136,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     et_pw_retype.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
                 } else {
                     et_pw.setInputType(InputType.TYPE_CLASS_TEXT
-                            |InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                            | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                     et_pw_retype.setInputType(InputType.TYPE_CLASS_TEXT
-                            |InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                            | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 }
             }
         });

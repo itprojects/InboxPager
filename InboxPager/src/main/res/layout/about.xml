@@ -59,6 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_margin="5sp"
+                android:textIsSelectable="true"
                 android:text="@string/app_name"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -75,6 +76,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_margin="5sp"
+                android:textIsSelectable="true"
                 android:text="@string/author"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -95,6 +97,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="20sp"
                 android:layout_marginRight="20sp"
+                android:textIsSelectable="true"
                 android:text="@string/disclaimer_text"
                 android:textAllCaps="true"
                 android:textAppearance="?android:attr/textAppearanceMedium"
@@ -179,6 +182,17 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tv_gnu_crypto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20sp"
+                android:layout_marginTop="20sp"
+                android:layout_marginRight="20sp"
+                android:text="@string/license_gnu_cryoto"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textStyle="bold" />
+
+            <TextView
                 android:id="@+id/tv_stack_of"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -195,6 +209,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="20sp"
                 android:layout_marginRight="20sp"
+                android:textIsSelectable="true"
                 android:text="@string/cc_by_sa_long"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 

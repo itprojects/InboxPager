@@ -25,6 +25,7 @@
             android:background="@color/color_title"
             android:gravity="center_horizontal"
             android:hint="@string/activity_pw"
+            android:autofillHints="@string/empty_string"
             android:inputType="textPassword|textNoSuggestions"
             android:maxLines="1"
             android:paddingStart="15sp"

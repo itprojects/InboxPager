@@ -18,14 +18,26 @@ package net.inbox.visuals;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.animation.AccelerateInterpolator;
+import android.webkit.WebSettings;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class Common {
+
+    private final static int granted = PackageManager.PERMISSION_GRANTED;
+
+    private final static int i_perm_r = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+    private final static int i_perm_w = Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+
+    private final static String s_perm_r = "android.permission.READ_EXTERNAL_STORAGE";
+    private final static String s_perm_w = "android.permission.WRITE_EXTERNAL_STORAGE";
 
     // Circular reveal animation of activity intent.
     public static void animation_in(AppCompatActivity a, View current_layout) {
@@ -60,5 +72,41 @@ public class Common {
             }
         });
         circularReveal.start();
+    }
+
+    // Check Uri has runtime permission to read file
+    public static void check_read_give(AppCompatActivity act, Uri uri) {
+        if (act.checkCallingOrSelfUriPermission(uri, i_perm_r) == granted)
+            act.grantUriPermission(act.getCallingPackage(), uri, i_perm_r);
+    }
+
+    // Check Uri has runtime permission to read file
+    public static void check_write_give(AppCompatActivity act, Uri uri) {
+        if (act.checkCallingOrSelfUriPermission(uri, i_perm_w) == granted)
+            act.grantUriPermission(act.getCallingPackage(), uri, i_perm_w);
+    }
+
+    // Check application storage permissions
+    public static boolean check_permissions(AppCompatActivity act) {
+        return ((act.checkCallingOrSelfPermission(s_perm_r) == granted)) &&
+                ((act.checkCallingOrSelfPermission(s_perm_w) == granted));
+    }
+
+    // Sandbox WebView, prepare for use.
+    public static void setup_webview(WebSettings web_settings, float font_size) {
+        web_settings.setDefaultFontSize((int) font_size);
+        web_settings.setDefaultFixedFontSize((int) font_size);
+        web_settings.setAllowFileAccess(false);
+        web_settings.setLoadsImagesAutomatically(false);
+        web_settings.setDatabaseEnabled(false);
+        web_settings.setBlockNetworkImage(true);
+        web_settings.setBlockNetworkLoads(true);
+        web_settings.setJavaScriptEnabled(false);
+        web_settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        web_settings.setAppCacheEnabled(false);
+        web_settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        web_settings.setSaveFormData(false);
+        web_settings.setGeolocationEnabled(false);
+        web_settings.setSupportZoom(true);
     }
 }

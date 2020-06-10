@@ -18,6 +18,8 @@ package net.inbox.server;
 
 import android.content.Context;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
+
 import android.util.Base64;
 
 import net.inbox.InboxMessage;
@@ -28,10 +30,9 @@ import net.inbox.db.Inbox;
 import net.inbox.db.Message;
 import net.inbox.visuals.Dialogs;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,7 +43,7 @@ import java.util.regex.Pattern;
 
 public class IMAP extends Handler {
 
-    private class DataIMAP extends Data {
+    private static class DataIMAP extends Data {
         // Command sequence index
         int cmd_indx = 0;
 
@@ -68,7 +69,7 @@ public class IMAP extends Handler {
 
         // Used in saving attachments and text
         Attachment att_item;
-        FileOutputStream fstream;
+        OutputStream os;
 
         /**
          * Resets all message data, for a new instance.
@@ -134,7 +135,7 @@ public class IMAP extends Handler {
                 data.sequence.add("LOGOUT");
                 error_dialog(current_inbox.get_email() + "\n\n" + l);
             }
-        } else if (l.charAt(0) != '*' && data.fstream != null) {
+        } else if (l.charAt(0) != '*' && data.os != null) {
             l += "\r\n";
             data.sbuffer.append(l);
         } else if (l.charAt(0) == '*' || l.charAt(0) == '+')  {
@@ -282,7 +283,7 @@ public class IMAP extends Handler {
     }
 
     @Override
-    public void attachment_action(int account_id, Attachment att, String save_path, Context ct) {
+    public void attachment_action(int account_id, Attachment att, Object doc_file, Context ct) {
         current_inbox = db.get_account(account_id);
         ctx = ct;
 
@@ -300,7 +301,12 @@ public class IMAP extends Handler {
         }
 
         data.att_item = att;
-        data.a_file = new File(save_path + "/" + data.att_item.get_name());
+        if (doc_file == null) {
+            data.a_file = null;
+        } else {
+            data.a_file = ((DocumentFile) doc_file).createFile("application/octet-stream",
+                    data.att_item.get_name());
+        }
 
         on_ui_thread(ctx.getString(R.string.progress_downloading), data.att_item.get_name());
 
@@ -314,7 +320,7 @@ public class IMAP extends Handler {
     }
 
     @Override
-    public void msg_action(int aid, Message msg, String save_path, boolean sv, Context ct) {
+    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, Context ct) {
         current_inbox = db.get_account(aid);
         ctx = ct;
 
@@ -333,10 +339,11 @@ public class IMAP extends Handler {
 
         data.msg_current = msg;
         data.save_in_db = sv;
-        if (save_path == null) {
+        if (doc_file == null) {
             data.a_file = null;
         } else {
-            data.a_file = new File(save_path);
+            data.a_file = ((DocumentFile)doc_file).createFile("application/octet-stream",
+                    data.msg_current.get_subject() + ".eml");
         }
 
         on_ui_thread(ctx.getString(R.string.progress_downloading), msg.get_subject());
@@ -738,8 +745,7 @@ public class IMAP extends Handler {
                     pat = Pattern.compile("FLAGS \\((.+)\\)", Pattern.CASE_INSENSITIVE);
                     mat = pat.matcher(row);
                     if (mat.matches()) {
-                        String b = mat.group(1);
-                        String[] tmp_ = b.split(" ");
+                        String[] tmp_ = mat.group(1).split(" ");
                         for (int i = 0;i < tmp_.length;++i) {
                             if (tmp_[i].startsWith("\\")) {
                                 tmp_[i] = tmp_[i].substring(1).trim();
@@ -1171,8 +1177,9 @@ public class IMAP extends Handler {
         if (go) {
             // Prepare for direct file write
             try {
-                data.fstream = new FileOutputStream(data.a_file);
+                data.os = ctx.getContentResolver().openOutputStream(data.a_file.getUri(), "rw");
             } catch (FileNotFoundException fnf) {
+                InboxPager.log = InboxPager.log.concat(fnf.getMessage() + "\n\n");
                 error_dialog(fnf);
             }
 
@@ -1203,7 +1210,7 @@ public class IMAP extends Handler {
                         for (int i = 0;i < data.sbuffer.length();++i) {
                             if (data.sbuffer.charAt(i) == '\n') {
                                 if (CR) {
-                                    data.fstream.write(Base64.decode(sb_tmp.toString().getBytes(),
+                                    data.os.write(Base64.decode(sb_tmp.toString().getBytes(),
                                             Base64.DEFAULT));
                                     sb_tmp.setLength(0);
                                     CR = false;
@@ -1216,20 +1223,23 @@ public class IMAP extends Handler {
                             }
                         }
                         if (sb_tmp.length() > 0) {
-                            data.fstream.write(Base64.decode(sb_tmp.toString().getBytes(),
+                            data.os.write(Base64.decode(sb_tmp.toString().getBytes(),
                                     Base64.DEFAULT));
                         }
                     } else if (data.att_item.get_transfer_encoding()
                             .equalsIgnoreCase("QUOTED-PRINTABLE")) {
                         // QUOTED-PRINTABLE, data problems: removes \n line endings
-                        data.fstream.write(Utils.parse_quoted_printable(
+                        data.os.write(Utils.parse_quoted_printable(
                                 data.sbuffer.toString(), "utf-8").getBytes());
                     } else {
                         // 7BIT, 8BIT, BINARY
-                        data.fstream.write(data.sbuffer.toString().getBytes());
+                        data.os.write(data.sbuffer.toString().getBytes());
                     }
 
-                    if (data.fstream != null) data.fstream.close();
+                    if (data.os != null) {
+                        data.os.flush();
+                        data.os.close();
+                    }
                 }
                 if (sp != null) {
                     on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
@@ -1254,11 +1264,12 @@ public class IMAP extends Handler {
         if (go) {
             // Prepare for direct file write
             if (data.a_file == null) {
-                data.fstream = null;
+                data.os = null;
             } else {
                 try {
-                    data.fstream = new FileOutputStream(data.a_file);
+                    data.os = ctx.getContentResolver().openOutputStream(data.a_file.getUri(), "rw");
                 } catch (FileNotFoundException fnf) {
+                    InboxPager.log = InboxPager.log.concat(fnf.getMessage() + "\n\n");
                     error_dialog(fnf);
                 }
             }
@@ -1279,12 +1290,13 @@ public class IMAP extends Handler {
                 }
             }
 
-            if (data.fstream != null) {
+            if (data.os != null) {
                 try {
-                    data.fstream.write(data.sbuffer.toString().getBytes());
-                    data.fstream.close();
+                    data.os.write(data.sbuffer.toString().getBytes());
+                    data.os.flush();
+                    data.os.close();
                 } catch (IOException ioe) {
-                    InboxPager.log += ioe.getMessage() + "\n\n";
+                    InboxPager.log = InboxPager.log.concat(ioe.getMessage() + "\n\n");
                     error_dialog(ioe);
                     if (sp != null) {
                         on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
@@ -1301,7 +1313,7 @@ public class IMAP extends Handler {
             }
 
             // Save to DB
-            if (data.save_in_db || data.fstream == null) {
+            if (data.save_in_db || data.os == null) {
                 data.msg_current.set_full_msg(data.sbuffer.toString());
                 db.update_message(data.msg_current);
             }

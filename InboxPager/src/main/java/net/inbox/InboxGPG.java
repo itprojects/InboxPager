@@ -20,9 +20,12 @@ package net.inbox;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.documentfile.provider.DocumentFile;
+
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -45,8 +48,6 @@ import org.openintents.openpgp.util.OpenPgpServiceConnection;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -244,11 +245,6 @@ public class InboxGPG extends AppCompatActivity {
     }
 
     @Override
-    public void finish() {
-        super.finish();
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -392,8 +388,7 @@ public class InboxGPG extends AppCompatActivity {
         }
 
         spinner_gpg_action = findViewById(R.id.spinner_gpg_action);
-        ArrayAdapter<String> adapt = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, gpg_actions);
+        ArrayAdapter<String> adapt = new ArrayAdapter<>(this, R.layout.spinner_item, gpg_actions);
         adapt.setDropDownViewResource(android.R.layout.simple_list_item_checked);
         spinner_gpg_action.setAdapter(adapt);
 
@@ -638,7 +633,7 @@ public class InboxGPG extends AppCompatActivity {
     public void decrypt_and_verify_detached(Intent data) {
         data.setAction(OpenPgpApi.ACTION_DECRYPT_VERIFY);
         if (msg_signature == null) {
-            toaster(true, getString(R.string.open_pgp_failure));
+            toaster(true, getString(R.string.crypto_failure));
         } else {
             data.putExtra(OpenPgpApi.EXTRA_DETACHED_SIGNATURE, msg_signature.getBytes());
 
@@ -717,7 +712,12 @@ public class InboxGPG extends AppCompatActivity {
         } else {
             // Message attachments
             for (int i = 0;i < attachment_paths.size();++i) {
-                File ff = new File(attachment_paths.get(i));
+                Uri uri = Uri.parse(attachment_paths.get(i));
+
+                Common.check_read_give(this, uri);
+
+                DocumentFile ff = DocumentFile.fromSingleUri(this, uri);
+
                 if (i != 0) {
                     msg_mime = msg_mime.concat("\n--" + bounds + "\n");
                 } else msg_mime = msg_mime.concat("\n");
@@ -736,7 +736,7 @@ public class InboxGPG extends AppCompatActivity {
                 msg_mime += "\n";
                 ByteArrayOutputStream b_stream = new ByteArrayOutputStream();
                 try {
-                    InputStream in_stream = new FileInputStream(ff);
+                    InputStream in_stream = getContentResolver().openInputStream(uri);
                     byte[] bfr = new byte[(int)ff.length()];
                     if ((int)ff.length() > 0) {
                         int t;
@@ -911,7 +911,7 @@ public class InboxGPG extends AppCompatActivity {
                     break;
                 }
                 case OpenPgpApi.RESULT_CODE_ERROR: {
-                    toaster(true, getString(R.string.open_pgp_failure));
+                    toaster(true, getString(R.string.crypto_failure));
                     InboxPager.log = InboxPager.log.concat(((OpenPgpError) result.getParcelableExtra(OpenPgpApi.RESULT_ERROR))
                             .getMessage() + "\n\n");
                     msg_ready = false;
@@ -921,7 +921,7 @@ public class InboxGPG extends AppCompatActivity {
         }
     }
 
-    private class SignKeyCallback implements OpenPgpApi.IOpenPgpCallback {
+    private static class SignKeyCallback implements OpenPgpApi.IOpenPgpCallback {
 
         int requestCode;
         AppCompatActivity act;

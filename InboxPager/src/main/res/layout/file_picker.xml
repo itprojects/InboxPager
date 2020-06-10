@@ -26,10 +26,11 @@
             android:layout_marginStart="1sp"
             android:layout_marginEnd="7sp"
             android:background="@drawable/btn_green"
-            android:text="@string/edit_account_save" />
+            android:textAllCaps="true"
+            android:text="@string/message_action_done"/>
 
         <TextView
-            android:id="@+id/tv_picker_up"
+            android:id="@+id/tv_picker_select"
             style="@style/action_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -37,17 +38,7 @@
             android:layout_marginStart="1sp"
             android:layout_marginEnd="7sp"
             android:background="@drawable/btn_orange"
-            android:text="@string/btn_up_one_level" />
-
-        <ImageButton
-            android:id="@+id/ib_picker_home"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginStart="1sp"
-            android:layout_marginEnd="7sp"
-            android:background="@drawable/btn_orange"
-            android:src="@drawable/home_location"/>
+            android:text="@string/picker_pick"/>
 
         <TextView
             android:id="@+id/picker_title"
@@ -67,7 +58,7 @@
             android:shadowRadius="3"
             android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
             android:textColor="@color/color_title"
-            android:visibility="visible" />
+            android:visibility="visible"/>
 
     </androidx.appcompat.widget.Toolbar>
 
@@ -79,35 +70,14 @@
         android:padding="4dp"
         android:ellipsize="start"
         android:singleLine="true"
-        android:background="@color/color_home_bar_background" />
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/llay_tabs"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/send_attachments" />
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/file_title" />
-
-    </com.google.android.material.tabs.TabLayout>
+        android:background="@color/color_home_bar_background"
+        android:visibility="gone"/>
 
     <ListView
         android:id="@+id/list_view_picked_attachments"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:dividerHeight="1dp" />
-
-    <ListView
-        android:id="@+id/list_view_picker"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:dividerHeight="1dp" />
+        android:dividerHeight="1dp"
+        android:visibility="visible"/>
 
 </LinearLayout>

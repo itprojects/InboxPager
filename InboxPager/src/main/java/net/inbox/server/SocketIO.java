@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.security.MessageDigest;
 import java.security.PublicKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.interfaces.ECPublicKey;
@@ -38,7 +37,10 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.security.cert.CertificateEncodingException;
 import javax.security.cert.X509Certificate;
+
+import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 class SocketIO implements Runnable {
 
@@ -145,16 +147,15 @@ class SocketIO implements Runnable {
         try {
             lb = session_0.getPeerHost() + ":" + session_0.getPeerPort() + "\n\n";
             for (X509Certificate cert : session_0.getPeerCertificateChain()) {
-                lb = lb.concat("\n"
+                lb = lb.concat("\n\uD83D\uDCDC"
+                        + cert.getIssuerDN().getName() + "\n\n"
                         + getKeyLength(cert.getPublicKey())
-                        + cert.getSigAlgName().toUpperCase() + ":\n"
-                        + cert.getIssuerDN().getName() + "\n\nSHA-256:\n"
-                        + getKeySHA256Hash(cert) + "\n\n");
+                        + cert.getSigAlgName() + "\n"
+                        + "SHA-256:\n\n" + sha256Hex(cert.getEncoded()).toUpperCase() + "\n\n");
             }
 
-            lb = lb.replaceAll("(CN=|O=|OU=|L=|ST=|C=)", "")
-                    .replaceAll(",", ", ").trim();
-        } catch (SSLPeerUnverifiedException ee) {
+            lb = lb.replaceAll("(?i)(CN=|O=|OU=|L=|ST=|C=)", "\n");
+        } catch (SSLPeerUnverifiedException | CertificateEncodingException ee) {
             InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n");
         }
 
@@ -162,6 +163,7 @@ class SocketIO implements Runnable {
     }
 
     // See About Activity for licenses and links
+    // (how-to-determine-length-of-x509-public-key)
     private String getKeyLength(PublicKey pk) {
         if (pk instanceof RSAPublicKey) {
             return ((RSAPublicKey) pk).getModulus().bitLength() + " bit RSA Public Key\n";
@@ -176,27 +178,5 @@ class SocketIO implements Runnable {
             return pk_dsa.getParams() == null ? pk_dsa.getY().bitLength() + " bit DSA Public Key\n"
                     : pk_dsa.getParams().getP().bitLength() + " bit DSA Public Key\n";
         } else return "? Public key\n";
-    }
-
-    // See About Activity for license and links
-    private String getKeySHA256Hash(X509Certificate cert) {
-        StringBuilder buff = new StringBuilder();
-
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(cert.getEncoded());
-
-            // Hashed Certificate
-            byte[] sha256 = md.digest();
-            for (byte b : sha256) {
-                // Convert to String
-                buff.append(String.format("%02x", b).toUpperCase()).append(":");
-            }
-            if (buff.length() > 0) buff.deleteCharAt(buff.length() - 1);
-            return buff.toString();
-        } catch (Exception e) {
-            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
-            return "? ☉_☉ ?";
-        }
     }
 }

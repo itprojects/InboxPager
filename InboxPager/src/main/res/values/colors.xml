@@ -9,4 +9,5 @@
     <color name="color_orange">#F60</color>
     <color name="color_orange_pressed">#ffa366</color>
     <color name="color_error">#f50c08</color>
+    <color name="color_txt">#E91E63</color>
 </resources>

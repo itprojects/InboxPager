@@ -64,9 +64,17 @@
         LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
         EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </string>
+    <string name="license_gnu_cryoto" translatable="false">Gnu Crypto, General Public License 2</string>
+    <string name="license_long_gnu_cryoto" translatable="false">Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.\n\nThis file is part of GNU Crypto.\n\n GNU Crypto is free software; you can redistribute it and/or modify it under the terms of the
+        GNU General Public License as published by the Free Software Foundation; either version 2, or (at your option) any later version.\n\nGNU Crypto is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+        of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program; see the file COPYING.  If not, write to the\n\n
+        Free Software Foundation Inc.,\n   59 Temple Place - Suite 330,\n   Boston, MA 02111-1307\n   USA\n\nLinking this library statically or dynamically with other modules is\nmaking a combined work based on this library.  Thus, the terms and\nconditions of
+        the GNU General Public License cover the whole\ncombination.\n\nAs a special exception, the copyright holders of this library give you permission to link this library with independent modules to produce an executable, regardless of the license terms of
+        these independent modules, and to copy and distribute the resulting executable under terms of your choice, provided that you also meet, for each linked independent module, the terms and conditions of the license of that module.  An independent module is
+        a module which is not derived from or based on this library.  If you modify this library, you may extend this exception to your version of the library, but you are not obligated to do so.  If you do not wish to do so, delete this exception statement from your version.</string>
     <string name="cc_by_sa" translatable="false">Stack Overflow Material</string>
     <string name="cc_by_sa_link" translatable="false">creativecommons.org/licenses/by-sa/4.0\n\ncreativecommons.org/licenses/by-sa/4.0/legalcode</string>
-    <string name="cc_by_sa_long" translatable="false">\nModified X.509\nCertificate identification\n\nSuggested by Julio López Torres\ngithub.com/juliolopeztorres\n\nFrom an answer by HTLee:\nstackoverflow.com/questions/32573317/how-to-determine-length-of-x509-public-key/43984402#43984402\n\nModified SHA256 X.509\nCertificate fingerprinting\n\nFrom an answer by Ramanarayan:\nstackoverflow.com/questions/4803799/how-to-calculate-x-509-certificates-sha-1-fingerprint</string>
+    <string name="cc_by_sa_long" translatable="false">\nModified X.509\nCertificate identification\n\nSuggested by Julio López Torres\ngithub.com/juliolopeztorres\n\nFrom an answer by HTLee:\nstackoverflow.com/questions/32573317/how-to-determine-length-of-x509-public-key\n\n</string>
 
     <!-- Progress Dialog Spinner -->
     <string name="progress_title">Refreshing</string>
@@ -81,7 +89,6 @@
     <string name="progress_deleted_msg">Message deleted.</string>
     <string name="progress_downloading">Downloading…</string>
     <string name="progress_download_complete">Download complete.</string>
-    <string name="progress_keep_msg">Keep Cache</string>
     <string name="progress_connecting">Connecting to</string>
     <string name="progress_connected">Connected.</string>
     <string name="progress_authenticated">Authenticated.</string>
@@ -96,6 +103,8 @@
     <string name="ex_do_io">Unable to do network IO operations.</string>
     <string name="ex_field">Exception:</string>
     <string name="ex_ran_out_of_ram">Not enough RAM. Free more virtual memory.</string>
+    <string name="ex_no_remote_address">Mail server not found.</string>
+    <string name="ex_no_internet">No internet! Check your connection.</string>
 
     <!-- Attachments List Dialog -->
     <string name="attch_title">Download To</string>
@@ -105,21 +114,16 @@
     <string name="attch_added_attachment">Added:</string>
 
     <!-- Folder Picker Dialog -->
-    <string name="folder_title">Pick Folder</string>
-    <string name="file_title">Pick File</string>
-    <string name="file_use_this">Rename and Save</string>
+    <string name="folder_title">FOLDER</string>
+    <string name="file_title">FILES</string>
+    <string name="picker_pick">PICK</string>
 
     <!-- Error Dialogs -->
-    <string name="err_error">Error:</string>
     <string name="err_title_write_perms">Writing Prohibited</string>
     <string name="err_msg_write_perms">You do not have the folder permission to save your file in your chosen folder.</string>
     <string name="err_title_no_space">No space</string>
     <string name="err_msg_no_space">You do not seem to have enough space on your device to save this file.</string>
-    <string name="err_title_empty_name">Name Required</string>
-    <string name="err_title_already_exists">File Already Exists</string>
     <string name="err_title_file_is_duplicate">File is already attached.</string>
-    <string name="err_msg_already_exists">Would you like to replace this file?</string>
-    <string name="err_msg_empty_name">Your file will be saved under the name:</string>
     <string name="err_title_android_permission">Android Permissions</string>
     <string name="err_wrong_user_or_pass">Wrong user name or password</string>
     <string name="err_read_file">You do not have the permission to read this file.</string>
@@ -139,7 +143,7 @@
     <string name="err_pop_expiration">Server deletes emails after %s days.</string>
     <string name="err_server_not_configured">Outgoing server has not been configured correctly.</string>
     <string name="err_not_saved">Could not complete save action.</string>
-    <string name="err_imap_attachment_saving">Offline IMAP attachment file saving failed. Download attachment online and delete full message from database.</string>
+    <string name="err_imap_attachment_saving">Offline attachment file saving failed. Download attachment online and delete full message from database.</string>
     <string name="err_action_failed">Action failed (see log).</string>
     <string name="err_refresh">Errors in</string>
     <string name="err_pick_signing_key">Pick a signing key!</string>
@@ -164,7 +168,6 @@
     <string name="btn_continue">Continue</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_yes">Yes</string>
-    <string name="btn_no">No</string>
     <string name="menu_all_seen">Mark All Read</string>
     <string name="menu_log">Errors / Exceptions</string>
     <string name="menu_status">Inbox Status</string>
@@ -227,12 +230,12 @@
     <string name="edit_account_smtp3" translatable="false">SMTP:587</string>
 
     <!-- InboxMessage activity -->
-    <string name="btn_up_one_level">▲ UP</string>
     <string name="menu_download_msg">Download ➠ Database</string>
     <string name="menu_save_message">Save ➠ Device</string>
     <string name="menu_delete_from_server">Delete From Server</string>
     <string name="menu_delete_full_message">Delete Full Message (DB)</string>
     <string name="menu_delete_full_messages">Delete Full Messages</string>
+    <string name="menu_delete_messages_keep_settings">Delete Messages, Keep Settings</string>
     <string name="menu_see_full_message">View Full Message</string>
     <string name="menu_see_full_message_title">Full Message</string>
     <string name="message_reply">REPLY</string>
@@ -247,9 +250,9 @@
     <string name="message_contents">MESSAGE</string>
     <string name="message_contents_loop_plain">PLAIN</string>
     <string name="message_contents_loop_html">HTML</string>
+    <string name="message_date_original">"Original message date:\n\n"</string>
     <string name="message_no_full_message">Full message deleted from database.</string>
-    <string name="message_no_full_messages">Full messages deleted from database.</string>
-    <string name="message_keep_in_database">Keep full message in database?</string>
+    <string name="message_del_messages">Messages deleted from database.</string>
 
     <!-- InboxSend activity -->
     <string name="send_send">SEND</string>
@@ -288,18 +291,25 @@
     <string name="sett_change_pw_q">Remove or Change Password?</string>
     <string name="sett_change_pw_remove">Remove</string>
     <string name="sett_change_pw_change">Change</string>
+    <string name="sett_change_pw_vis" translatable="false">👁</string>
+    <string name="sett_crypto_type_title">Cryptogram Encryption Algorithm</string>
+    <string name="sett_crypto_type_summary">AES/Twofish. This does not encrypt attachments.</string>
+    <string name="sett_crypto_mode_title">Cryptogram Encryption Mode</string>
+    <string name="sett_crypto_mode_summary">CBC/CTR/ECB/ICM/OFB. This does not encrypt attachments.</string>
+    <string name="sett_crypto_padding_title">Cryptogram Text Padding</string>
+    <string name="sett_crypto_padding_summary">PKCS/TBC. This does not encrypt attachments.</string>
 
     <!-- GPG -->
     <string name="open_pgp_dialog_title">Cryptography</string>
     <string name="open_pgp_reset">RESET</string>
     <string name="open_pgp_ready">READY</string>
-    <string name="open_pgp_start">START</string>
-    <string name="open_pgp_press_start">Press START button.</string>
+    <string name="open_pgp_start" translatable="false">GPG</string>
+    <string name="open_pgp_press_start">Press GPG button.</string>
     <string name="open_pgp_none_found">OpenKeychain not found! No encryption/decryption!!</string>
-    <string name="open_pgp_list_items_encrypt">Encrypt message</string>
-    <string name="open_pgp_list_items_sign_encrypt">Sign and encrypt message</string>
-    <string name="open_pgp_list_items_detach_sign">Sign clear text message</string>
-    <string name="open_pgp_list_items_decrypt_and_verify">Decrypt and verify</string>
+    <string name="open_pgp_list_items_encrypt">ENCRYPT MESSAGE</string>
+    <string name="open_pgp_list_items_sign_encrypt">SIGN AND ENCRYPT MESSAGE</string>
+    <string name="open_pgp_list_items_detach_sign">SIGN CLEAR TEXT MESSAGE</string>
+    <string name="open_pgp_list_items_decrypt_and_verify">DECRYPT AND VERIFY</string>
     <string name="open_pgp_signing_key_check">&#10003; Signing key</string>
     <string name="open_pgp_signing_key_cross">&#10060; Signing key</string>
     <string name="open_pgp_rcpt_key_check">&#10003; Recipient keys</string>
@@ -308,10 +318,50 @@
     <string name="open_pgp_message">CLEAR MESSAGE</string>
     <string name="open_pgp_message_encrypted_block">ENCRYPTED MESSAGE</string>
     <string name="open_pgp_message_signature">SIGNATURE</string>
-    <string name="open_pgp_failure">FAILURE!</string>
     <string name="open_pgp_bad_signature">No signatures, bad signature, or a transmission error.</string>
     <string name="open_pgp_encrypt_to_self">Also encrypt to signing key</string>
     <string name="err_no_full_msg">Full message not found in database. Download from server first.</string>
     <string name="message_contents_loop_no">NO TEXT</string>
+
+    <!-- Other Crypto -->
+    <string name="empty_string" translatable="false"/>
+    <string name="crypto_title">Encrypted Text</string>
+    <string name="crypto_key_32_symbols">=&lt; 32 symbols</string>
+    <string name="crypto_plain_warning">Encrypt or Decrypt text of message, with key below.</string>
+    <string name="crypto_encrypt">&#128274; Encrypt</string>
+    <string name="crypto_decrypt">&#128275; Decrypt</string>
+    <string name="crypto_no_text">Missing message text.</string>
+    <string name="crypto_invalid_key">Invalid KEY OR LENGTH.</string>
+    <string name="crypto_success">SUCCESS!</string>
+    <string name="crypto_failure">FAILURE!</string>
+    <string name="crypto_failed_encryption">Failed encryption for %s/%s/%s.</string>
+    <string name="crypto_failed_decryption">Failed decryption for %s/%s/%s.</string>
+    <string name="crypto_failed_unpadding">Failed removal of padding %s.</string>
+    <string name="crypto_bad_message">Message does not have BASE64.</string>
+    <string name="crypto_unsupported">UNSUPPORTED</string>
+
+    <string name="crypto_pgp" translatable="false">PGP</string>
+    <string name="crypto_txt" translatable="false">CRYPTOGRAM</string>
+
+    <!-- Values must match those in crypto class -->
+    <string-array name="crypto_ciphers">
+        <item translatable="false">AES</item>
+        <item translatable="false">Twofish</item>
+    </string-array>
+
+    <!-- Values must match those in crypto class -->
+    <string-array name="crypto_cipher_modes">
+        <item translatable="false">CBC</item>
+        <item translatable="false">CTR</item>
+        <item translatable="false">ECB</item>
+        <item translatable="false">ICM</item>
+        <item translatable="false">OFB</item>
+    </string-array>
+
+    <!-- Values must match those in crypto class -->
+    <string-array name="crypto_cipher_paddings">
+        <item translatable="false">PKCS7</item>
+        <item translatable="false">TBC</item>
+    </string-array>
 
 </resources>

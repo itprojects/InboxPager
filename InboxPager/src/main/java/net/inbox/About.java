@@ -134,6 +134,19 @@ public class About extends AppCompatActivity {
                         (AppCompatActivity) v.getContext());
             }
         });
+
+        TextView tv_gnu_crypto = findViewById(R.id.tv_gnu_crypto);
+        tv_gnu_crypto.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Dialogs.dialog_simple(
+                        getString(R.string.dialog_license),
+                        getString(R.string.license_long_gnu_cryoto),
+                        (AppCompatActivity) v.getContext());
+            }
+        });
+
         TextView tv_stack_of = findViewById(R.id.tv_stack_of);
         tv_stack_of.setOnClickListener(new View.OnClickListener() {
 

@@ -21,7 +21,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -33,8 +33,9 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
+
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import net.inbox.db.Inbox;
 import net.inbox.db.DBAccess;
@@ -61,7 +62,7 @@ public class InboxPreferences extends AppCompatActivity {
     private EditText et_email;
     private EditText et_username;
     private EditText et_pass;
-    private Switch sw_imap_or_pop;
+    private SwitchMaterial sw_imap_or_pop;
     private TextView tv_imap_or_pop;
     private EditText et_imap_or_pop_server;
     private EditText et_imap_or_pop_server_port;
@@ -273,13 +274,25 @@ public class InboxPreferences extends AppCompatActivity {
             });
 
             // Delete cache full messages
-            Button btn_delete_full_msgs = findViewById(R.id.btn_delete_all_full_msgs);
+            Button btn_delete_full_msgs = findViewById(R.id.btn_delete_full_msgs);
             btn_delete_full_msgs.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
                     db.delete_all_full_messages(current.get_id());
-                    Dialogs.toaster(false, getString(R.string.message_no_full_messages), ctx);
+                    Dialogs.toaster(false, getString(R.string.message_no_full_message), ctx);
+                }
+            });
+
+            // Delete messages, keep configuration
+            Button btn_delete_msgs_keep = findViewById(R.id.btn_delete_msgs_keep);
+            btn_delete_msgs_keep.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    HashMap<Integer, String> mess = db.get_all_message_uids(current_inbox);
+                    if (mess.size() > 0) db.delete_all_messages(mess);
+                    Dialogs.toaster(false, getString(R.string.message_del_messages), ctx);
                 }
             });
 
@@ -428,11 +441,10 @@ public class InboxPreferences extends AppCompatActivity {
         } else {
             if (current.get_imap_or_pop()) {
                 handler = new IMAP(this);
-                handler.start();
             } else {
                 handler = new POP(this);
-                handler.start();
             }
+            handler.start();
         }
         handler.test_server(current, this);
     }
@@ -466,21 +478,23 @@ public class InboxPreferences extends AppCompatActivity {
             Dialogs.toaster(true, getString(R.string.edit_account_saving), this);
         }
 
+
+        // Declaring the result of the activity
+        Intent ret_intent = new Intent();
+
         if (add_mode) {
             if (current.get_email().isEmpty()) {
                 Dialogs.toaster(false, getString(R.string.edit_account_not_saved), this);
                 return;
             }
 
-            // If the account is new - add to database
-            db.add_account(current);
+            // Notifying changes to caller activity
+            int new_inbox_id = db.add_account(current);
+            ret_intent = ret_intent.putExtra("new_inbox_id", new_inbox_id);
         } else {
             // If the account exists - update in database
             db.update_account(current);
         }
-
-        // Declaring the result of the activity
-        Intent ret_intent = new Intent();
 
         // Request ListView re-flow
         setResult(Activity.RESULT_OK, ret_intent.putExtra("status", true));
@@ -534,6 +548,7 @@ public class InboxPreferences extends AppCompatActivity {
     public void delete_account() {
         db.delete_account(current.get_id());
         Intent ret_intent = new Intent();
+        ret_intent = ret_intent.putExtra("inbox_deleted", true);
         setResult(Activity.RESULT_OK, ret_intent);
         finish();
     }

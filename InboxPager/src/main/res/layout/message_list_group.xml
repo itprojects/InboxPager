@@ -25,7 +25,7 @@
         android:layout_centerVertical="true"
         android:layout_alignParentEnd="true"
         android:layout_marginStart="4sp"
-        android:layout_marginEnd="4sp"
+        android:layout_marginEnd="24sp"
         android:contentDescription="@string/stats_unseen"
         android:src="@drawable/sent_to_specific"
         android:visibility="gone" />

@@ -20,11 +20,25 @@ import android.content.Context;
 import android.content.DialogInterface;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
+
+import android.content.SharedPreferences;
+import android.text.InputType;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import net.inbox.InboxPager;
 import net.inbox.R;
+import net.inbox.server.EndToEnd;
 import net.inbox.server.Handler;
 
 public class Dialogs {
@@ -109,6 +123,74 @@ public class Dialogs {
     private static void make_text_selectable(AlertDialog adg) {
         TextView text_box = adg.findViewById(android.R.id.message);
         if (text_box != null) text_box.setTextIsSelectable(true);
+    }
+
+    public static void dialog_pw_txt(AlertDialog.Builder builder, AppCompatActivity ct) {
+        builder.setTitle(ct.getString(R.string.crypto_title));
+
+        LayoutInflater inflater = ct.getLayoutInflater();
+        View v = inflater.inflate(R.layout.pw_txt, null);
+        builder.setView(v);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ct);
+
+        // Spinners for text encryption parameters
+        Spinner spin_cipher_type = v.findViewById(R.id.spin_cipher);
+        spin_cipher_type.setAdapter(new ArrayAdapter<CharSequence>(ct,
+                R.layout.spinner_item, EndToEnd.cipher_types));
+
+        Spinner spin_cipher_mode = v.findViewById(R.id.spin_cipher_mode);
+        spin_cipher_mode.setAdapter(new ArrayAdapter<CharSequence>(ct,
+                R.layout.spinner_item, EndToEnd.cipher_modes));
+
+        Spinner spin_cipher_padding = v.findViewById(R.id.spin_cipher_padding);
+        spin_cipher_padding.setAdapter(new ArrayAdapter<CharSequence>(ct,
+                R.layout.spinner_item, EndToEnd.cipher_paddings));
+
+        // Getting application current preferences
+        String spin_type = prefs.getString("list_cipher_types", "AES");
+        String spin_mode = prefs.getString("list_cipher_modes", "CBC");
+        String spin_padding = prefs.getString("list_cipher_paddings", "PKCS7");
+
+        for (int i = 0;i < EndToEnd.cipher_types.length;++i) {
+            if (spin_cipher_type.getItemAtPosition(i).equals(spin_type)) {
+                spin_cipher_type.setSelection(i);
+                break;
+            }
+        }
+
+        for (int i = 0;i < EndToEnd.cipher_modes.length;++i) {
+            if (spin_cipher_mode.getItemAtPosition(i).equals(spin_mode)) {
+                spin_cipher_mode.setSelection(i);
+                break;
+            }
+        }
+
+        for (int i = 0;i < EndToEnd.cipher_paddings.length;++i) {
+            if (spin_cipher_padding.getItemAtPosition(i).equals(spin_padding)) {
+                spin_cipher_padding.setSelection(i);
+                break;
+            }
+        }
+
+        CheckBox cb_pw = v.findViewById(R.id.cb_pw);
+        cb_pw.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
+                // Find EditText, this must change, is layout changes
+                LinearLayout lv = (LinearLayout) v.getParent().getParent();
+                if (isChecked) {
+                    ((EditText)lv.findViewById(R.id.et_key))
+                            .setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                } else {
+                    ((EditText)lv.findViewById(R.id.et_key)).setInputType(InputType.TYPE_CLASS_TEXT
+                            | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                }
+            }
+        });
+
+        builder.setPositiveButton(ct.getString(R.string.crypto_decrypt), null);
     }
 
     public static void toaster(final boolean time, final String msg, final AppCompatActivity ct) {

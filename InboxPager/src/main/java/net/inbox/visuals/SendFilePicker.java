@@ -18,18 +18,17 @@ package net.inbox.visuals;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 
-import com.google.android.material.tabs.TabLayout;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.documentfile.provider.DocumentFile;
+
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -37,7 +36,6 @@ import net.inbox.InboxPager;
 import net.inbox.R;
 import net.inbox.server.Utils;
 
-import java.io.File;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
@@ -52,17 +50,9 @@ public class SendFilePicker extends AppCompatActivity {
     private String s_chosen_folder;
     private String s_temporary_uri;
 
-    private File cwd_path;
-    private File[] cwd_files;
-    private SendFileList picked_adapter;
-    private ArrayList<SendFileItem> picker_listings = new ArrayList<>();
-    private ArrayList<SendFileItem> picked_attachments = new ArrayList<>();
     private ArrayList<String> s_attachment_paths = new ArrayList<>();
-
-    private ListView list_view_picked_attachments;
-    private ListView list_view_picker;
-
-    private TextView tv_location;
+    private SendFileList picked_adapter;
+    private ArrayList<SendFileItem> picked_attachments = new ArrayList<>();
 
     private View current_layout;
 
@@ -80,7 +70,6 @@ public class SendFilePicker extends AppCompatActivity {
             if (savedInstanceState != null) {
                 warned_8_bit_absent = savedInstanceState.getBoolean("sv_warned_8_bit_absent");
                 warned_files_too_big = savedInstanceState.getBoolean("sv_warned_files_too_big");
-                cwd_path = new File(savedInstanceState.getString("sv_current_path"));
                 attachments_size = savedInstanceState.getLong("sv_attachments_size");
                 total_size_limit = savedInstanceState.getLong("sv_total_size_limit");
                 s_attachment_paths = savedInstanceState.getStringArrayList("sv_s_attachment_paths");
@@ -115,13 +104,6 @@ public class SendFilePicker extends AppCompatActivity {
                     total_size_limit = getIntent().getExtras().getLong("l_total_size_limit", 0);
                     s_attachment_paths = getIntent().getExtras().getStringArrayList("str_array_paths");
                 }
-
-                // Initial current working directory
-                if (Environment.getExternalStorageDirectory().exists()) {
-                    cwd_path = Environment.getExternalStorageDirectory();
-                } else {
-                    cwd_path = new File("/");
-                }
             }
 
             Toolbar tb = findViewById(R.id.picker_toolbar);
@@ -136,32 +118,8 @@ public class SendFilePicker extends AppCompatActivity {
                 pick_title.setText(getString(R.string.send_attachments).toUpperCase());
             }
 
-            final TabLayout llay_tabs = findViewById(R.id.llay_tabs);
-            llay_tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-
-                @Override
-                public void onTabSelected(TabLayout.Tab tab) {
-                    if (tab.getPosition() == 0) {
-                        list_view_picked_attachments.setVisibility(View.VISIBLE);
-                        list_view_picker.setVisibility(View.GONE);
-                        load_picked();
-                    } else {
-                        list_view_picked_attachments.setVisibility(View.GONE);
-                        list_view_picker.setVisibility(View.VISIBLE);
-                        cwd_files = cwd_path.listFiles();
-                        prepare_adapter();
-                    }
-                }
-
-                @Override
-                public void onTabUnselected(TabLayout.Tab tab) {}
-
-                @Override
-                public void onTabReselected(TabLayout.Tab tab) {}
-            });
-
             picked_adapter = new SendFileList(true, this, picked_attachments);
-            list_view_picked_attachments = findViewById(R.id.list_view_picked_attachments);
+            ListView list_view_picked_attachments = findViewById(R.id.list_view_picked_attachments);
             list_view_picked_attachments.setAdapter(picked_adapter);
             load_picked();
 
@@ -177,58 +135,42 @@ public class SendFilePicker extends AppCompatActivity {
                 }
             });
 
-            TextView tv_picker_up = findViewById(R.id.tv_picker_up);
-            tv_picker_up.setOnClickListener(new View.OnClickListener() {
+            TextView tv_picker_select = findViewById(R.id.tv_picker_select);
+            tv_picker_select.setText(getString(R.string.file_title));
+            tv_picker_select.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View view) {
-                    if (cwd_path.getParent() != null && cwd_path.isDirectory()) {
-                        cwd_path = new File(cwd_path.getParent());
-                        cwd_files = cwd_path.listFiles();
-                        prepare_adapter();
-                    }
+                    pick_files();
                 }
             });
-
-            ImageButton ib_picker_home = findViewById(R.id.ib_picker_home);
-            ib_picker_home.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View view) {
-                    if (Environment.getExternalStorageDirectory().exists()) {
-                        cwd_path = Environment.getExternalStorageDirectory();
-                    } else {
-                        cwd_path = new File("/");
-                    }
-                    cwd_files = cwd_path.listFiles();
-                    prepare_adapter();
-                }
-            });
-
-            tv_location = findViewById(R.id.tv_location);
-            tv_location.setText(cwd_path.getAbsolutePath());
-
-            list_view_picker = findViewById(R.id.list_view_picker);
-            list_view_picker.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                @Override
-                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                    SendFileItem itm = (SendFileItem) parent.getItemAtPosition(position);
-                    if (!itm.get_file_or_directory()) {
-                        cwd_path = new File(itm.get_file_uri());
-                        cwd_files = cwd_path.listFiles();
-                        prepare_adapter();
-                    }
-                }
-            });
-
-            // Select Pick File Tab, if no attachments selected.
-            if (picked_attachments == null || picked_attachments.size() == 0) {
-                (llay_tabs.getTabAt(1)).select();
-            }
         } catch (Exception e) {
             InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             finish();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            // No files to add
+            if (data.getData() == null && data.getClipData() == null) return;
+
+            // Comparing and adding files, if necessary
+            if (s_attachment_paths == null) s_attachment_paths = new ArrayList<>();
+
+            if (data.getData() != null && !s_attachment_paths.contains(data.getData().toString())) {
+                s_attachment_paths.add(data.getData().toString());
+            }
+
+            if (data.getClipData() != null) {
+                for (int ii = 0;ii < data.getClipData().getItemCount();++ii) {
+                    String s = data.getClipData().getItemAt(ii).getUri().toString();
+                    if (!s_attachment_paths.contains(s)) s_attachment_paths.add(s);
+                }
+            }
+            load_picked();
         }
     }
 
@@ -239,11 +181,6 @@ public class SendFilePicker extends AppCompatActivity {
         save.putBoolean("sv_warned_files_too_big", warned_files_too_big);
         save.putLong("sv_attachments_size", attachments_size);
         save.putLong("sv_total_size_limit", total_size_limit);
-        if (cwd_path == null) {
-            save.putString("sv_current_path", "");
-        } else {
-            save.putString("sv_current_path", cwd_path.getAbsolutePath());
-        }
         save.putStringArrayList("sv_s_attachment_paths", s_attachment_paths);
         save.putString("sv_s_temporary_uri", s_temporary_uri);
         save.putString("sv_s_chosen_folder", s_chosen_folder);
@@ -253,95 +190,41 @@ public class SendFilePicker extends AppCompatActivity {
     public void onBackPressed() {
         Common.animation_out(this, current_layout);
     }
-    /*
-        protected void animation_in() {
-                DisplayMetrics displayMetrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                float circle_radius = (float) (Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels));
-                Animator circularReveal = ViewAnimationUtils.createCircularReveal(current_layout,
-                        displayMetrics.widthPixels/2,
-                        displayMetrics.heightPixels/2,
-                        0, circle_radius);
-                circularReveal.setDuration(420);
-                circularReveal.setInterpolator(new AccelerateInterpolator());
-                current_layout.setVisibility(View.VISIBLE);
-                circularReveal.start();
-        }
 
-        protected void animation_out() {
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-            float circle_radius = (float) (Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels));
-            Animator circularReveal = ViewAnimationUtils.createCircularReveal(current_layout,
-                    displayMetrics.widthPixels/2,
-                    displayMetrics.heightPixels/2,
-                    circle_radius, 0);
-            circularReveal.setDuration(420);
-            circularReveal.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    current_layout.setVisibility(View.INVISIBLE);
-                    finish();
-                }
-            });
-            circularReveal.start();
-        }
-    */
     private void calc_total_files_size() {
         attachments_size = 0;
         for (SendFileItem ffi : picked_attachments) attachments_size += ffi.get_file_size_l();
     }
 
-    private void prepare_adapter() {
-        if (cwd_files != null) {
-            picker_listings.clear();
-            for (File f : cwd_files) {
-                if (f.isFile()) {
-                    SendFileItem ff = new SendFileItem(true, f.length(),
-                            Utils.s_file_size(f.length(), getString(R.string.attch_bytes),
-                                    getString(R.string.attch_kilobytes),
-                                    getString(R.string.attch_megabytes)),
-                            f.getName(), f.getAbsolutePath(), "");
-
-                    picker_listings.add(0, ff);
-                } else if (f.isDirectory()) {
-                    picker_listings.add(0, new SendFileItem(false, 0,
-                            "", f.getName(), f.getAbsolutePath(), ""));
-                }
-            }
-            list_view_picker.setAdapter(null);
-            list_view_picker.setAdapter(new SendFileList(false, this, picker_listings));
-            tv_location.setText(cwd_path.getAbsolutePath());
-        }
-    }
-
     private void load_picked() {
+        picked_attachments.clear();
         if (s_attachment_paths != null) {
-            picked_attachments.clear();
             for (String s : s_attachment_paths) {
                 try {
-                    File f = new File(s);
-                    picked_attachments.add(0, new SendFileItem(true, f.length(),
-                            Utils.s_file_size(f.length(),
+                    Uri uri = Uri.parse(s);
+                    Common.check_read_give(this, uri);
+                    DocumentFile df = DocumentFile.fromSingleUri(this, uri);
+                    picked_attachments.add(0, new SendFileItem(true,
+                            df.length(),
+                            Utils.s_file_size(df.length(),
                             getString(R.string.attch_bytes),
                             getString(R.string.attch_kilobytes),
                             getString(R.string.attch_megabytes)),
-                            f.getName(), f.getAbsolutePath(),
-                            URLConnection.guessContentTypeFromName(f.getName())));
+                            df.getName(), s, URLConnection.guessContentTypeFromName(df.getName())));
                 } catch (Exception e) {
                     InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
                 }
             }
-            picked_adapter.notifyDataSetChanged();
         }
+        picked_adapter.notifyDataSetChanged();
     }
 
     public void add_or_remove_attachment(boolean add_or_remove, String uri) {
         if (add_or_remove) {
             // Adding file attachment
             // Missing read permission check
-            File f_add = new File(uri);
-            if (!f_add.canRead()) {
+            DocumentFile df_add = DocumentFile.fromSingleUri(this, Uri.parse(uri));
+            if (df_add != null && !df_add.canRead()) {
                 Dialogs.dialog_simple(getString(R.string.err_title_android_permission),
                         getString(R.string.err_read_file), this);
                 return;
@@ -357,7 +240,7 @@ public class SendFilePicker extends AppCompatActivity {
             // File is not a duplicate
             // Over-sized SMTP server message quota check
             calc_total_files_size();
-            if (((attachments_size + f_add.length()) >= total_size_limit)
+            if (((attachments_size + df_add.length()) >= total_size_limit)
                     && !warned_files_too_big) {
                 // Server will refuse the message, attachments too big
                 s_temporary_uri = uri;
@@ -382,17 +265,16 @@ public class SendFilePicker extends AppCompatActivity {
 
     public void add_or_remove_attachment_directly(boolean adding, String uri) {
         if (adding) {
-            File f = new File(uri);
-            picked_attachments.add(new SendFileItem(false, f.length(),
-                    Utils.s_file_size(f.length(),
+            DocumentFile df = DocumentFile.fromSingleUri(this, Uri.parse(uri));
+            picked_attachments.add(new SendFileItem(false, df.length(),
+                    Utils.s_file_size(df.length(),
                             getString(R.string.attch_bytes),
                             getString(R.string.attch_kilobytes),
                             getString(R.string.attch_megabytes)),
-                    f.getName(), f.getAbsolutePath(),
-                    URLConnection.guessContentTypeFromName(f.getName())));
+                    df.getName(), uri, URLConnection.guessContentTypeFromName(df.getName())));
             s_attachment_paths.add(uri);
-            Dialogs.toaster(true, getString(R.string.attch_added_attachment)
-                    + " " + f.getName(), this);
+            Dialogs.toaster(true, getString(R.string.attch_added_attachment) + " "
+                    + df.getName(), this);
         } else {
             if (s_attachment_paths != null && s_attachment_paths.size() > 0) {
                 s_attachment_paths.remove(uri);
@@ -407,5 +289,13 @@ public class SendFilePicker extends AppCompatActivity {
             }
         }
         picked_adapter.notifyDataSetChanged();
+    }
+
+    public void pick_files() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.setType("*/*");
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(Intent.createChooser(i, getString(R.string.file_title)), 1);
     }
 }

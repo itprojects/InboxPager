@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/PagerTheme">
         <activity android:name=".About"/>
-        <activity android:name=".InboxPager" android:configChanges="orientation">
+        <activity android:name=".InboxPager" android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -24,20 +24,20 @@
         </activity>
         <activity
             android:name=".InboxMessage"
-            android:configChanges="orientation"/>
+            android:configChanges="orientation|screenSize"/>
         <activity
             android:name=".InboxPreferences"
             android:windowSoftInputMode="stateHidden|adjustResize"/>
         <activity
             android:name=".InboxSend"
-            android:configChanges="orientation"
+            android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="stateHidden|adjustResize"/>
         <activity
             android:name=".visuals.SendFilePicker"
-            android:configChanges="orientation"/>
+            android:configChanges="orientation|screenSize"/>
         <activity
-            android:name=".visuals.FileDownloadPicker"
-            android:configChanges="orientation"/>
+            android:name=".visuals.AttachmentDownloadPicker"
+            android:configChanges="orientation|screenSize"/>
         <activity android:name=".Settings"/>
         <activity android:name=".InboxGPG" android:label="OpenPGP"/>
     </application>

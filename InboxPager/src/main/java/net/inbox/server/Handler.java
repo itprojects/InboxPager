@@ -18,6 +18,7 @@ package net.inbox.server;
 
 import android.content.Context;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 
 import net.inbox.InboxMessage;
 import net.inbox.InboxPager;
@@ -30,7 +31,6 @@ import net.inbox.db.Message;
 import net.inbox.visuals.Dialogs;
 import net.inbox.visuals.SpinningStatus;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,7 +75,7 @@ public abstract class Handler extends Thread {
 
     public Data data;
 
-    abstract class Data {
+    abstract static class Data {
         // Command response returned by server
         String cmd_return = "";
 
@@ -107,7 +107,7 @@ public abstract class Handler extends Thread {
         boolean save_in_db;
 
         // Saving or uploading a file
-        File a_file;
+        DocumentFile a_file;
 
         // Type of authentication to use
         String auth = "";
@@ -120,7 +120,7 @@ public abstract class Handler extends Thread {
     Inbox current_inbox;
 
     // Last session state variables
-    boolean last_connection_hostname = true;
+    private boolean last_connection_hostname = true;
 
     int last_connection_data_id = -1;
 
@@ -152,14 +152,14 @@ public abstract class Handler extends Thread {
      * Downloads an attachment, of a particular message.
      * In the case of SMTP it prepares attachments for transmission.
      **/
-    public abstract void attachment_action(int aid, Attachment att, String save_path, Context ct);
+    public abstract void attachment_action(int aid, Attachment att, Object doc_file, Context ct);
 
     /**
      * Communicating individually with remote server.
      * Downloads a particular message.
      * In the case of SMTP it tries to send a message.
      **/
-    public abstract void msg_action(int aid, Message msg, String save_path, boolean sv, Context ct);
+    public abstract void msg_action(int aid, Message msg, Object doc_file, boolean sv, Context ct);
 
     /**
      * Communicating individually with remote server.
@@ -257,7 +257,16 @@ public abstract class Handler extends Thread {
 
         if (!multiple) {
             if (sp != null) sp.unblock = true;
-            Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
+
+            // Dialog for common cases
+            if (e.getMessage() != null && e.getMessage().matches("(?i).*ENETUNREACH.*")) {
+                Dialogs.dialog_simple(ctx.getString(R.string.ex_title),
+                        ctx.getString(R.string.ex_no_internet), (AppCompatActivity) ctx);
+            } else if (e.getMessage() != null && e.getMessage().matches("(?i).*Unable to resolve host.*")) {
+                Dialogs.dialog_simple(ctx.getString(R.string.ex_title),
+                        ctx.getString(R.string.ex_no_remote_address) + "\n\n"
+                                + e.getMessage(), (AppCompatActivity) ctx);
+            } else Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
 
             // Connection icon update
             ((AppCompatActivity) ctx).runOnUiThread(new Runnable() {

@@ -16,6 +16,8 @@
  **/
 package net.inbox.server;
 
+import android.annotation.SuppressLint;
+import android.os.StatFs;
 import android.util.Base64;
 
 import net.inbox.InboxPager;
@@ -29,7 +31,10 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -260,7 +265,7 @@ public class Utils {
             pat = Pattern.compile(".*\"CHARSET\" \"(.*)", Pattern.CASE_INSENSITIVE);
             mat = pat.matcher(str_txt[1]);
             if (mat.matches()) {
-                int n = mat.group(1).indexOf("\"", 0);
+                int n = mat.group(1).indexOf("\"");
                 if (n >= 0) {
                     charset = mat.group(1).substring(0, n).toUpperCase();
                     pat = Pattern.compile(".* \"(7BIT|8BIT|BINARY|BASE64|QUOTED-PRINTABLE)\" .*",
@@ -394,15 +399,8 @@ public class Utils {
         mat = pat.matcher(temp);
         if (mat.matches()) {
             name = mat.group(1);
-            pat = Pattern.compile(".*\\}(.*)", Pattern.CASE_INSENSITIVE);// Keep \\}
-            mat = pat.matcher(name);
-            if (mat.matches()) {
-                temp = mat.group(1);
-                for (int k = 0;k < temp.length();++k) {
-                    if (temp.charAt(k) == '}') temp = temp.substring(k);
-                }
-                name = content_disposition_name(false, temp);
-            }
+            if (name != null)
+                name = content_disposition_name(false, name.substring(name.indexOf("}")));
         } else {
             // Convert encoded-word from RFC 2047 to text.
             Utils.parse_encoded_word(name);
@@ -713,8 +711,7 @@ public class Utils {
                 if (arr[4].equalsIgnoreCase("BASE64")) {
                     txt_tmp = Utils.parse_BASE64(txt_tmp);
                 } else if (arr[4].equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                    txt_tmp = Utils.parse_quoted_printable(txt_tmp
-                                    .replaceAll("([\r\n\t])", ""),
+                    txt_tmp = Utils.parse_quoted_printable(txt_tmp,
                             (arr[5].isEmpty() ? arr[5] : "UTF-8"));
                 }
                 msg.set_contents_plain(txt_tmp);
@@ -733,8 +730,7 @@ public class Utils {
                     str = "";
                     hold = "";
                 } else if (arr[4].equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                    txt_tmp = Utils.parse_quoted_printable(txt_tmp
-                                    .replaceAll("([\r\n\t])", ""),
+                    txt_tmp = Utils.parse_quoted_printable(txt_tmp,
                             (arr[5].isEmpty() ? arr[5] : "UTF-8"));
                 }
                 msg.set_contents_html(txt_tmp);
@@ -745,16 +741,53 @@ public class Utils {
     }
 
     /**
+     * Given String message headers, put them in tags.
+     **/
+    static HashMap<String, String> parse_headers(String headers) {
+        HashMap<String, String> tags = new HashMap<>();
+        String received = "";
+        int col;
+        String tag = "";
+        String test_tag = "";
+        for (String line : headers.split("\n")) {
+            if (line != null) {
+                if (line.matches("([\t ]).*")) {
+                    tag = tag.concat(" " + line.trim());
+                } else {
+                    col = tag.indexOf(":");
+                    if (col > 0) {
+                        test_tag = tag.substring(0, col + 1).toLowerCase();
+                        if (test_tag.contains("received:")) {
+                            received = received.concat("\n\n" + tag.substring(col + 1).trim());
+                        } else {
+                            tags.put(test_tag, tag.substring(col + 1).trim());
+                        }
+                    }
+                    tag = line;
+                }
+            }
+        }
+        col = tag.indexOf(":");
+        if (col > 0) {
+            test_tag = tag.substring(0, col + 1).toLowerCase();
+            tags.put(test_tag, tag.substring(col + 1).trim());
+        }
+        tags.put("received:", received);
+        tags.remove("");
+        return tags;
+    }
+
+    /**
      * Find content-type and boundary in given String.
      **/
     public static String[] content_type_boundary(String s) {
-        Pattern pat = Pattern.compile("^content-type:\\s(.*?);.*",
-                Pattern.CASE_INSENSITIVE);
+        Pattern pat = Pattern.compile("^content-type:\\s(.*?);.*", Pattern.CASE_INSENSITIVE);
 
         String sss = s.replaceAll("([\r\n\t])", "");
 
         String bounds = null;
         String content_type = null;
+        String charset = "UTF-8";
 
         Matcher mat = pat.matcher(sss);
         if (mat.matches()) content_type = mat.group(1) + ";";
@@ -763,7 +796,11 @@ public class Utils {
         mat = pat.matcher(sss);
         if (mat.matches()) bounds = "--" + mat.group(2);
 
-        return new String[]{ content_type, bounds };
+        pat = Pattern.compile(".*(charset=)(.*?)(;|$).*", Pattern.CASE_INSENSITIVE);
+        mat = pat.matcher(sss);
+        if (mat.matches()) charset = mat.group(2).toUpperCase().replaceAll("\"", "");
+
+        return new String[]{ content_type, bounds, charset };
     }
 
     public static String boundary() {
@@ -775,7 +812,7 @@ public class Utils {
      * Checks given string for encoded-word (RFC 2047).
      **/
     static boolean is_encoded_word(String s) {
-        return !s.isEmpty() && (s.contains("=?") && s.contains("?="));
+        return s!= null && !s.isEmpty() && (s.contains("=?") && s.contains("?="));
     }
 
     /**
@@ -831,15 +868,24 @@ public class Utils {
      * Creme de la creme:
      * Cr=C3=A8me de la cr=C3=A8me
      **/
-    static String parse_quoted_printable(String s, String encoding) {
+    public static String parse_quoted_printable(String s, String charset) {
         try {
             // true applies 5 strict QP rules, false applies 2 QP rules
-            QuotedPrintableCodec QPC = new QuotedPrintableCodec(Charset.forName(encoding), false);
-            return QPC.decode(s);
-        } catch (Exception de) {
-            InboxPager.log = InboxPager.log.concat(de.getMessage() + "\n\n");
-            return "!QP!ERROR!";
+            QuotedPrintableCodec QPC = new QuotedPrintableCodec(Charset.forName(charset), false);
+            return QPC.decode(s.replaceAll("(=\n|=\r\n)", ""));
+        } catch (Exception e) {
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
+            return s;
         }
+    }
+
+    static String parse_transfer_encoding(String transfer_enc, String data, String charset) {
+        if (transfer_enc.matches("(?i).*BASE64.*")) {
+            data = parse_BASE64(data);
+        } else if (transfer_enc.matches("(?i).*QUOTED-PRINTABLE.*")) {
+            data = parse_quoted_printable(data, charset);
+        }
+        return data;
     }
 
     /**
@@ -869,7 +915,7 @@ public class Utils {
                     return filename;
                 }
             } catch (UnsupportedEncodingException e) {
-                InboxPager.log += "!!5:" + e.getMessage() + "\n\n";
+                InboxPager.log = InboxPager.log.concat("!!5:" + e.getMessage() + "\n\n");
                 return filename;
             }
         }
@@ -904,6 +950,22 @@ public class Utils {
         }
     }
 
+    /**
+     * Approximate available storage space calculation.
+     * Not very accurate.
+     * Message/Attachment are assumed to be octets.
+     * return: don't allow saving, if space is unknown.
+     **/
+    public static boolean capacity_exists(long file_size) {
+        try {
+            StatFs stat_fs = new StatFs("/storage");
+            return stat_fs.getAvailableBytes() < file_size;
+        } catch (Exception e) {
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
+            return true;
+        }
+    }
+
     // Counting address1@server.com, address2@server.com
     public static HashMap<String, String> parse_addresses(String[] addresses) {
         HashMap<String, String> addrs = new HashMap<>();
@@ -916,8 +978,16 @@ public class Utils {
             // Parse
             ArrayList<String> reflow_addr = new ArrayList<>();
             for (String blob : addressees.split(",")) {
-                String adder = blob.trim();
-                if (!adder.isEmpty() && adder.contains("@")) reflow_addr.add(adder);
+                String adder = blob.trim().replaceAll("([\r\n])", "");
+
+                if (!adder.isEmpty() && adder.contains("@")) {
+                    // Address remains address@email.com
+                    int ind;
+                    ind = adder.indexOf("<");
+                    if (ind > -1) adder = adder.substring(ind + 1, adder.indexOf(">"));
+
+                    if (!reflow_addr.contains(adder)) reflow_addr.add(adder);
+                }
             }
 
             // Serialize
@@ -926,7 +996,7 @@ public class Utils {
                 if (i == (reflow_addr.size() - 1)) {
                     serialized += reflow_addr.get(i);
                 } else {
-                    serialized = serialized.concat(reflow_addr.get(i) + ", ");
+                    serialized = serialized.concat(reflow_addr.get(i) + ",");
                 }
             }
 
@@ -944,5 +1014,36 @@ public class Utils {
         }
 
         return addrs;
+    }
+
+    /**
+     * Convert RFC 2822 to Date/Calendar.
+     **/
+    @SuppressLint("SimpleDateFormat")
+    public static Date parse_date(String datetime) {
+        boolean comma = datetime.contains(",");
+        boolean cols = datetime.matches(".*:(\\d{2}):.*");
+
+        SimpleDateFormat format;
+
+        if (comma && cols) {
+            format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+        } else if (comma) {
+            format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm Z");
+        } else if (cols) {
+            format = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+        } else {
+            format = new SimpleDateFormat("dd MMM yyyy HH:mm Z");
+        }
+
+        Date msg_date;
+        try {
+            msg_date = format.parse(datetime);
+        } catch (ParseException pe) {
+            InboxPager.log = InboxPager.log.concat(pe.getMessage() + "\n\n");
+            return null;
+        }
+
+        return msg_date;
     }
 }

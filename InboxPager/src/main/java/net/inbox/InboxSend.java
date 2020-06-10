@@ -19,6 +19,7 @@ package net.inbox;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -28,7 +29,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
+import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,13 +42,17 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Switch;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
+
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
+import net.inbox.server.EndToEnd;
 import net.inbox.server.Utils;
+import net.inbox.visuals.Common;
 import net.inbox.visuals.Dialogs;
 import net.inbox.visuals.SendFilePicker;
 import net.inbox.visuals.SpinningStatus;
@@ -65,15 +72,24 @@ public class InboxSend extends AppCompatActivity {
     private ImageView iv_ssl_auth;
     private EditText et_subject;
     private EditText et_to;
-    private Switch sw_cc;
+    private SwitchMaterial sw_cc;
     private EditText et_cc;
-    private Switch sw_bcc;
+    private SwitchMaterial sw_bcc;
     private EditText et_bcc;
     private EditText et_contents;
     private TextView tv_attachments;
-    private ImageView iv_encryption;
-    private TextView tv_encryption_reset;
+    private ImageView iv_encryption_pgp;
+    private TextView tv_encryption_pgp_reset;
     private LinearLayout llay_send_previous;
+
+    // Text message encryption dialog.
+    private AlertDialog dialog_txt_crypto;
+    private Spinner spin_cipher_type;
+    private Spinner spin_cipher_mode;
+    private Spinner spin_cipher_padding;
+    private EditText et_key;
+    private int s_replace_start = 0;
+    private int s_replace_end = 0;
 
     // GPG variables
     private boolean crypto_locked = false;
@@ -153,6 +169,55 @@ public class InboxSend extends AppCompatActivity {
             et_subject = findViewById(R.id.send_subject);
             et_contents = findViewById(R.id.send_contents);
             tv_attachments = findViewById(R.id.send_attachments_count);
+            WebView webview = findViewById(R.id.send_contents_previous_webview);
+            webview.setBackgroundColor(Color.TRANSPARENT);
+
+            // Setting the correct size
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            float font_size = Float.parseFloat(prefs.getString("sett_msg_font_size", "100"));
+            et_to.setTextSize(font_size);
+            et_cc.setTextSize(font_size);
+            et_bcc.setTextSize(font_size);
+            et_subject.setTextSize(font_size);
+            et_contents.setTextSize(font_size);
+            tv_attachments.setTextSize(font_size);
+            Common.setup_webview(webview.getSettings(), font_size);
+
+            registerForContextMenu(et_contents);// Enables crypto ActionModes ContextMenus
+            et_contents.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+
+                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                    // Adding crypto options
+                    MenuInflater inflater = getMenuInflater();
+                    inflater.inflate(R.menu.crypto_action_btns, menu);
+
+                    return true;
+                }
+
+                @Override
+                public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                    return false;
+                }
+
+                @Override
+                public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                    if (item.getGroupId() == R.id.gnu_crypts) {
+                        // Set selection parameters
+                        s_replace_start = et_contents.getSelectionStart();
+                        s_replace_end = et_contents.getSelectionEnd();
+
+                        // Open dialog for decryption
+                        dialog_txt_crypto();
+
+                        mode.finish();
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                public void onDestroyActionMode(ActionMode mode) {}
+            });
 
             et_cc.setVisibility(View.GONE);
             et_bcc.setVisibility(View.GONE);
@@ -204,9 +269,21 @@ public class InboxSend extends AppCompatActivity {
                 }
             });
 
-            // Starts encryption
-            iv_encryption = findViewById(R.id.iv_encryption);
-            iv_encryption.setOnClickListener(new View.OnClickListener() {
+            // Starts encryption with AES
+            ImageView iv_encryption_txt = findViewById(R.id.iv_encryption_txt);
+            iv_encryption_txt.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (et_contents.getText().toString().isEmpty()) {
+                        toaster(true, v.getContext().getString(R.string.crypto_no_text));
+                    } else dialog_txt_crypto();
+                }
+            });
+
+            // Starts encryption with PGP
+            iv_encryption_pgp = findViewById(R.id.iv_encryption_pgp);
+            iv_encryption_pgp.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
@@ -214,12 +291,12 @@ public class InboxSend extends AppCompatActivity {
                 }
             });
 
-            tv_encryption_reset = findViewById(R.id.tv_encryption_reset);
-            tv_encryption_reset.setOnClickListener(new View.OnClickListener() {
+            tv_encryption_pgp_reset = findViewById(R.id.tv_encryption_pgp_reset);
+            tv_encryption_pgp_reset.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
-                    tv_encryption_reset.setVisibility(View.GONE);
+                    tv_encryption_pgp_reset.setVisibility(View.GONE);
                     current.set_contents_crypto(null);
                     et_contents.setText(msg_contents);
                     crypto_locked = false;
@@ -241,7 +318,7 @@ public class InboxSend extends AppCompatActivity {
             if (buns != null) {
                 if (buns.containsKey("subject")) {
                     subject_of = buns.getString("subject");
-                    et_subject.setText("Re: " + subject_of);
+                    et_subject.setText(subject_of);
                 }
                 if (buns.containsKey("reply-to")) {
                     reply_to = buns.getString("reply-to");
@@ -255,29 +332,19 @@ public class InboxSend extends AppCompatActivity {
                     if (buns.getString("previous_letter", "ERROR").equals("NO_TEXT")) {
                         llay_send_previous = findViewById(R.id.llay_send_previous);
                         llay_send_previous.setVisibility(View.GONE);
-                        Switch sw_previous = findViewById(R.id.send_sw_previous);
+                        SwitchMaterial sw_previous = findViewById(R.id.send_sw_previous);
                         sw_previous.setVisibility(View.GONE);
                     } else {
                         llay_send_previous = findViewById(R.id.llay_send_previous);
                         llay_send_previous.setVisibility(View.VISIBLE);
 
-                        TextView tv_previous;
-                        WebView webview;
+                        String webview_charset = buns.getString("previous_letter_charset", "UTF-8");
+                        webview.loadDataWithBaseURL(null,
+                                buns.getString("previous_letter"),
+                                buns.getBoolean("previous_letter_is_plain") ? "text/plain" : "text/html",
+                                webview_charset, null);
 
-                        if (buns.getString("previous_letter").contains("<!DOCTYPE html>")) {
-                            webview = findViewById(R.id.send_contents_previous_webview);
-                            webview.setBackgroundColor(Color.TRANSPARENT);
-                            Settings.setup_webview(webview.getSettings());
-                            webview.loadDataWithBaseURL(null,
-                                    buns.getString("previous_letter"),
-                                    "text/html", "UTF-8", null);
-                        } else {
-                            tv_previous = findViewById(R.id.send_previous);
-                            tv_previous.setText(buns.getString("previous_letter"));
-                        }
-
-
-                        Switch sw_previous = findViewById(R.id.send_sw_previous);
+                        SwitchMaterial sw_previous = findViewById(R.id.send_sw_previous);
                         sw_previous.setVisibility(View.VISIBLE);
                         sw_previous.setOnCheckedChangeListener(
                                 new CompoundButton.OnCheckedChangeListener() {
@@ -311,10 +378,8 @@ public class InboxSend extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.log_menu:
-                Dialogs.dialog_view_log(this);
-                break;
+        if (item.getItemId() == R.id.log_menu) {
+            Dialogs.dialog_view_log(this);
         }
 
         return true;
@@ -331,7 +396,7 @@ public class InboxSend extends AppCompatActivity {
                 tv_attachments.setText("");
             }
         } else if (resultCode == 19091) {
-            tv_encryption_reset.setVisibility(View.VISIBLE);
+            tv_encryption_pgp_reset.setVisibility(View.VISIBLE);
             crypto_locked = true;
             crypto_padlock();
             if (data.getIntExtra("ret-code", 0) != 0) {
@@ -522,9 +587,7 @@ public class InboxSend extends AppCompatActivity {
         handler.start();
         handler.sp = spt;
         if (attachment_paths.size() > 0) {
-            String str = "";
-            for (String st: attachment_paths) { str = str.concat(st + "\uD83D\uDCCE"); }
-            handler.msg_action(current_inbox.get_id(), current, str, false, this);
+            handler.msg_action(current_inbox.get_id(), current, attachment_paths, false, this);
         } else {
             handler.msg_action(current_inbox.get_id(), current, null, false, this);
         }
@@ -641,7 +704,7 @@ public class InboxSend extends AppCompatActivity {
             // No encryption required
             crypto_locked = true;
             crypto_padlock();
-            tv_encryption_reset.setVisibility(View.VISIBLE);
+            tv_encryption_pgp_reset.setVisibility(View.VISIBLE);
         } else {
             // Encryption required
             Intent gpg = new Intent(this, InboxGPG.class);
@@ -676,7 +739,7 @@ public class InboxSend extends AppCompatActivity {
             sw_cc.setEnabled(false);
             sw_bcc.setEnabled(false);
             tv_attachments.setEnabled(false);
-            iv_encryption.setImageResource(R.drawable.padlock_closed);
+            iv_encryption_pgp.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.padlock_pgp_closed));
         } else {
             et_to.setEnabled(true);
             et_cc.setEnabled(true);
@@ -686,8 +749,115 @@ public class InboxSend extends AppCompatActivity {
             sw_cc.setEnabled(true);
             sw_bcc.setEnabled(true);
             tv_attachments.setEnabled(true);
-            iv_encryption.setImageResource(R.drawable.padlock_open);
+            iv_encryption_pgp.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.padlock_pgp_open));
         }
+    }
+
+    /**
+     * Text message cryptography. AES, Twofish, not PGP.
+     * Does not encrypt any attachments.
+     **/
+    private void dialog_txt_crypto() {
+        // Clean-up previous
+        dialog_txt_crypto = null;
+        spin_cipher_type = null;
+        spin_cipher_mode = null;
+        spin_cipher_padding = null;
+        et_key = null;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Build cryptogram dialog
+        Dialogs.dialog_pw_txt(builder, this);
+        builder.setNeutralButton(getString(R.string.crypto_encrypt), null);
+
+        dialog_txt_crypto = builder.show();
+        spin_cipher_type = dialog_txt_crypto.findViewById(R.id.spin_cipher);
+        spin_cipher_mode = dialog_txt_crypto.findViewById(R.id.spin_cipher_mode);
+        spin_cipher_padding = dialog_txt_crypto.findViewById(R.id.spin_cipher_padding);
+        et_key = dialog_txt_crypto.findViewById(R.id.et_key);
+
+        dialog_txt_crypto.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(
+                new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            // [1] head, [2] middle to replace or full if note replacing, [3] tail
+                            String[] msg_texts = new String[]{ "", null, ""};
+                            if (s_replace_start != 0 || s_replace_end != 0) {
+                                msg_texts[0] = et_contents.getText().toString()
+                                        .substring(0, s_replace_start);
+                                msg_texts[1] = et_contents.getText().toString()
+                                        .substring(s_replace_start, s_replace_end);
+                                msg_texts[2] = et_contents.getText().toString()
+                                        .substring(s_replace_end, et_contents.length());
+                            } else {
+                                msg_texts[1] = et_contents.getText().toString();
+                            }
+                            msg_texts[1] = EndToEnd.decrypt(
+                                    dialog_txt_crypto.getContext(),
+                                    et_key.getText().toString(),
+                                    msg_texts[1],
+                                    (String) spin_cipher_type.getSelectedItem(),
+                                    (String) spin_cipher_mode.getSelectedItem(),
+                                    (String) spin_cipher_padding.getSelectedItem()
+                            );
+                            toaster(true, dialog_txt_crypto.getContext().getString(R.string.crypto_success));
+                            dialog_txt_crypto.cancel();
+
+                            // Rebuilding complete text
+                            msg_texts[1] = msg_texts[0].concat(msg_texts[1]).concat(msg_texts[2]);
+                            et_contents.setText(msg_texts[1]);
+                            s_replace_start = s_replace_end = 0;
+                        } catch (Exception e) {
+                            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
+                            toaster(true, dialog_txt_crypto.getContext().getString(R.string.crypto_failure));
+                            toaster(true, e.getMessage());
+                        }
+                    }
+                });
+        dialog_txt_crypto.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(
+                new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            // [1] head, [2] middle to replace or full if note replacing, [3] tail
+                            String[] msg_texts = new String[]{ "", null, ""};
+                            if (s_replace_start != 0 || s_replace_end != 0) {
+                                msg_texts[0] = et_contents.getText().toString()
+                                        .substring(0, s_replace_start);
+                                msg_texts[1] = et_contents.getText().toString()
+                                        .substring(s_replace_start, s_replace_end);
+                                msg_texts[2] = et_contents.getText().toString()
+                                        .substring(s_replace_end, et_contents.length());
+                            } else {
+                                msg_texts[1] = et_contents.getText().toString();
+                            }
+                            msg_texts[1] = EndToEnd.encrypt(
+                                    dialog_txt_crypto.getContext(),
+                                    et_key.getText().toString(),
+                                    msg_texts[1],
+                                    (String) spin_cipher_type.getSelectedItem(),
+                                    (String) spin_cipher_mode.getSelectedItem(),
+                                    (String) spin_cipher_padding.getSelectedItem()
+                            );
+                            toaster(true, dialog_txt_crypto.getContext().getString(R.string.crypto_success));
+                            dialog_txt_crypto.cancel();
+
+                            // Rebuilding the total text
+                            msg_texts[1] = msg_texts[0].concat(msg_texts[1]
+                                    .substring(0, msg_texts[1].length() - 1).concat(msg_texts[2]));
+                            et_contents.setText(msg_texts[1]);
+                            s_replace_start = s_replace_end = 0;
+                        } catch (Exception e) {
+                            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
+                            toaster(true, dialog_txt_crypto.getContext().getString(R.string.crypto_failure));
+                            toaster(true, e.getMessage());
+                        }
+                    }
+                });
     }
 
     private boolean check_readable() {

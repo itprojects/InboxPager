@@ -18,6 +18,9 @@ package net.inbox.server;
 
 import android.content.Context;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
+
+import android.net.Uri;
 import android.util.Base64;
 
 import net.inbox.InboxPager;
@@ -26,11 +29,10 @@ import net.inbox.R;
 import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
+import net.inbox.visuals.Common;
 import net.inbox.visuals.Dialogs;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
@@ -39,7 +41,7 @@ import java.util.Collections;
 
 public class SMTP extends Handler {
 
-    private class DataSMTP extends Data {
+    private static class DataSMTP extends Data {
         // SMTP host
         String smtp_host;
 
@@ -182,10 +184,10 @@ public class SMTP extends Handler {
     public void default_action(boolean multi, Inbox inn, Context ct) {}
 
     @Override
-    public void attachment_action(int aid, Attachment att, String save_path, Context ct) {}
+    public void attachment_action(int aid, Attachment att, Object doc_file, Context ct) {}
 
     @Override
-    public void msg_action(int aid, Message msg, String save_path, boolean sv, Context ct) {
+    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, Context ct) {
         current_inbox = db.get_account(aid);
         ctx = ct;
         if (sp != null) {
@@ -211,14 +213,13 @@ public class SMTP extends Handler {
 
         data.msg_current = msg;
 
-        // Check for attachments
-        if (save_path != null) {
-            String[] str = save_path.trim().split("\uD83D\uDCCE");
-            for (int i = 0;i < str.length;++i) {
-                data.msg_current_attachments.add(i, str[i]);
-            }
+        try {
+            // Check for attachments
+            if (doc_file != null) data.msg_current_attachments = (ArrayList<String>) doc_file;
+        } catch (Exception e) {
+            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
+            Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
         }
-
         socket_start_smtp(this);
     }
 
@@ -633,7 +634,12 @@ public class SMTP extends Handler {
                 // Message attachments
                 ArrayList<Byte> line_buf_bytes = new ArrayList<>();
                 for (int i = 0;i < data.msg_current_attachments.size();++i) {
-                    File ff = new File(data.msg_current_attachments.get(i));
+                    Uri uri = Uri.parse(data.msg_current_attachments.get(i));
+
+                    Common.check_read_give((AppCompatActivity) ctx, uri);
+
+                    DocumentFile ff = DocumentFile.fromSingleUri(ctx, uri);
+
                     if (sp != null) {
                         on_ui_thread("-1", ctx.getString(R.string.send_upload_attachment)
                                 + " " + ff.getName());
@@ -658,7 +664,7 @@ public class SMTP extends Handler {
                     write("\n");
                     ByteArrayOutputStream b_stream = new ByteArrayOutputStream();
                     try {
-                        InputStream in_stream = new FileInputStream(ff);
+                        InputStream in_stream = ctx.getContentResolver().openInputStream(uri);
                         byte[] bfr = new byte[(int)ff.length()];
                         if ((int)ff.length() > 0) {
                             int t;

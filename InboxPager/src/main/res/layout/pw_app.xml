@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="270sp"
     android:layout_height="wrap_content"
     android:layout_centerHorizontal="true"
@@ -13,6 +14,7 @@
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:hint="@string/sett_change_pw_new"
+        android:autofillHints="@string/empty_string"
         android:inputType="textPassword|textNoSuggestions"
         android:maxLines="1" />
 
@@ -23,6 +25,7 @@
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:hint="@string/sett_change_pw_retype"
+        android:autofillHints="@string/empty_string"
         android:inputType="textPassword|textNoSuggestions"
         android:maxLines="1" />
 
@@ -41,7 +44,7 @@
             android:layout_marginEnd="0sp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:text="👁" />
+            android:text="@string/sett_change_pw_vis" />
 
         <TextView
             android:id="@+id/tv_description"
@@ -52,7 +55,8 @@
             android:layout_marginEnd="10sp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:text="@string/sett_change_pw_text" />
+            android:text="@string/sett_change_pw_text"
+            tools:ignore="RelativeOverlap" />
 
     </RelativeLayout>
 

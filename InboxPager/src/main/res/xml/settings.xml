@@ -19,17 +19,41 @@
         android:title="@string/sett_vibrates_download_title"
         android:summary="@string/sett_vibrates_download_summary"/>
 
-    <!-- Password: enable password. -->
-    <Preference android:key="pw_protection"
-        android:defaultValue="false"
-        android:title="@string/sett_enable_pw_title"
-        android:summary="@string/sett_enable_pw_summary_off"/>
-
     <!-- Default: font size in message view. -->
     <EditTextPreference android:key="sett_msg_font_size"
         android:defaultValue="18"
         android:inputType="number"
         android:title="@string/sett_msg_font_size_title"
         android:summary="@string/sett_msg_font_size_summary"/>
+
+    <!-- Password: enable password for application. -->
+    <Preference android:key="pw_protection"
+        android:defaultValue="false"
+        android:title="@string/sett_enable_pw_title"
+        android:summary="@string/sett_enable_pw_summary_off"/>
+
+    <!-- [Not PGP] Default: AES Text Cryptography. -->
+    <ListPreference
+        android:title="@string/sett_crypto_type_title"
+        android:summary="@string/sett_crypto_type_summary"
+        android:key="list_cipher_types"
+        android:entries="@array/crypto_ciphers"
+        android:entryValues="@array/crypto_ciphers"/>
+
+    <!-- [Not PGP] Default: CBC Text Cryptography. -->
+    <ListPreference
+        android:title="@string/sett_crypto_mode_title"
+        android:summary="@string/sett_crypto_mode_summary"
+        android:key="list_cipher_modes"
+        android:entries="@array/crypto_cipher_modes"
+        android:entryValues="@array/crypto_cipher_modes"/>
+
+    <!-- [Not PGP] Default: PKCS7 Text Cryptography. -->
+    <ListPreference
+        android:title="@string/sett_crypto_padding_title"
+        android:summary="@string/sett_crypto_padding_summary"
+        android:key="list_cipher_paddings"
+        android:entries="@array/crypto_cipher_paddings"
+        android:entryValues="@array/crypto_cipher_paddings"/>
 
 </androidx.preference.PreferenceScreen>
