@@ -346,12 +346,7 @@ public class InboxPager extends AppCompatActivity {
             Bundle b = new Bundle();
             b.putInt("db_id", current.get_id());
             b.putString("title", current.get_email());
-            b.putString("reply-to", data.getStringExtra("reply-to"));
-            if (data.hasExtra("reply-cc")) {
-                b.putString("reply-cc", data.getStringExtra("reply-cc"));
-            }
-            b.putString("subject", data.getStringExtra("subject"));
-            b.putString("previous_letter", data.getStringExtra("previous_letter"));
+            b.putAll(data.getExtras());
             startActivityForResult(send_intent.putExtras(b), 10001);
         } else if (resultCode == 1010101) {
             // Request ListView reload after message deletion

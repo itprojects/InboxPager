@@ -674,7 +674,7 @@ public class InboxMessage extends AppCompatActivity {
         tv_contents.setText("");
         if (plain) {
             webview.setVisibility(View.GONE);
-            webview.loadDataWithBaseURL(null, "", "text/html", "UTF-8", null);
+            webview.loadDataWithBaseURL(null, "", "text/plain", "UTF-8", null);
             tv_contents.setVisibility(View.VISIBLE);
             tv_contents.setText(data);
         } else {
@@ -705,24 +705,45 @@ public class InboxMessage extends AppCompatActivity {
         // Declaring the result of the activity
         Intent ret_intent = new Intent();
 
+        // Creating extras
+        Bundle buns = new Bundle();
+
         // Request ListView re-flow
-        ret_intent = ret_intent.putExtra("reply-to", ret);
+        buns.putString("reply-to", ret);
         if (current.get_cc() != null && !current.get_cc().trim().isEmpty()) {
-            ret_intent = ret_intent.putExtra("reply-cc", current.get_cc());
+            buns.putString("reply-cc", current.get_cc());
         }
-        ret_intent = ret_intent.putExtra("subject", current.get_subject());
-        if (current.get_contents_plain() != null && !current.get_contents_plain().trim().isEmpty()) {
-            ret_intent = ret_intent.putExtra("previous_letter_is_plain", true);
-            ret_intent = ret_intent.putExtra("previous_letter_charset", current.get_charset_plain());
-            ret_intent = ret_intent.putExtra("previous_letter", current.get_contents_plain());
-        } else if (current.get_contents_html() != null && !current.get_contents_html().trim().isEmpty()) {
-            ret_intent = ret_intent.putExtra("previous_letter_is_plain", false);
-            ret_intent = ret_intent.putExtra("previous_letter_charset", current.get_charset_html());
-            ret_intent = ret_intent.putExtra("previous_letter", current.get_contents_html());
-        } else {
-            ret_intent = ret_intent.putExtra("previous_letter", "NO_TEXT");
+        buns.putString("subject", current.get_subject());
+
+        switch (get_selected_spin()) {
+            case 1:// 1 = plain
+                if (current.get_contents_plain() != null && !current.get_contents_plain().trim().isEmpty()) {
+                    buns.putBoolean("previous_letter_is_plain", true);
+                    buns.putString("previous_letter_charset", current.get_charset_plain());
+                    if (plain_decrypts != null && !plain_decrypts.isEmpty()) {
+                        buns.putString("previous_letter", plain_decrypts);
+                    } else {
+                        buns.putString("previous_letter", current.get_contents_plain());
+                    }
+                }
+                break;
+            case 2:// 2 = html
+                if (current.get_contents_html() != null && !current.get_contents_html().trim().isEmpty()) {
+                    buns.putBoolean("previous_letter_is_plain", false);
+                    buns.putString("previous_letter_charset", current.get_charset_html());
+                    if (html_decrypts != null && !html_decrypts.isEmpty()) {
+                        buns.putString("previous_letter", html_decrypts);
+                    } else {
+                        buns.putString("previous_letter", current.get_contents_html());
+                    }
+                }
+                break;
+            default:// 0 = no text, 3 = other
+                buns.putString("previous_letter", "NO_TEXT");
+                break;
         }
-        setResult(10101, ret_intent);
+
+        setResult(10101, ret_intent.putExtras(buns));
 
         // End activity
         finish();

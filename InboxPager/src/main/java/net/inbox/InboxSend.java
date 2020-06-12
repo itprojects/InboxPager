@@ -338,11 +338,10 @@ public class InboxSend extends AppCompatActivity {
                         llay_send_previous = findViewById(R.id.llay_send_previous);
                         llay_send_previous.setVisibility(View.VISIBLE);
 
-                        String webview_charset = buns.getString("previous_letter_charset", "UTF-8");
                         webview.loadDataWithBaseURL(null,
                                 buns.getString("previous_letter"),
                                 buns.getBoolean("previous_letter_is_plain") ? "text/plain" : "text/html",
-                                webview_charset, null);
+                                buns.getString("previous_letter_charset", "UTF-8"), null);
 
                         SwitchMaterial sw_previous = findViewById(R.id.send_sw_previous);
                         sw_previous.setVisibility(View.VISIBLE);

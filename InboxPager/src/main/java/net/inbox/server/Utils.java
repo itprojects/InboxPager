@@ -18,6 +18,7 @@ package net.inbox.server;
 
 import android.annotation.SuppressLint;
 import android.os.StatFs;
+import android.text.TextUtils;
 import android.util.Base64;
 
 import net.inbox.InboxPager;
@@ -864,6 +865,8 @@ public class Utils {
 
     /**
      * Convert an ASCII Quoted Printable to UTF-8 string.
+     * Line length must be maximum 76 chars long.
+     * Therefore a re-assembly is required, before processing.
      *
      * Creme de la creme:
      * Cr=C3=A8me de la cr=C3=A8me
@@ -872,7 +875,20 @@ public class Utils {
         try {
             // true applies 5 strict QP rules, false applies 2 QP rules
             QuotedPrintableCodec QPC = new QuotedPrintableCodec(Charset.forName(charset), false);
-            return QPC.decode(s.replaceAll("(=\n|=\r\n)", ""));
+
+            // Reassembly
+            String[] lines = s.split("\n");
+            for (int i = 0; i < lines.length; i++) {// CR "=0D" LF "=0A"
+                if (lines[i].endsWith("=")) {
+                    lines[i] = lines[i].substring(0, lines[i].length() - 1);
+                    continue;
+                } else if (lines[i].endsWith("=\r")) {
+                    lines[i] = lines[i].substring(0, lines[i].length() - 2);
+                    continue;
+                }
+                lines[i] = lines[i] + "=0A";
+            }
+            return QPC.decode(TextUtils.join("", lines));
         } catch (Exception e) {
             InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             return s;
