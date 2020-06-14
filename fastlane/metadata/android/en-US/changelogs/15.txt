@@ -1,0 +1,23 @@
+Many new features and fixes.
+
+Migrated to the AndroidX extra library.
+
+Quoted-printable email and Encoded-word (RFC 2047) decoding with Apache Commons.
+
+A WebView that displays emails in html, in offline mode.
+
+Updated the internal SQLCipher database to v4.4.0.
+
+Remowrked password dialog.
+
+Mitigated Context leakages.
+
+Open account drawer by pressing on background of app.
+
+Added translations - French, German, Spanish.
+
+Updated animations.
+
+Beeping sound uses system message default.
+
+Long-press on message thread offers the option for direct reply.

@@ -1,0 +1,1 @@
+Patch for cert info crash.

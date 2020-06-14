@@ -1,0 +1,1 @@
+Portuguese translation, UI tweaks for data leak prevention.

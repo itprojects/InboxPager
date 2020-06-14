@@ -1,0 +1,16 @@
+More Cryptography, Android Content API for Files
+
+AES/Twofish end-to-end cryptogram (encrypted text message, unencrypted attachments).
+Single word or whole block.
+
+Attachment/message saving with Android content API.
+
+Auto vacuum database to reduce size.
+
+Checks for common network errors.
+
+Improved message parsing.
+
+Message datetime conversion to local device time, original is preserved.
+
+Option to delete all messages, keeping account settings.

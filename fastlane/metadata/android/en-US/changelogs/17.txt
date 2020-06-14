@@ -1,0 +1,1 @@
+Fixed QP processing and display.

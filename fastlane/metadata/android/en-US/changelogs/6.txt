@@ -1,0 +1,1 @@
+Encoding and debugging updates. Updated SQLCipher to 3.5.9.

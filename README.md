@@ -1,16 +1,14 @@
 # InboxPager
 
-![screenshot](https://github.com/itprojects/InboxPager/raw/master/img/9.png)
-
 An E-mail client for the Android (java) platform. Supports IMAP, POP, and SMTP protocols through SSL/TLS.
+
+![screenshot](https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/9.png)
 
 # Download
 
 You can download InboxPager from the free and open-source F-Droid app store.
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-      alt="Get it on F-Droid"
-      height="80">](https://f-droid.org/packages/net.inbox.pager/)
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/net.inbox.pager/)
 
 # Usage
 
@@ -231,23 +229,23 @@ In Portuguese by Hanelore, initially.
 # Screenshots
 
 <p align="center">
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/1.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/2.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/3.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/4.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/5.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/6.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/7.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/8.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/9.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/10.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/11.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/12.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/13.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/14.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/15.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/block_text_encryption.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/cleartext.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/encryption.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/img/verification.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/1.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/2.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/3.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/4.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/5.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/6.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/7.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/8.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/9.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/10.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/11.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/12.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/13.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/14.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/15.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/block_text_encryption.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/cleartext.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/encryption.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/verification.png" width="250"/>
 </p>

@@ -1,0 +1,1 @@
+Fixed encodings. Only text/plain /html now.

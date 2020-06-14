@@ -1,0 +1,17 @@
+<p>E-mail client for the Android platform.</p>
+<p>IMAP, POP, and SMTP via SSL/TLS, with AES/PGP support.</p>
+
+<p>Features:</p>
+
+<ul>
+<li>* Animate a smooth transition between visual contexts.</li>
+<li>* Automatically convert texts from their declared character encoding to UTF-8.</li>
+<li>* Download your full email messages (with attachments inside).</li>
+<li>* Download an individual attachment.</li>
+<li>* Display server certificates used in the last connection.</li>
+<li>* Keep track of your unread messages.</li>
+<li>* Notify with sound of new messages, per user choice.</li>
+<li>* Notify with device vibration of new messages, per user choice.</li>
+<li>* Work with OpenPGP messages.</li>
+<li>* Verify hostnames, if not self-signed certificates.</li>
+</ul>

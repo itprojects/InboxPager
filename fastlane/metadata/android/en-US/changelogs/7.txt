@@ -1,0 +1,12 @@
+Changes in application Activity are now saved and restored correctly.
+Affects rotating screen portrait/landscape.
+
+Security Alteration dialog updated.
+
+Mailbox status and statistics dialog is now a menu item.
+
+Server diagnostic tools fixed.
+
+Server settings made easier.
+
+Small UI fixes.
