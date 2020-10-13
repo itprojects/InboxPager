@@ -602,9 +602,14 @@ public class DBAccess extends SQLiteOpenHelper {
         return messages;
     }
 
-    public SortedMap<String, ArrayList<Message>> get_all_messages(int id) {
-        Cursor cursor = dbw.query(table_messages, new String[] {"*"}, "account = " + id,
-                null, null, null, null);
+    /**
+     * Fetches all messages from database for a given account id.
+     * Messages can be filtered, to only show the unread.
+     **/
+    public SortedMap<String, ArrayList<Message>> get_all_messages(int id, boolean unread_only) {
+        String q = "account = " + id;
+        if (unread_only) q += " AND seen = 0";
+        Cursor cursor = dbw.query(table_messages, new String[] {"*"}, q, null, null, null, null);
 
         ArrayList<Message> msgs = new ArrayList<>();
         HashMap<String, String> msg_set_unique_addr = new HashMap<>();

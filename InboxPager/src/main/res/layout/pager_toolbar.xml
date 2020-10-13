@@ -95,7 +95,7 @@
             <ExpandableListView
                 android:id="@+id/msg_list_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"/>
 
             <TextView
                 android:id="@+id/text_background"
@@ -105,6 +105,20 @@
                 android:fontFamily="@font/dottz"
                 android:textAllCaps="true"
                 android:textSize="@dimen/text_size_edit_accounts_msg" />
+
+            <ImageView
+                android:id="@+id/iv_unread_focus_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="72dp"
+                android:minHeight="72dp"
+                android:layout_above="@+id/msg_list_view"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentBottom="true"
+                android:contentDescription="@string/empty_string"
+                android:padding="4sp"
+                android:src="@drawable/focus_mode_allmsg"
+                android:visibility="gone" />
 
             <ImageView
                 android:id="@+id/iv_send_activity"

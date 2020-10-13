@@ -7,8 +7,8 @@ android {
         applicationId "net.inbox.pager"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 17
-        versionName "6.1"
+        versionCode 18
+        versionName "6.2"
     }
     buildTypes {
         release {

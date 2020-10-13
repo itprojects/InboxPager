@@ -84,6 +84,7 @@ public class InboxPager extends AppCompatActivity {
     private static SharedPreferences prefs;
     private static Vibrator vib;
     private static Ringtone ring;
+    private static Boolean unread_focus_mode_state = false;
 
     private Handler handler;
     private boolean unlocked;
@@ -106,6 +107,7 @@ public class InboxPager extends AppCompatActivity {
 
     private ExpandableListView msg_list_view;
     private ImageButton ib_refresh;
+    private ImageView iv_unread_focus_mode;
     private ImageView iv_send_activity;
     private ImageView iv_ssl_auth;
 
@@ -127,6 +129,7 @@ public class InboxPager extends AppCompatActivity {
         if (savedInstanceState != null) {
             log = savedInstanceState.getString("sv_log");
             orientation = savedInstanceState.getInt("sv_orientation");
+            unread_focus_mode_state = savedInstanceState.getBoolean("sv_unread_focus_mode_state");
             refresh = savedInstanceState.getBoolean("sv_refresh");
             unlocked = savedInstanceState.getBoolean("sv_unlocked");
             over = savedInstanceState.getInt("sv_over");
@@ -359,6 +362,7 @@ public class InboxPager extends AppCompatActivity {
         super.onSaveInstanceState(save);
         save.putString("sv_log", log);
         save.putInt("sv_orientation", orientation);
+        save.putBoolean("sv_unread_focus_mode_state", unread_focus_mode_state);
         save.putBoolean("sv_refresh", refresh);
         save.putBoolean("sv_unlocked", unlocked);
         save.putInt("sv_over", over);
@@ -469,6 +473,26 @@ public class InboxPager extends AppCompatActivity {
 
         // ListView for Messages
         msg_list_view = findViewById(R.id.msg_list_view);
+
+        // Floating unread messages' focus mode
+        iv_unread_focus_mode = findViewById(R.id.iv_unread_focus_mode);
+        iv_unread_focus_mode.setVisibility(View.GONE);
+        iv_unread_focus_mode.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                if (unread_focus_mode_state) {
+                    unread_focus_mode_state = false;
+                    iv_unread_focus_mode.setImageResource(R.drawable.focus_mode_allmsg);
+                } else {
+                    unread_focus_mode_state = true;
+                    iv_unread_focus_mode.setImageResource(R.drawable.focus_mode_unread);
+                }
+                populate_messages_list_view();
+            }
+        });
+        iv_unread_focus_mode.setImageResource(unread_focus_mode_state ?
+                R.drawable.focus_mode_unread : R.drawable.focus_mode_allmsg);
 
         // Floating Send Suggestion
         iv_send_activity = findViewById(R.id.iv_send_activity);
@@ -654,7 +678,7 @@ public class InboxPager extends AppCompatActivity {
     }
 
     public void populate_messages_list_view() {
-        al_messages = db.get_all_messages(current.get_id());
+        al_messages = db.get_all_messages(current.get_id(), unread_focus_mode_state);
 
         // If there is any SMTP
         try {
@@ -670,9 +694,11 @@ public class InboxPager extends AppCompatActivity {
         if (al_messages.size() == 0) {
             tv_background.setVisibility(View.VISIBLE);
             msg_list_view.setVisibility(View.GONE);
+            iv_unread_focus_mode.setVisibility(View.GONE);
         } else {
             tv_background.setVisibility(View.GONE);
             msg_list_view.setVisibility(View.VISIBLE);
+            iv_unread_focus_mode.setVisibility(View.VISIBLE);
 
             InboxMessageExpList msg_list_adapter = new InboxMessageExpList(current_inbox, this,
                     new ArrayList<>(al_messages.keySet()), al_messages);
