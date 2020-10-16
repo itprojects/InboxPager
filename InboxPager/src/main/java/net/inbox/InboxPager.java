@@ -476,7 +476,7 @@ public class InboxPager extends AppCompatActivity {
 
         // Floating unread messages' focus mode
         iv_unread_focus_mode = findViewById(R.id.iv_unread_focus_mode);
-        iv_unread_focus_mode.setVisibility(View.GONE);
+        iv_unread_focus_mode.setVisibility(View.VISIBLE);
         iv_unread_focus_mode.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -694,11 +694,9 @@ public class InboxPager extends AppCompatActivity {
         if (al_messages.size() == 0) {
             tv_background.setVisibility(View.VISIBLE);
             msg_list_view.setVisibility(View.GONE);
-            iv_unread_focus_mode.setVisibility(View.GONE);
         } else {
             tv_background.setVisibility(View.GONE);
             msg_list_view.setVisibility(View.VISIBLE);
-            iv_unread_focus_mode.setVisibility(View.VISIBLE);
 
             InboxMessageExpList msg_list_adapter = new InboxMessageExpList(current_inbox, this,
                     new ArrayList<>(al_messages.keySet()), al_messages);
