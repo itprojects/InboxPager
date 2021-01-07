@@ -48,7 +48,7 @@ public class About extends AppCompatActivity {
             about_title.setText(getString(R.string.menu_about).toUpperCase());
         }
 
-        TextView tv_ver = findViewById(R.id.about_ver);
+        TextView tv_ver = findViewById(R.id.about_version);
         tv_ver.setText(BuildConfig.VERSION_NAME);
 
         TextView tv_app_license = findViewById(R.id.tv_app_license);
