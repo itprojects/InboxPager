@@ -116,11 +116,26 @@ https://github.com/itprojects/InboxPager/issues
 
 # Gmail Configuration
 
-To enable application access to your Gmail inbox, go to this link and enable the setting:
+Requires Two Factor Authentication (2FA).
 
-https://myaccount.google.com/lesssecureapps
+Make sure you have enabled IMAP access in Google Account.
 
-Then, and only then, in the application:
+To use a Gmail inbox, you need to setup an App Password.
+
+1. Login to Gmail.
+2. To enable App Passwords for you google account, you need to have Two Factor Authentication (2FA).
+3. In GMail > Security > App Passwords.
+4. [IMPORTANT STEP] Press Select app > Other (Custom name)
+5. Give it a name. Done.
+6. Enter the letters (without spaces!) as password.
+
+App Password:
+
+- ONLY 16 symbols.
+- REVOKED (or disabled) when you CHANGE you Gmail PASSWORD. Set it again in GMail > Security > App Passwords.
+- to be CHANGED regularly, IF you WANT any SECURITY at all!
+
+The other Gmail account settings are: 
 
 Username: user.name@gmail.com
 
