@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2020  ITPROJECTS
+ * Copyright (C) 2024  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,7 +103,6 @@ public class Common {
         web_settings.setBlockNetworkLoads(true);
         web_settings.setJavaScriptEnabled(false);
         web_settings.setJavaScriptCanOpenWindowsAutomatically(false);
-        web_settings.setAppCacheEnabled(false);
         web_settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         web_settings.setSaveFormData(false);
         web_settings.setGeolocationEnabled(false);

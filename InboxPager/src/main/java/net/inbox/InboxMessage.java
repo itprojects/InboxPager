@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2020  ITPROJECTS
+ * Copyright (C) 2016-2024  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,6 +58,7 @@ import android.widget.TextView;
 import net.inbox.db.Attachment;
 import net.inbox.db.DBAccess;
 import net.inbox.db.Message;
+import net.inbox.pager.R;
 import net.inbox.server.EndToEnd;
 import net.inbox.visuals.Common;
 import net.inbox.visuals.Dialogs;
@@ -446,35 +447,32 @@ public class InboxMessage extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.log_menu:
-                Dialogs.dialog_view_log(this);
-                break;
-            case R.id.delete_from_server_menu:
-                delete_message();
-                break;
-            case R.id.delete_from_local_menu:
-                db.delete_full_message(current.get_id());
-                current.set_full_msg(null);
-                Dialogs.toaster(false, getString(R.string.message_no_full_message), this);
-                break;
-            case R.id.download_message_menu:
-                // Save a message to internal database
-                start_saving_full_message(true);
-                break;
-            case R.id.save_message_menu:
-                // Save a message to permanent device memory
-                open_folder_picker(true);
-                break;
-            case R.id.details_menu:
-                // Display the full message
-                if (current.get_full_msg() == null || current.get_full_msg().isEmpty()) {
-                    Dialogs.toaster(false, getString(R.string.err_no_full_msg), this);
-                } else {
-                    Dialogs.dialog_view_message(current.get_full_msg(), this);
-                }
-                break;
+        int item_id = item.getItemId();
+
+        // if-statement ONLY, switch not allowed, anymore.
+        if (item_id == R.id.log_menu) {
+            Dialogs.dialog_view_log(this);
+        } else if (item_id == R.id.delete_from_server_menu) {
+            delete_message();
+        } else if (item_id == R.id.delete_from_local_menu)  {
+            db.delete_full_message(current.get_id());
+            current.set_full_msg(null);
+            Dialogs.toaster(false, getString(R.string.message_no_full_message), this);
+        } else if (item_id == R.id.download_message_menu) {
+            // Save a message to internal database
+            start_saving_full_message(true);
+        } else if (item_id == R.id.save_message_menu) {
+            // Save a message to permanent device memory
+            open_folder_picker(true);
+        } else if (item_id == R.id.details_menu) {
+            // Display the full message
+            if (current.get_full_msg() == null || current.get_full_msg().isEmpty()) {
+                Dialogs.toaster(false, getString(R.string.err_no_full_msg), this);
+            } else {
+                Dialogs.dialog_view_message(current.get_full_msg(), this);
+            }
         }
+
         return true;
     }
 

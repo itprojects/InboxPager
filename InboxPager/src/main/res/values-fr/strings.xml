@@ -4,7 +4,7 @@
     <string name="attch_bytes">B</string>
     <string name="attch_kilobytes">KB</string>
     <string name="attch_megabytes">MB</string>
-    <string name="author">Copyright © 2016 – 2020 ITPROJECTS</string>
+    <string name="author">Copyright © 2016 – 2024 ITPROJECTS</string>
     <string name="disclaimer">AVERTISSEMENT:</string>
     <string name="progress_title">Renouvellement</string>
     <string name="license_sql_cipher_other">SQLCipher (Autres Composants)</string>

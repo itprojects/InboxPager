@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2020  ITPROJECTS
+ * Copyright (C) 2016-2024  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import net.inbox.db.Inbox;
 import net.inbox.db.DBAccess;
+import net.inbox.pager.R;
 import net.inbox.visuals.Dialogs;
 import net.inbox.server.Handler;
 import net.inbox.server.IMAP;

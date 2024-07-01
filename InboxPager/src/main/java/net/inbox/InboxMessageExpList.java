@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2019-2020  ITPROJECTS
+ * Copyright (C) 2019-2024  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import net.inbox.db.Message;
+import net.inbox.pager.R;
 
 public class InboxMessageExpList extends BaseExpandableListAdapter {
 

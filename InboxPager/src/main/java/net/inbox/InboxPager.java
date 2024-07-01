@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2020  ITPROJECTS
+ * Copyright (C) 2016-2024  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +55,7 @@ import android.widget.TextView;
 import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
+import net.inbox.pager.R;
 import net.inbox.visuals.Dialogs;
 import net.inbox.visuals.SpinningStatus;
 import net.inbox.server.Handler;
@@ -278,47 +279,41 @@ public class InboxPager extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.about_menu:
-                startActivity(new Intent(getApplicationContext(), About.class));
-                overridePendingTransition(R.anim.right_in, R.anim.right_out);
-                break;
-            case R.id.add_menu:
-                Intent i = new Intent(getApplicationContext(), InboxPreferences.class);
-                Bundle b = new Bundle();
-                b.putBoolean("add", true);
-                b.putInt("db_id", -1);
-                startActivityForResult(i.putExtras(b), 1);
-                overridePendingTransition(R.anim.right_in, R.anim.right_out);
-                break;
-            case R.id.mass_refresh_menu:
-                mass_refresh_check();
-                break;
-            case R.id.log_menu:
-                Dialogs.dialog_view_log(this);
-                break;
-            case R.id.defaults_menu:
-                startActivity(new Intent(getApplicationContext(), Settings.class));
-                overridePendingTransition(R.anim.right_in, R.anim.right_out);
-                break;
-            case R.id.status_menu:
-                dialog_statistical();
-                break;
-            case R.id.mark_all_seen_menu:
-                db.mark_all_seen(current.get_id());
-                set_count_top();
-                populate_accounts_list_view();
-                populate_messages_list_view();
-                break;
-            case R.id.edit_account:
-                Intent ii = new Intent(getApplicationContext(), InboxPreferences.class);
-                Bundle bb = new Bundle();
-                bb.putBoolean("add", false);
-                bb.putInt("db_id", current.get_id());
-                bb.putString("title", current.get_email());
-                startActivityForResult(ii.putExtras(bb), 100);
-                overridePendingTransition(R.anim.left_in, R.anim.left_out);
-                break;
+        int item_id = item.getItemId();
+
+        // if-statement ONLY, switch not allowed, anymore.
+        if (item_id == R.id.about_menu) {
+            startActivity(new Intent(getApplicationContext(), About.class));
+            overridePendingTransition(R.anim.right_in, R.anim.right_out);
+        } else if (item_id == R.id.add_menu) {
+            Intent i = new Intent(getApplicationContext(), InboxPreferences.class);
+            Bundle b = new Bundle();
+            b.putBoolean("add", true);
+            b.putInt("db_id", -1);
+            startActivityForResult(i.putExtras(b), 1);
+            overridePendingTransition(R.anim.right_in, R.anim.right_out);
+        } else if (item_id == R.id.mass_refresh_menu) {
+            mass_refresh_check();
+        } else if (item_id == R.id.log_menu) {
+            Dialogs.dialog_view_log(this);
+        } else if (item_id == R.id.defaults_menu) {
+            startActivity(new Intent(getApplicationContext(), Settings.class));
+            overridePendingTransition(R.anim.right_in, R.anim.right_out);
+        } else if (item_id == R.id.status_menu) {
+            dialog_statistical();
+        } else if (item_id == R.id.mark_all_seen_menu) {
+            db.mark_all_seen(current.get_id());
+            set_count_top();
+            populate_accounts_list_view();
+            populate_messages_list_view();
+        } else if (item_id == R.id.edit_account) {
+            Intent ii = new Intent(getApplicationContext(), InboxPreferences.class);
+            Bundle bb = new Bundle();
+            bb.putBoolean("add", false);
+            bb.putInt("db_id", current.get_id());
+            bb.putString("title", current.get_email());
+            startActivityForResult(ii.putExtras(bb), 100);
+            overridePendingTransition(R.anim.left_in, R.anim.left_out);
         }
 
         return true;

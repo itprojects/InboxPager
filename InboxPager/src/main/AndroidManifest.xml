@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="net.inbox">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -10,35 +10,37 @@
 
     <application
         android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/application"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/PagerTheme">
-        <activity android:name=".About"/>
-        <activity android:name=".InboxPager" android:configChanges="orientation|screenSize">
+        <activity android:name="net.inbox.About"/>
+        <activity android:name="net.inbox.InboxPager" android:configChanges="orientation|screenSize" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
-            android:name=".InboxMessage"
+            android:name="net.inbox.InboxMessage"
             android:configChanges="orientation|screenSize"/>
         <activity
-            android:name=".InboxPreferences"
+            android:name="net.inbox.InboxPreferences"
             android:windowSoftInputMode="stateHidden|adjustResize"/>
         <activity
-            android:name=".InboxSend"
+            android:name="net.inbox.InboxSend"
             android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="stateHidden|adjustResize"/>
         <activity
-            android:name=".visuals.SendFilePicker"
+            android:name="net.inbox.visuals.SendFilePicker"
             android:configChanges="orientation|screenSize"/>
         <activity
-            android:name=".visuals.AttachmentDownloadPicker"
+            android:name="net.inbox.visuals.AttachmentDownloadPicker"
             android:configChanges="orientation|screenSize"/>
-        <activity android:name=".Settings"/>
-        <activity android:name=".InboxGPG" android:label="OpenPGP"/>
+        <activity android:name="net.inbox.Settings"/>
+        <activity android:name="net.inbox.InboxGPG" android:label="OpenPGP"/>
     </application>
 
 </manifest>

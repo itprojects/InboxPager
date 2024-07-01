@@ -1,6 +1,6 @@
 /*
  * InboxGPG interacts with OpenKeychain encryption package.
- * Copyright (C) 2016-2020  ITPROJECTS
+ * Copyright (C) 2016-2024  ITPROJECTS
  * Copyright (C) 2013-2015 Dominik Schürmann <dominik@dominikschuermann.de>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
  * limitations under the License.
  **/
 package net.inbox;
+
+import static net.inbox.pager.R.*;
 
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -36,6 +38,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import net.inbox.pager.R;
 import net.inbox.visuals.Common;
 import net.inbox.visuals.Dialogs;
 import net.inbox.server.Utils;
