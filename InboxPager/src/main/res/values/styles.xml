@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="PagerTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="PagerTheme" parent="Theme.AppCompat.DayNight.NoActionBar"/>
 
     <style name="action_button">
         <item name="android:paddingTop">0sp</item>
@@ -17,12 +17,12 @@
         <item name="android:fontFamily">sans-serif-condensed-light</item>
     </style>
 
-    <style name="PWEditText" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="PWEditText" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <item name="colorControlNormal">#000000</item>
         <item name="colorControlActivated">#000000</item>
         <item name="colorControlHighlight">#000000</item>
     </style>
 
-    <style name="PagerTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="PagerTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.DayNight.ActionBar" />
 
 </resources>

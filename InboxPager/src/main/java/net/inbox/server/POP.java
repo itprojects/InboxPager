@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  **/
 package net.inbox.server;
 
-import android.content.Context;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -28,18 +27,19 @@ import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
 import net.inbox.pager.R;
-import net.inbox.visuals.Common;
+import net.inbox.Common;
 import net.inbox.visuals.Dialogs;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 
-public class POP extends Handler {
+public class POP extends NetworkThread {
 
     private static class DataPOP extends Data {
         // Command sequence index
@@ -85,8 +85,8 @@ public class POP extends Handler {
 
     private DataPOP data;
 
-    public POP(Context ct) {
-        super(ct);
+    public POP(AppCompatActivity at) {
+        super(at);
     }
 
     @Override
@@ -139,8 +139,10 @@ public class POP extends Handler {
             stat = 1;
             if (ready) {
                 // Checking for a multi-line command
-                if (data.sequence.size() > 0 && !data.sequence.get(0).matches("CAPA|LIST|UIDL")
-                        && !tag.matches("RETR|TOP")) {
+                if (!data.sequence.isEmpty()
+                    && !data.sequence.get(0).matches("CAPA|LIST|UIDL")
+                    && !tag.matches("RETR|TOP")
+                ) {
                     if (data.delegate) {
                         pop_delegation(false);
                     } else {
@@ -155,9 +157,11 @@ public class POP extends Handler {
             // -ERR server response
             data.cmd_return = l;
             stat = 2;
-            if (data.sequence.size() > 0 && data.sequence.get(0).equalsIgnoreCase("CAPA")) {
+            if (!data.sequence.isEmpty()
+                && data.sequence.get(0).equalsIgnoreCase("CAPA")
+            ) {
                 data.sbuffer.setLength(0);
-                data.sbuffer.append(ctx.getString(R.string.err_no_capa));
+                data.sbuffer.append(act.get().getString(R.string.err_no_capa));
                 pop_conductor(false);
             } else {
                 cancel_action();
@@ -171,9 +175,9 @@ public class POP extends Handler {
     }
 
     @Override
-    public void test_server(Inbox inn, Context ct) {
+    public void test_server(Inbox inn, AppCompatActivity at) {
         current_inbox = inn;
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -195,26 +199,31 @@ public class POP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
+            InboxPager.log = InboxPager.log.concat(
+                act.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+            );
         }
 
         if (!excepted) {
             // Prepare a callback for results
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+            new Thread(
+                () -> {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
+                        InboxPager.log = InboxPager.log.concat(
+                            act.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+                        );
                     }
 
                     if (current_inbox.get_imap_or_pop_extensions() != null
-                            && !current_inbox.get_imap_or_pop_extensions().isEmpty()) {
+                        && !current_inbox.get_imap_or_pop_extensions().isEmpty()
+                    ) {
                         String tested;
                         if (current_inbox.get_imap_or_pop_extensions()
-                                .equals(ctx.getString(R.string.err_no_capa))) {
-                            tested = ctx.getString(R.string.err_no_capa);
+                            .equals(act.get().getString(R.string.err_no_capa))
+                        ) {
+                            tested = act.get().getString(R.string.err_no_capa);
                         } else {
                             // Preparing the dialog message
                             data.auths = new ArrayList<>();
@@ -231,7 +240,7 @@ public class POP extends Handler {
                                     data.general.add(parts[g]);
                                 }
                             }
-                            tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
+                            tested = act.get().getString(R.string.edit_account_check_login_types) + "\n\n";
                             for (int i = 0;i < data.auths.size();++i) {
                                 if (i == (data.auths.size() - 1)) {
                                     tested += data.auths.get(i).toUpperCase();
@@ -239,7 +248,7 @@ public class POP extends Handler {
                                     tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
                                 }
                             }
-                            tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
+                            tested += "\n\n" + act.get().getString(R.string.edit_account_check_other) + "\n\n";
                             for (int i = 0;i < data.general.size();++i) {
                                 if (i == (data.general.size() - 1)) {
                                     tested += data.general.get(i).toUpperCase();
@@ -248,24 +257,29 @@ public class POP extends Handler {
                                 }
                             }
                         }
-                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_incoming),
-                                tested, (AppCompatActivity) ctx);
+                        Dialogs.dialog_simple(
+                            act.get().getString(R.string.edit_account_check_incoming),
+                            tested,
+                            act.get()
+                        );
                     } else {
-                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_incoming),
-                                ctx.getString(R.string.edit_account_check_fail),
-                                (AppCompatActivity) ctx);
+                        Dialogs.dialog_simple(
+                            act.get().getString(R.string.edit_account_check_incoming),
+                            act.get().getString(R.string.edit_account_check_fail),
+                            act.get()
+                        );
                     }
                     reset();
                 }
-            }).start();
+            ).start();
         }
     }
 
     @Override
-    public void default_action(boolean multi, Inbox inn, Context ct) {
+    public void default_action(boolean multi, Inbox inn, AppCompatActivity at) {
         multiple = multi;
         current_inbox = inn;
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -281,11 +295,15 @@ public class POP extends Handler {
         }
 
         if (multiple) {
-            on_ui_thread(current_inbox.get_email(),
-                    ctx.getString(R.string.progress_refreshing));
+            on_ui_thread(
+                current_inbox.get_email(),
+                act.get().getString(R.string.progress_refreshing)
+            );
         } else {
-            on_ui_thread(ctx.getString(R.string.progress_title),
-                    ctx.getString(R.string.progress_refreshing));
+            on_ui_thread(
+                act.get().getString(R.string.progress_title),
+                act.get().getString(R.string.progress_refreshing)
+            );
         }
 
         // Refresh messages sequence
@@ -298,9 +316,9 @@ public class POP extends Handler {
     }
 
     @Override
-    public void attachment_action(int aid, Attachment att, Object doc_file, Context ct) {
+    public void attachment_action(int aid, Attachment att, Object doc_file, AppCompatActivity at) {
         current_inbox = db.get_account(aid);
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -320,12 +338,13 @@ public class POP extends Handler {
         if (doc_file == null) {
             data.a_file = null;
         } else {
-            Common.check_write_give((AppCompatActivity) ctx, ((DocumentFile) doc_file).getUri());
-            data.a_file = ((DocumentFile) doc_file).createFile("application/octet-stream",
-                    data.att_item.get_name());
+            Common.check_write_give(at, ((DocumentFile) doc_file).getUri());
+            data.a_file = ((DocumentFile) doc_file).createFile(
+                "message/rfc822", data.att_item.get_name()
+            );
         }
 
-        on_ui_thread(ctx.getString(R.string.progress_downloading), data.att_item.get_name());
+        on_ui_thread(act.get().getString(R.string.progress_downloading), data.att_item.get_name());
 
         // Refresh messages sequence
         data.sequence.add("AUTH");
@@ -339,9 +358,9 @@ public class POP extends Handler {
     }
 
     @Override
-    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, Context ct) {
+    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, AppCompatActivity at) {
         current_inbox = db.get_account(aid);
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -361,12 +380,18 @@ public class POP extends Handler {
         if (doc_file == null) {
             data.a_file = null;
         } else {
-            Common.check_write_give((AppCompatActivity) ctx, ((DocumentFile) doc_file).getUri());
-            data.a_file = ((DocumentFile) doc_file).createFile("application/octet-stream",
-                    data.msg_current.get_subject() + ".eml");
+            Common.check_write_give(act.get(), ((DocumentFile) doc_file).getUri());
+            String attachment_file_name;
+            if (data.msg_current.get_subject() == null || data.msg_current.get_subject().isEmpty())
+                attachment_file_name = act.get().getString(R.string.progress_unknown_eml);
+            else
+                attachment_file_name = data.msg_current.get_subject() + ".eml";
+            data.a_file = ((DocumentFile) doc_file).createFile(
+                "application/octet-stream", attachment_file_name
+            );
         }
 
-        on_ui_thread(ctx.getString(R.string.progress_downloading), msg.get_subject());
+        on_ui_thread(act.get().getString(R.string.progress_downloading), msg.get_subject());
 
         // Refresh messages sequence
         data.sequence.add("AUTH");
@@ -380,9 +405,9 @@ public class POP extends Handler {
     }
 
     @Override
-    public void move_action(int aid, Message msg, Context ct) {
+    public void move_action(int aid, Message msg, AppCompatActivity at) {
         current_inbox = db.get_account(aid);
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -393,8 +418,10 @@ public class POP extends Handler {
         data = new DataPOP();
         data.msg_current = msg;
 
-        on_ui_thread(ctx.getString(R.string.progress_deleting),
-                ctx.getString(R.string.progress_deleting_msg) + " " + msg.get_subject());
+        on_ui_thread(
+            act.get().getString(R.string.progress_deleting),
+            act.get().getString(R.string.progress_deleting_msg) + " " + msg.get_subject()
+        );
 
         // Refresh messages sequence
         data.sequence.add("AUTH");
@@ -450,16 +477,20 @@ public class POP extends Handler {
     private void pop_conductor(boolean cmd_start) {
         if (over) return;
         try {
-            if (data.sequence.size() < 1) return;
+            if (data.sequence.isEmpty()) return;
             switch (data.sequence.get(0)) {
                 case "CAPA":
                     pop_capability(cmd_start);
                     break;
                 case "AUTH":
                     if (!current_inbox.get_imap_or_pop_extensions().contains("UIDL")
-                            || !current_inbox.get_imap_or_pop_extensions().contains("SASL")) {
-                        Dialogs.dialog_simple(null, ctx.getString(R.string.err_no_extension),
-                                (AppCompatActivity) ctx);
+                        || !current_inbox.get_imap_or_pop_extensions().contains("SASL")
+                    ) {
+                        Dialogs.dialog_simple(
+                            null,
+                            act.get().getString(R.string.err_no_extension),
+                            act.get()
+                        );
                         data.sequence.clear();
                         data.sequence.add("QUIT");
                         pop_logout(cmd_start);
@@ -514,10 +545,12 @@ public class POP extends Handler {
                                 data.message_uids.remove(i);
                             }
                         }
-                        if (data.message_uids.size() < 1) {
+                        if (data.message_uids.isEmpty()) {
                             // Message not present
-                            on_ui_thread("-1", ctx.getString(R.string.progress_not_found));
-                            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.progress_not_found) + "\n\n");
+                            on_ui_thread("-1", act.get().getString(R.string.progress_not_found));
+                            InboxPager.log = InboxPager.log.concat(
+                                act.get().getString(R.string.progress_not_found) + "\n\n"
+                            );
                             cmd_start = false;
                         } else {
                             pop_retr_full_msg(true);
@@ -545,10 +578,12 @@ public class POP extends Handler {
                                 data.message_uids.remove(i);
                             }
                         }
-                        if (data.message_uids.size() < 1) {
+                        if (data.message_uids.isEmpty()) {
                             // Message not present
-                            on_ui_thread("-1", ctx.getString(R.string.progress_not_found));
-                            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.progress_not_found) + "\n\n");
+                            on_ui_thread("-1", act.get().getString(R.string.progress_not_found));
+                            InboxPager.log = InboxPager.log.concat(
+                                act.get().getString(R.string.progress_not_found) + "\n\n"
+                            );
                             cmd_start = false;
                         } else {
                             pop_delete_msg(true);
@@ -560,7 +595,7 @@ public class POP extends Handler {
             }
             if (!cmd_start) {
                 data.sequence.remove(0);
-                if (data.sequence.size() > 0) {
+                if (!data.sequence.isEmpty()) {
                     pop_conductor(true);
                 } else {
                     if (!data.test_mode) {
@@ -568,7 +603,7 @@ public class POP extends Handler {
                         reset();
                     }
                     if (!multiple && sp != null) {
-                        sp.unblock = true;
+                        sp.do_after();
                     } else if (multiple) {
                         continue_pager();
                     }
@@ -588,7 +623,7 @@ public class POP extends Handler {
      **/
     private void pop_delegation(boolean cmd_start) {
         if (!data.delegate) return;
-        if (data.delegation.size() < 1) return;
+        if (data.delegation.isEmpty()) return;
         switch (data.delegation.get(data.cmd_index)) {
             case "ALL_MSGS":
                 // Adding ALL MESSAGES
@@ -610,9 +645,11 @@ public class POP extends Handler {
 
                     // Update spinning dialog message
                     if (sp != null) {
-                        on_ui_thread("-1", ctx.getString(R.string.progress_fetch_msg) + " "
-                                + (data.msg_index + 1) + " / " + (data.message_uids.size()));
-
+                        on_ui_thread(
+                            "-1",
+                            act.get().getString(R.string.progress_fetch_msg) + " "
+                                + (data.msg_index + 1) + " / " + (data.message_uids.size())
+                        );
                     }
                     ++data.msg_index;
                     cmd_start = false;
@@ -676,18 +713,25 @@ public class POP extends Handler {
                         String st = s.substring(7).trim().replace("\r", "");
                         if (!st.equals("NEVER")) {
                             if (st.equals("0")) {
-                                Dialogs.dialog_simple(null, ctx.getString(R.string.err_pop_immediate),
-                                        (AppCompatActivity) ctx);
+                                Dialogs.dialog_simple(
+                                    null,
+                                    act.get().getString(R.string.err_pop_immediate),
+                                    act.get()
+                                );
                             } else {
-                                Dialogs.dialog_simple(null, String.format(ctx.getString(R.string
-                                        .err_pop_expiration), st), (AppCompatActivity) ctx);
+                                Dialogs.dialog_simple(
+                                    null,
+                                    String.format(act.get().getString(R.string.err_pop_expiration), st),
+                                    act.get()
+                                );
                             }
                         }
                     }
                 }
             }
-            current_inbox.set_imap_or_pop_extensions(data.sbuffer
-                    .deleteCharAt(data.sbuffer.length() - 1).toString().toUpperCase());
+            current_inbox.set_imap_or_pop_extensions(
+                data.sbuffer.deleteCharAt(data.sbuffer.length() - 1).toString().toUpperCase()
+            );
             db.update_account(current_inbox);
         }
     }
@@ -704,22 +748,27 @@ public class POP extends Handler {
                 data.auth = "AUTH PLAIN";
                 write(tag);
             } else {
-                error_dialog(ctx.getString(R.string.err_no_authentication));
+                error_dialog(act.get().getString(R.string.err_no_authentication));
                 data.sequence.clear();
                 pop_logout(true);
             }
         } else {
             if (tag.startsWith("AUTH LOGIN")) {
                 // LOGIN type of authentication
-                String str = new String(Base64.decode(data.cmd_return.substring(2).trim()
-                        .getBytes(), Base64.DEFAULT)).toUpperCase();
+                String str = new String(
+                    Base64.decode(
+                        data.cmd_return.substring(2).trim().getBytes(), Base64.DEFAULT
+                    )
+                ).toUpperCase();
                 if (str.startsWith("USERNAME")) {
                     if (str.length() > 500) {
-                        write_limited(Base64.encodeToString(str.getBytes(), Base64.DEFAULT)
-                                .trim().toCharArray());
+                        write_limited(
+                            Base64.encodeToString(str.getBytes(), Base64.DEFAULT).trim().toCharArray()
+                        );
                     } else {
-                        write(Base64.encodeToString(current_inbox.get_username().getBytes(),
-                                Base64.DEFAULT).trim());
+                        write(Base64.encodeToString(
+                            current_inbox.get_username().getBytes(), Base64.DEFAULT).trim()
+                        );
                     }
                     tag = "AUTH LOGIN password";
                 } else if (str.startsWith("PASSWORD")) {
@@ -739,8 +788,10 @@ public class POP extends Handler {
                 }
             } else if (data.auth.equals("AUTH PLAIN")) {
                 // PLAIN type of authentication
-                String str = Base64.encodeToString(("\0"+ current_inbox.get_username() + "\0"
-                        + current_inbox.get_pass()).getBytes(), Base64.DEFAULT).trim();
+                String str = Base64.encodeToString(
+                    ("\0"+ current_inbox.get_username() + "\0" + current_inbox.get_pass()).getBytes(),
+                        Base64.DEFAULT
+                ).trim();
                 if (str.length() > 500) {
                     write_limited(str.toCharArray());
                 } else {
@@ -782,7 +833,7 @@ public class POP extends Handler {
 
             // Is the current inbox to be refreshed?
             if (messages == db.get_messages_count(current_inbox.get_id())
-                    && total_size == current_inbox.get_total_size()) {
+                && total_size == current_inbox.get_total_size()) {
                 current_inbox.set_to_be_refreshed(false);
             } else {
                 current_inbox.set_to_be_refreshed(true);
@@ -847,18 +898,21 @@ public class POP extends Handler {
 
         if (current_inbox.get_messages() == 0 && local_msgs_num == 0) {
             // Update spinning dialog message
-            on_ui_thread("-1", ctx.getString(R.string.progress_nothing));
-            if (!multiple && sp != null) sp.unblock = true;
+            on_ui_thread("-1", act.get().getString(R.string.progress_nothing));
+            if (!multiple && sp != null) sp.do_after();
         } else if (current_inbox.get_messages() == 0 && local_msgs_num > 0) {
             // Update spinning dialog message
             if (sp != null) {
-                on_ui_thread("-1", local_msgs_num + " " + ctx.getString(R.string.progress_deleted_msgs));
+                on_ui_thread(
+                    "-1",
+                    local_msgs_num + " " + act.get().getString(R.string.progress_deleted_msgs)
+                );
             }
             db.delete_all_messages(local_msgs);
-            if (!multiple && sp != null) sp.unblock = true;
+            if (!multiple && sp != null) sp.do_after();
         } else if (current_inbox.get_messages() > 0 && local_msgs_num == 0) {
             // Notify the user of the new message(s)
-            InboxPager.notify_update();
+            Common.notify_update(act.get().getString(R.string.notification_new_message), act.get());
 
             // Adding all new messages
             data.delegate = true;
@@ -871,7 +925,7 @@ public class POP extends Handler {
             pop_delegation(true);
         } else {
             // Notify - new message(s)
-            InboxPager.notify_update();
+            Common.notify_update(act.get().getString(R.string.notification_new_message), act.get());
 
             // Remove (obsolete) messages from local database
             int deleted_msgs = 0;
@@ -886,7 +940,10 @@ public class POP extends Handler {
             }
 
             if (deleted_msgs > 0) {
-                on_ui_thread("-1", deleted_msgs + " " + ctx.getString(R.string.progress_deleted_msgs));
+                on_ui_thread(
+                    "-1",
+                    deleted_msgs + " " + act.get().getString(R.string.progress_deleted_msgs)
+                );
             }
 
             // Looking for new messages, and adding
@@ -898,7 +955,7 @@ public class POP extends Handler {
                 }
             }
 
-            if (data.message_uids.size() > 0) {
+            if (!data.message_uids.isEmpty()) {
                 // Adding all new messages
                 data.delegate = true;
                 data.delegation.clear();
@@ -972,7 +1029,7 @@ public class POP extends Handler {
                 String str_tmp = "Content-Type: " + heads.get("content-type:");
                 data.msg_current.set_content_type(str_tmp);
                 data.crypto_contents = str_tmp.matches("(?i).*multipart/encrypted.*")
-                        || str_tmp.matches("(?i).*multipart/signed.*");
+                    || str_tmp.matches("(?i).*multipart/signed.*");
             } else data.msg_current.set_content_type("Content-Type: text/other; charset=utf-8");
 
             if (heads.get("content-transfer-encoding:") != null) {
@@ -1003,9 +1060,13 @@ public class POP extends Handler {
                 if (content_type[0].matches("(?i)^TEXT/PLAIN.*")) {
                     // Converting mime body to non-transfer-encoding readable body
                     if (data.msg_current.get_content_transfer_encoding() != null) {
-                        data.msg_current.set_contents_plain(Utils.parse_transfer_encoding(
+                        data.msg_current.set_contents_plain(
+                            Utils.parse_transfer_encoding(
                                 data.msg_current.get_content_transfer_encoding(),
-                                data.sbuffer.substring(data.hdr), content_type[2]));
+                                data.sbuffer.substring(data.hdr),
+                                content_type[2]
+                            )
+                        );
                     } else {
                         data.msg_current.set_contents_plain(data.sbuffer.toString());
                     }
@@ -1013,9 +1074,13 @@ public class POP extends Handler {
                 } else if (content_type[0].matches("(?i)^TEXT/HTML.*")) {
                     // Converting mime body to non-transfer-encoding readable body
                     if (data.msg_current.get_content_transfer_encoding() != null) {
-                        data.msg_current.set_contents_html(Utils.parse_transfer_encoding(
+                        data.msg_current.set_contents_html(
+                            Utils.parse_transfer_encoding(
                                 data.msg_current.get_content_transfer_encoding(),
-                                data.sbuffer.substring(data.hdr), content_type[2]));
+                                data.sbuffer.substring(data.hdr),
+                                content_type[2]
+                            )
+                        );
                     } else {
                         data.msg_current.set_contents_html(data.sbuffer.toString());
                     }
@@ -1063,9 +1128,11 @@ public class POP extends Handler {
             if (data.msg_current.get_content_transfer_encoding().matches("(?i).*BASE64.*")) {
                 buff = Utils.parse_BASE64(buff);
             } else if (data.msg_current.get_content_transfer_encoding()
-                    .matches("(?i).*QUOTED-PRINTABLE.*")) {
-                pat = Pattern.compile(".*(charset|charset\\*)=(.*)",
-                        Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+                .matches("(?i).*QUOTED-PRINTABLE.*")
+            ) {
+                pat = Pattern.compile(
+                    ".*(charset|charset\\*)=(.*)", Pattern.CASE_INSENSITIVE|Pattern.DOTALL
+                );
                 mat = pat.matcher(data.msg_current.get_content_type());
                 String c_set = "utf-8";
                 if (mat.matches()) c_set = mat.group(1);
@@ -1076,11 +1143,13 @@ public class POP extends Handler {
         if (data.crypto_contents) data.msg_current.set_contents_crypto(buff);
 
         // Structural parsing
-        data.msg_structure = Utils.mime_bodystructure(buff, boundary,
-                data.msg_current.get_content_type());
+        data.msg_structure = Utils.mime_bodystructure(
+            buff, boundary, data.msg_current.get_content_type()
+        );
 
-        Utils.mime_parse_full_msg_into_texts(buff, data.msg_structure, data.msg_texts,
-                data.msg_current);
+        Utils.mime_parse_full_msg_into_texts(
+            buff, data.msg_structure, data.msg_texts, data.msg_current
+        );
 
         // Declare the number of attachments for later
         if (data.msg_structure != null) data.msg_current.set_attachments(data.msg_structure.size());
@@ -1090,12 +1159,15 @@ public class POP extends Handler {
         tag = "SAVE_ATTACHMENT";
 
         // Saving message attachment
-        String att = Utils.mime_part_section(data.msg_current.get_full_msg(),
-                data.att_item.get_pop_indx(), data.att_item.get_boundary());
+        String att = Utils.mime_part_section(
+            data.msg_current.get_full_msg(),
+            data.att_item.get_pop_indx(),
+            data.att_item.get_boundary()
+        );
         try {
             // Converting transfer encoding
             if (data.att_item != null) {
-                data.os = ctx.getContentResolver().openOutputStream(data.a_file.getUri(),"rw");
+                data.os = act.get().getContentResolver().openOutputStream(data.a_file.getUri(),"rw");
 
                 // Parsing file download
                 if (data.att_item.get_transfer_encoding().equalsIgnoreCase("BASE64")) {
@@ -1104,8 +1176,8 @@ public class POP extends Handler {
                     for (int i = 0; i < att.length(); ++i) {
                         if (att.charAt(i) == '\n') {
                             if (CR) {
-                                data.os.write(Base64.decode(sb_tmp.toString().getBytes(),
-                                        Base64.DEFAULT));
+                                data.os.write(
+                                    Base64.decode(sb_tmp.toString().getBytes(), Base64.DEFAULT));
                                 sb_tmp.setLength(0);
                                 CR = false;
                             }
@@ -1120,7 +1192,8 @@ public class POP extends Handler {
                         data.os.write(Base64.decode(sb_tmp.toString().getBytes(), Base64.DEFAULT));
                     }
                 } else if (data.att_item.get_transfer_encoding()
-                        .equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                    .equalsIgnoreCase("QUOTED-PRINTABLE")
+                ) {
                     // QUOTED-PRINTABLE, data problems: removes \n line endings
                     data.os.write(Utils.parse_quoted_printable(att, "utf-8").getBytes());
                 } else {
@@ -1131,17 +1204,19 @@ public class POP extends Handler {
                 data.os.close();
             }
             if (sp != null) {
-                on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
-                sp.unblock = true;
-                Dialogs.toaster(true, ctx.getString(R.string.message_action_done),
-                        (AppCompatActivity) ctx);
+                on_ui_thread("-1", act.get().getString(R.string.progress_download_complete));
+                sp.do_after();
+                Dialogs.toaster(
+                    true,
+                    act.get().getString(R.string.message_action_done),
+                    act.get()
+                );
             }
         } catch (IOException e) {
-            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             error_dialog(e);
             if (sp != null) {
-                on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
-                sp.unblock = true;
+                on_ui_thread("-1", act.get().getString(R.string.err_not_saved));
+                sp.do_after();
             }
         }
     }
@@ -1152,24 +1227,27 @@ public class POP extends Handler {
         if (data.a_file != null) {
             // Prepare for direct file write
             try {
-                data.os = ctx.getContentResolver().openOutputStream(data.a_file.getUri(),"rw");
+                data.os = act.get().getContentResolver().openOutputStream(data.a_file.getUri(),"rw");
                 if (data.os != null) {
                     data.os.write(data.msg_current.get_full_msg().getBytes());
                     data.os.flush();
                     data.os.close();
                 }
                 if (sp != null) {
-                    on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
-                    sp.unblock = true;
-                    Dialogs.toaster(true, ctx.getString(R.string.message_action_done),
-                            (AppCompatActivity) ctx);
+                    on_ui_thread("-1", act.get().getString(R.string.progress_download_complete));
+                    sp.do_after();
+                    Dialogs.toaster(
+                        true,
+                        act.get().getString(R.string.message_action_done),
+                        act.get()
+                    );
                 }
             } catch (IOException ioe) {
                 InboxPager.log = InboxPager.log.concat(ioe.getMessage() + "\n\n");
                 error_dialog(ioe);
                 if (sp != null) {
-                    on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
-                    sp.unblock = true;
+                    on_ui_thread("-1", act.get().getString(R.string.err_not_saved));
+                    sp.do_after();
                 }
             }
         }
@@ -1187,8 +1265,8 @@ public class POP extends Handler {
             write(tag + " " + data.message_nums.get(0));
         } else {
             db.delete_message(data.msg_current.get_id());
-            on_ui_thread("-1", ctx.getString(R.string.progress_deleted_msg));
-            ((InboxMessage) ctx).delete_message_ui();
+            on_ui_thread("-1", act.get().getString(R.string.progress_deleted_msg));
+            ((InboxMessage) act.get()).delete_message_ui();
             clear_buff();
         }
     }

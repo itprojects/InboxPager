@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Posteingang Piepser</string>
-    <string name="author">Urheberrechte © 2016 – 2024 ITPROJECTS</string>
+    <string name="author">Urheberrechte © 2016 – 2026 ITPROJECTS</string>
     <string name="disclaimer">HAFTUNGSAUSSCHLUSS:</string>
     <string name="dialog_license">Lizenzinformationen</string>
     <string name="license">Anwendungslizenz: General Public License 3</string>
@@ -15,7 +15,7 @@
     <string name="crypto_failure">FEHLER!</string>
     <string name="open_pgp_message_signature">SIGNATUR</string>
     <string name="open_pgp_recipients">EMPFÄNGER</string>
-    <string name="open_pgp_ready">BEREIT</string>
+    <string name="open_pgp_ready">4. FERTIG</string>
     <string name="open_pgp_reset">RESET</string>
     <string name="sett_change_pw_change">Veränderung</string>
     <string name="sett_change_pw_remove">Entfernen</string>
@@ -23,10 +23,10 @@
     <string name="open_pgp_dialog_title">Kryptographie</string>
     <string name="sett_change_pw_q">Passwort entfernen oder ändern?</string>
     <string name="open_pgp_press_start">Drücke den GPGknopf.</string>
-    <string name="open_pgp_rcpt_key_cross">❌ Empfängerschlüssel</string>
-    <string name="open_pgp_rcpt_key_check">✓ Empfängerschlüssel</string>
-    <string name="open_pgp_signing_key_cross">❌ Signaturschlüssel</string>
-    <string name="open_pgp_signing_key_check">✓ Signaturschlüssel</string>
+    <string name="open_pgp_rcpt_key_cross">2. Empfängerschlüssel ❌</string>
+    <string name="open_pgp_rcpt_key_check">2. Empfängerschlüssel ✓</string>
+    <string name="open_pgp_signing_key_cross">1. Signaturschlüssel ❌</string>
+    <string name="open_pgp_signing_key_check">1. Signaturschlüssel ✓</string>
     <string name="open_pgp_message">KLARE BOTSCHAFT</string>
     <string name="open_pgp_message_encrypted_block">VERSCHLÜSSELTE NACHRICHT</string>
     <string name="open_pgp_bad_signature">Keine Unterschriften, schlechte Unterschrift, oder ein Übertragungsfehler.</string>
@@ -35,13 +35,16 @@
     <string name="open_pgp_list_items_sign_encrypt">SIGNIEREN UND VERSCHLÜSSELN VON NACHRICHTEN</string>
     <string name="open_pgp_list_items_detach_sign">KLARTEXTZEICHEN SIGNIEREN</string>
     <string name="open_pgp_list_items_decrypt_and_verify">ENTSCHLÜSSELN UND VERIFIZIEREN</string>
-    <string name="open_pgp_none_found">OpenKeychain nicht gefunden! Keine Verschlüsselung/Entschlüsselung!!</string>
+    <string name="open_pgp_none_found">OpenKeychain nicht gefunden!\nKeine Verschlüsselung/Entschlüsselung!!</string>
+    <string name="sett_change_pw_emergency_title">Notfall-Löschpasswort</string>
     <string name="sett_change_pw_new">NEUES PASSWORT</string>
     <string name="sett_change_pw_retype">WIEDERHOLEN SIE NEUEN PASS</string>
+    <string name="sett_enable_pw_emergency_summary_on">Schutzstatus: AKTIVIERT\n\nWenn aktiviert, LÖSCHT sie die Anwendungsdatenbank nach der Eingabe des Anwendungspasswortfensters.</string>
     <string name="sett_change_pw_title">Passwort</string>
-    <string name="sett_enable_pw_summary_on">Passwortstatus: AKTIVIERT.</string>
-    <string name="sett_enable_pw_summary_off">Passwortstatus: DEAKTIVIERT.</string>
-    <string name="sett_enable_pw_title">Passwortschutz</string>
+    <string name="sett_enable_pw_summary_on">Schutzstatus: AKTIVIERT</string>
+    <string name="sett_enable_pw_summary_off">Schutzstatus: BEHINDERT</string>
+    <string name="sett_enable_pw_title">Anwendungspasswort</string>
+    <string name="sett_transparent_webview_summary">Setze den Hintergrund von WebView auf transparent.</string>
     <string name="sett_msg_font_size_title">Schriftgröße</string>
     <string name="sett_msg_font_size_summary">Schriftgröße für die Felder, Beim Anzeigen einer Nachricht.</string>
     <string name="picker_pick">WÄHLEN</string>
@@ -69,8 +72,8 @@
     <string name="activity_pager_title">Piepser</string>
     <string name="sett_vibrates_download_summary">Gerät vibriert, wenn neue Nachrichten eintreffen.</string>
     <string name="sett_vibrates_download_title">Vibration bei neuen Nachrichten</string>
-    <string name="sett_beeps_download_summary">Das Gerät gibt einen Piepton aus, wenn neue Nachrichten eintreffen.</string>
-    <string name="sett_beeps_download_title">Signalton bei neuen Nachrichten</string>
+    <string name="sett_notifies_download_summary">Das Gerät zeigt eine Benachrichtigung an, wenn neue Nachrichten eintreffen. Der Benutzer muss Benachrichtigungen für diese Anwendung in den Systemeinstellungen erlauben.</string>
+    <string name="sett_notifies_download_title">Benachrichtige, wenn neue Nachrichten eintreffen</string>
     <string name="send_cleartext_delete">Entfernen</string>
     <string name="send_cleartext_keep">Behalten</string>
     <string name="send_encrypt">Behalten</string>
@@ -110,6 +113,7 @@
     <string name="edit_account_email">Kontobezeichnung</string>
     <string name="edit_account_email_hint">ihr.konto@example.de</string>
     <string name="activity_edit_account_title">Bearbeiten Sie dieses Konto</string>
+    <string name="notification_sent_message">Nachricht gesendet.</string>
     <string name="activity_add_account_title">Konto hinzufügen</string>
     <string name="no_messages">Posteingang leeren</string>
     <string name="edit_account_delete">LÖSCHEN</string>
@@ -137,12 +141,17 @@
     <string name="ex_title">Problem</string>
     <string name="progress_connected">Angeschlossen.</string>
     <string name="progress_authenticated">Authentifiziert.</string>
+    <string name="progress_test">Test</string>
+    <string name="progress_unknown_eml">Unbekannt</string>
     <string name="stats_title">Kontosituation</string>
     <string name="progress_connecting">Anschließen mit</string>
     <string name="progress_download_complete">Download abgeschlossen.</string>
+    <string name="err_missing_webview">Fehlendes WebView-Paket für HTML-Anzeige!</string>
+    <string name="err_bad_hash">Passwort-Hash kann nicht erzeugt werden!</string>
+    <string name="err_unknown_error">Unbekannter Fehler</string>
     <string name="activity_pw">PASSWORT</string>
     <string name="menu_refresh">Aktualisierung</string>
-    <string name="menu_settings">die Einstellungen</string>
+    <string name="menu_preferences">Anwendungspräferenzen</string>
     <string name="err_refresh">Fehler bei</string>
     <string name="menu_add_account">Konto hinzufügen</string>
     <string name="no_accounts">E-Mail-Nachrichtenkonten hinzufügen</string>
@@ -150,6 +159,8 @@
     <string name="file_title">DATEI</string>
     <string name="folder_title">ORDNER</string>
     <string name="ex_field">Ausnahme:</string>
+    <string name="picker_pick_a_folder">Such dir einen Ordner aus…</string>
+    <string name="picker_no_selection">Keine Datei oder Ordner ausgewählt.</string>
     <string name="err_title_write_perms">Schreiben verboten</string>
     <string name="err_title_no_space">Kein Speicherplatz</string>
     <string name="err_msg_write_perms">Sie haben nicht die Ordnerberechtigung, um Ihre Datei in dem von Ihnen ausgewählten Ordner zu speichern.</string>
@@ -159,6 +170,7 @@
     <string name="menu_delete_account_dialog_title">Löschung bestätigen</string>
     <string name="menu_port_consideration_dialog">Sind Sie sicher, dass dies das richtige Anschluss ist?</string>
     <string name="menu_all_seen">Markiere alles Gelesene</string>
+    <string name="attch_title_generic">Anhang</string>
     <string name="attch_title">Herunterladen auf</string>
     <string name="err_msg_no_space">Sie scheinen nicht genügend Speicherplatz auf Ihrem Gerät zu haben, um diese Datei zu speichern.</string>
     <string name="progress_fetch_attachment">Abrufen des Ansatzes…</string>
@@ -175,6 +187,7 @@
     <string name="err_title_android_permission">Android Zulassungen</string>
     <string name="err_wrong_user_or_pass">Falscher Benutzername oder falsches Passwort</string>
     <string name="err_read_file">Sie haben nicht die Berechtigung, diese Datei zu lesen.</string>
+    <string name="err_missing_permissions">Fehlende Handlungsberechtigungen.</string>
     <string name="err_size_attachments_title">Anhang Problem</string>
     <string name="err_size_attachments">Ihre Anhänge sind größer als der ausgehende Server zulässt. Entfernen Sie einige Anhänge.</string>
     <string name="err_size_attachments_continue">Ignorieren und fortfahren</string>
@@ -186,7 +199,7 @@
     <string name="err_server_not_configured">Der Ausgangsserver wurde nicht richtig konfiguriert.</string>
     <string name="err_no_full_msg">Vollständige Nachricht nicht in Datenbank gefunden. Zuerst vom Server herunterladen.</string>
     <string name="err_not_saved">Speicheraktion konnte nicht abgeschlossen werden.</string>
-    <string name="err_action_failed">Aktion: fehlgeschlagen (siehe Protokoll).</string>
+    <string name="err_action_failed">Die Aktion könnte gescheitert sein (siehe Logbuch).</string>
     <string name="err_pick_signing_key">Wählen Sie einen Signaturschlüssel!</string>
     <string name="err_pick_rcpt_keys">Empfängerschlüssel auswählen!</string>
     <string name="err_missing_crypto_mime">Fehlende kryptografische Nachrichtendaten!</string>
@@ -214,15 +227,19 @@
     <string name="sett_crypto_padding_summary">PKCS/TBC. Dies verschlüsselt keine Anhänge.</string>
     <string name="crypto_success">ERFOLG!</string>
     <string name="crypto_unsupported">NICHT UNTERSTÜTZT</string>
-    <string name="crypto_encrypt">&#128274; Verschlüsseln</string>
-    <string name="crypto_decrypt">&#128275; Entschlüsseln</string>
+    <string name="crypto_encrypt">Verschlüsseln &#128274;</string>
+    <string name="crypto_decrypt">Entschlüsseln &#128275;</string>
     <string name="crypto_bad_message">Nachricht hat kein BASE64.</string>
     <string name="sett_crypto_padding_title">Kryptogramm-Textauffüllung</string>
     <string name="crypto_title">Verschlüsselter Text</string>
-    <string name="crypto_plain_warning">Text der Nachricht mit dem unten stehenden Schlüssel verschlüsseln oder entschlüsseln.</string>
+    <string name="crypto_key_pw">Schlüssel / Passwort</string>
+    <string name="crypto_plain_warning">Verschlüsseln oder entschlüsseln Sie ausgewählten Text.</string>
     <string name="crypto_no_text">Fehlender Nachrichtentext.</string>
     <string name="crypto_invalid_key">Ungültiger SCHLÜSSEL ODER LÄNGE.</string>
     <string name="crypto_failed_encryption">Verschlüsselung fehlgeschlagen für %s/%s/%s.</string>
     <string name="crypto_failed_decryption">Entschlüsselung fehlgeschlagen für %s/%s/%s.</string>
     <string name="crypto_failed_unpadding">Entfernen der Polsterung fehlgeschlagen %s.</string>
+    <string name="sett_transparent_webview_title">Transparentes WebView</string>
+    <string name="sett_enable_pw_emergency_summary_off">Schutzstatus: AUSGESCHALTET\n\nWenn aktiviert, LÖSCHT sie die Anwendungsdatenbank nach der Eingabe des Anwendungspasswortfensters.</string>
+    <string name="notification_new_message">Du hast neue Nachrichten.</string>
 </resources>

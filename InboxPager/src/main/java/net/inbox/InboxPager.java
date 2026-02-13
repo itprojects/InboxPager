@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,19 +16,25 @@
  **/
 package net.inbox;
 
+import static net.inbox.Common.set_activity_insets_listener;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.graphics.Color;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
+
+import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -36,6 +42,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,13 +50,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import net.inbox.db.DBAccess;
@@ -58,14 +65,13 @@ import net.inbox.db.Message;
 import net.inbox.pager.R;
 import net.inbox.visuals.Dialogs;
 import net.inbox.visuals.SpinningStatus;
-import net.inbox.server.Handler;
+import net.inbox.server.NetworkThread;
 import net.inbox.server.IMAP;
 import net.inbox.server.POP;
 import net.sqlcipher.database.SQLiteDatabase;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Locale;
 import java.util.SortedMap;
 
@@ -73,21 +79,17 @@ public class InboxPager extends AppCompatActivity {
 
     public static String log = "\n";
 
+    public static Vibrator vib;
+
     // Show first use help
     private boolean show_help = false;
     private boolean refresh;
 
-    public static int orientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
-
-    public static String open_key_chain = "org.sufficientlysecure.keychain";
-
     private static DBAccess db;
     private static SharedPreferences prefs;
-    private static Vibrator vib;
-    private static Ringtone ring;
     private static Boolean unread_focus_mode_state = false;
 
-    private Handler handler;
+    private NetworkThread network_thread;
     private boolean unlocked;
     private int over;
 
@@ -112,41 +114,54 @@ public class InboxPager extends AppCompatActivity {
     private ImageView iv_send_activity;
     private ImageView iv_ssl_auth;
 
-    private boolean good_incoming_server = false;
+    private int last_connection_data_id = -1;
+    private String last_connection_data = null;
 
     private int current_inbox = -2;
 
     private Inbox current;
 
+    private ActivityResultLauncher<Intent> start_activity_for_result;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle saved_instance_state) {
+        super.onCreate(saved_instance_state);
 
         // Prevent Android Switcher leaking data via screenshots
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE);
+        getWindow().setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        );
+
+        // Set Application Activities to follow system style
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) // Android API >= 10
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+
+        // For camera cutout
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) // Android API >= 15
+            EdgeToEdge.enable(this); // run before setContentView()
 
         // Restore existing state
-        if (savedInstanceState != null) {
-            log = savedInstanceState.getString("sv_log");
-            orientation = savedInstanceState.getInt("sv_orientation");
-            unread_focus_mode_state = savedInstanceState.getBoolean("sv_unread_focus_mode_state");
-            refresh = savedInstanceState.getBoolean("sv_refresh");
-            unlocked = savedInstanceState.getBoolean("sv_unlocked");
-            over = savedInstanceState.getInt("sv_over");
-            show_help = savedInstanceState.getBoolean("sv_show_help");
-            good_incoming_server = savedInstanceState.getBoolean("sv_good_incoming_server");
-            current_inbox = savedInstanceState.getInt("sv_current_inbox");
+        if (saved_instance_state != null) {
+            log = saved_instance_state.getString("sv_log");
+            unread_focus_mode_state = saved_instance_state.getBoolean("sv_unread_focus_mode_state");
+            refresh = saved_instance_state.getBoolean("sv_refresh");
+            unlocked = saved_instance_state.getBoolean("sv_unlocked");
+            over = saved_instance_state.getInt("sv_over");
+            show_help = saved_instance_state.getBoolean("sv_show_help");
+            current_inbox = saved_instance_state.getInt("sv_current_inbox");
             if (current_inbox != -2 && db != null) {
-                // Loading known ID inbox
-                current = db.get_account(current_inbox);
+                current = db.get_account(current_inbox); // Loading known ID inbox
             } else {
                 current = null;
             }
+            last_connection_data_id = saved_instance_state.getInt("sv_last_connection_data_id");
+            last_connection_data = saved_instance_state.getString("sv_last_connection_data");
         }
 
         // Init SharedPreferences
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        Common.set_prefs(prefs);
         if (!prefs.contains("initialized")) {
             PreferenceManager.setDefaultValues(this, R.xml.settings, false);
             prefs.edit().putBoolean("initialized", true).apply();
@@ -155,6 +170,8 @@ public class InboxPager extends AppCompatActivity {
             prefs.edit().putBoolean("imap_or_pop", true).apply();
             prefs.edit().putBoolean("using_smtp", false).apply();
             prefs.edit().putBoolean("pw_protection", false).apply();
+            prefs.edit().putBoolean("pw_emergency_protection", false).apply();
+            prefs.edit().putString("pw_emergency_protection_hash", "").apply();
             prefs.edit().putString("list_cipher_types", "AES").apply();
             prefs.edit().putString("list_cipher_modes", "CBC").apply();
             prefs.edit().putString("list_cipher_paddings", "PKCS7").apply();
@@ -162,8 +179,16 @@ public class InboxPager extends AppCompatActivity {
             show_help = true;
         }
 
-        ring = RingtoneManager.getRingtone(getApplicationContext(),
-                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+        // Init Notifications
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                getPackageName(),
+                getString(R.string.app_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel);
+        }
 
         if (unlocked && prefs.getBoolean("pw_protection", false)) {
             // Initial entry view
@@ -173,48 +198,78 @@ public class InboxPager extends AppCompatActivity {
             DrawerLayout llay_drawer = findViewById(R.id.drawer_layout);
             llay_drawer.setVisibility(View.VISIBLE);
             llay_drawer.setAlpha(0.01f);
-            llay_drawer.animate().alpha(1f).setListener(new AnimatorListenerAdapter() {
+            llay_drawer.animate().alpha(1f).setListener(
+                new AnimatorListenerAdapter() {
 
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    activity_load();
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        activity_load();
+                    }
                 }
-            });
+            );
         } else if (show_help || !prefs.getBoolean("pw_protection", false)) {
             init_db("cleartext");
 
             // Initial entry view
             View v = View.inflate(this, R.layout.pager, null);
-            v.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in));
+            v.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.fade_in));
             setContentView(v);
 
             DrawerLayout llay_drawer = findViewById(R.id.drawer_layout);
             llay_drawer.setVisibility(View.VISIBLE);
             llay_drawer.setAlpha(0.01f);
-            llay_drawer.animate().alpha(1f).setListener(new AnimatorListenerAdapter() {
+            llay_drawer.animate().alpha(1f).setListener(
+                new AnimatorListenerAdapter() {
 
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    activity_load();
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        activity_load();
+                    }
                 }
-            });
+            );
         } else {
             // Initial entry view
             View v = View.inflate(this, R.layout.pager, null);
-            v.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in));
+            v.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.fade_in));
             setContentView(v);
 
             // Entry text edit
             llay_pw = findViewById(R.id.llay_pw);
             llay_pw.setVisibility(View.VISIBLE);
             et_pw = findViewById(R.id.pw);
-            et_pw.setOnKeyListener(new View.OnKeyListener() {
-                public boolean onKey(View v, int key, KeyEvent event) {
+            et_pw.setOnKeyListener(
+                (v1, key, event) -> {
                     if (event.getAction() == KeyEvent.ACTION_DOWN
-                            && key == KeyEvent.KEYCODE_ENTER) {
-                        init_db(et_pw.getText().toString());
+                        && key == KeyEvent.KEYCODE_ENTER
+                    ) {
+                        boolean em = false;
+                        String t = et_pw.getText().toString();
+                        String h = prefs.getString("pw_emergency_protection_hash", "");
+
+                        if (prefs.getBoolean("pw_emergency_protection", false)
+                            && !h.isEmpty()
+                        ) {
+                            // Check emergency password hash matches, do sha256
+                            if (Common.sha256(getApplicationContext(), et_pw.getText().toString())
+                                .equals(h)
+                            ) {
+                                getApplicationContext().deleteDatabase("pages");
+                                prefs.edit().putBoolean("pw_protection", false).apply();
+                                prefs.edit().putBoolean("pw_emergency_protection", false).apply();
+                                prefs.edit().putString("pw_emergency_protection_hash", "").apply();
+                                em = true;
+                                unlocked = true;
+                            }
+                        }
+
+                        if (em) {
+                            init_db("cleartext");
+                        } else {
+                            init_db(t);
+                        }
+
                         et_pw.setText("");
                         if (unlocked) {
                             activity_load();
@@ -226,7 +281,7 @@ public class InboxPager extends AppCompatActivity {
                     }
                     return false;
                 }
-            });
+            );
         }
 
         // Helper dialog
@@ -236,19 +291,80 @@ public class InboxPager extends AppCompatActivity {
             builder.setTitle(getString(R.string.helper_title));
             builder.setMessage(getString(R.string.helper_msg));
             builder.setPositiveButton(getString(R.string.btn_continue), null);
-            builder.setNegativeButton(getString(R.string.btn_pw),
-                    new AlertDialog.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            startActivity(new Intent(getApplicationContext(), Settings.class));
-                            overridePendingTransition(R.anim.right_in, R.anim.right_out);
-                        }
-                    });
+            builder.setNegativeButton(
+                getString(R.string.btn_pw),
+                (dialog, which) -> {
+                    startActivity(new Intent(getApplicationContext(), AppPreferences.class));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
+                        overrideActivityTransition(
+                            OVERRIDE_TRANSITION_OPEN,
+                            R.anim.right_in,
+                            R.anim.right_out
+                        );
+                    } else { // Android API <= 33
+                        overridePendingTransition(R.anim.right_in, R.anim.right_out);
+                    }
+                }
+            );
             builder.show();
         }
+
+        RelativeLayout main_root = findViewById(R.id.root_view_pager);
+
+        // Handle insets for cutout and system bars
+        set_activity_insets_listener(main_root);
+
+        start_activity_for_result = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                int result_code = result.getResultCode();
+                Intent data = result.getData();
+                if (result_code == 12) { // Add or Edit Account
+                    if (refresh) {
+                        refresh = false;
+                        populate_accounts_list_view();
+                    } else {
+                        if (data.getBooleanExtra("status", false)) {
+                            current.set_email(data.getStringExtra("new_name"));
+                            tv_pager_title.setText(data.getStringExtra("new_name"));
+                            populate_accounts_list_view();
+                        }
+                        int new_inbox = data.getIntExtra("new_inbox_id", -2);
+                        if (new_inbox >= 0) {
+                            current_inbox = new_inbox;
+                            set_current_inbox();
+                        }
+                    }
+                } else if (result_code == 24) { // Delete Account
+                    if (data != null && data.hasExtra("inbox_deleted")
+                        && data.getBooleanExtra("inbox_deleted", false)
+                    ) {
+                        populate_accounts_list_view();
+                        current_inbox = -2;
+                        set_current_inbox();
+                    }
+                } else if (result_code == 36) { // Delete Message
+                    populate_messages_list_view(); // ListView re-populate after message deletion
+                } else if (result_code == 48) { // Reply to Message (Send)
+                    Intent send_intent = new Intent(getApplicationContext(), InboxSend.class);
+                    //Bundle b = new Bundle();
+                    Bundle b = data.getExtras();
+                    b.putInt("db_id", current.get_id());
+                    b.putString("title", current.get_email());
+                    startActivity(send_intent.putExtras(b));
+                }
+            }
+        );
     }
 
     @Override
     public void finish() {
+        super.finish();
+        DrawerLayout llay_drawer = findViewById(R.id.drawer_layout);
+        if (llay_drawer.isDrawerOpen(GravityCompat.START)) {
+            llay_drawer.closeDrawer(GravityCompat.START);
+        }
+
         if (db != null) db.close();
         super.finish();
     }
@@ -284,21 +400,45 @@ public class InboxPager extends AppCompatActivity {
         // if-statement ONLY, switch not allowed, anymore.
         if (item_id == R.id.about_menu) {
             startActivity(new Intent(getApplicationContext(), About.class));
-            overridePendingTransition(R.anim.right_in, R.anim.right_out);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
+                overrideActivityTransition(
+                    OVERRIDE_TRANSITION_OPEN,
+                    R.anim.right_in,
+                    R.anim.right_out
+                );
+            } else { // Android API <= 33
+                overridePendingTransition(R.anim.right_in, R.anim.right_out);
+            }
         } else if (item_id == R.id.add_menu) {
             Intent i = new Intent(getApplicationContext(), InboxPreferences.class);
             Bundle b = new Bundle();
             b.putBoolean("add", true);
             b.putInt("db_id", -1);
-            startActivityForResult(i.putExtras(b), 1);
-            overridePendingTransition(R.anim.right_in, R.anim.right_out);
+            start_activity_for_result.launch(i.putExtras(b));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API>= 34
+                overrideActivityTransition(
+                    OVERRIDE_TRANSITION_OPEN,
+                    R.anim.right_in,
+                    R.anim.right_out
+                );
+            } else { // Android API <= 33
+                overridePendingTransition(R.anim.right_in, R.anim.right_out);
+            }
         } else if (item_id == R.id.mass_refresh_menu) {
             mass_refresh_check();
         } else if (item_id == R.id.log_menu) {
             Dialogs.dialog_view_log(this);
         } else if (item_id == R.id.defaults_menu) {
-            startActivity(new Intent(getApplicationContext(), Settings.class));
-            overridePendingTransition(R.anim.right_in, R.anim.right_out);
+            startActivity(new Intent(getApplicationContext(), AppPreferences.class));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
+                overrideActivityTransition(
+                    OVERRIDE_TRANSITION_OPEN,
+                    R.anim.right_in,
+                    R.anim.right_out
+                );
+            } else { // Android API <= 33
+                overridePendingTransition(R.anim.right_in, R.anim.right_out);
+            }
         } else if (item_id == R.id.status_menu) {
             dialog_statistical();
         } else if (item_id == R.id.mark_all_seen_menu) {
@@ -312,68 +452,33 @@ public class InboxPager extends AppCompatActivity {
             bb.putBoolean("add", false);
             bb.putInt("db_id", current.get_id());
             bb.putString("title", current.get_email());
-            startActivityForResult(ii.putExtras(bb), 100);
-            overridePendingTransition(R.anim.left_in, R.anim.left_out);
+            start_activity_for_result.launch(ii.putExtras(bb));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
+                overrideActivityTransition(
+                    OVERRIDE_TRANSITION_OPEN,
+                    R.anim.right_in,
+                    R.anim.right_out
+                );
+            } else { // Android API <= 33
+                overridePendingTransition(R.anim.right_in, R.anim.right_out);
+            }
         }
 
         return true;
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 || requestCode == 10) {
-            if (refresh) {
-                refresh = false;
-                populate_accounts_list_view();
-            } else if (resultCode == Activity.RESULT_OK) {
-                if (data.getBooleanExtra("status", false)) populate_accounts_list_view();
-                current_inbox = data.getIntExtra("new_inbox_id", -2);
-                set_current_inbox();
-            }
-        } else if (requestCode == 100) {
-            if (data != null && data.hasExtra("inbox_deleted")
-                    && data.getBooleanExtra("inbox_deleted", false)) {
-                populate_accounts_list_view();
-                current_inbox = -2;
-                set_current_inbox();
-            }
-        } else if (resultCode == 10101) {
-            // Prepare to write a reply message
-            Intent send_intent = new Intent(getApplicationContext(), InboxSend.class);
-            Bundle b = new Bundle();
-            b.putInt("db_id", current.get_id());
-            b.putString("title", current.get_email());
-            b.putAll(data.getExtras());
-            startActivityForResult(send_intent.putExtras(b), 10001);
-        } else if (resultCode == 1010101) {
-            // Request ListView reload after message deletion
-            populate_messages_list_view();
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle save) {
-        super.onSaveInstanceState(save);
-        save.putString("sv_log", log);
-        save.putInt("sv_orientation", orientation);
-        save.putBoolean("sv_unread_focus_mode_state", unread_focus_mode_state);
-        save.putBoolean("sv_refresh", refresh);
-        save.putBoolean("sv_unlocked", unlocked);
-        save.putInt("sv_over", over);
-        save.putBoolean("sv_show_help", show_help);
-        save.putBoolean("sv_good_incoming_server", good_incoming_server);
-        save.putInt("sv_current_inbox", current_inbox);
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout llay_drawer = findViewById(R.id.drawer_layout);
-        if (llay_drawer.isDrawerOpen(GravityCompat.START)) {
-            llay_drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+    public void onSaveInstanceState(@NonNull Bundle saved_instance_state) {
+        super.onSaveInstanceState(saved_instance_state);
+        saved_instance_state.putString("sv_log", log);
+        saved_instance_state.putBoolean("sv_unread_focus_mode_state", unread_focus_mode_state);
+        saved_instance_state.putBoolean("sv_refresh", refresh);
+        saved_instance_state.putBoolean("sv_unlocked", unlocked);
+        saved_instance_state.putInt("sv_over", over);
+        saved_instance_state.putBoolean("sv_show_help", show_help);
+        saved_instance_state.putInt("sv_current_inbox", current_inbox);
+        saved_instance_state.putInt("sv_last_connection_data_id", last_connection_data_id);
+        saved_instance_state.putString("sv_last_connection_data", last_connection_data);
     }
 
     private void init_db(String s) {
@@ -391,32 +496,39 @@ public class InboxPager extends AppCompatActivity {
             unlocked = true;
         } catch (Exception e) {
             log = log.concat(e.getMessage() + "\n\n");
+            e.printStackTrace(); // crash
             unlocked = false;
-            et_pw.setBackgroundColor(Color.parseColor("#BA0C0C"));
-            et_pw.setHintTextColor(Color.WHITE);
+            if (et_pw != null) {
+                et_pw.setBackgroundColor(Color.parseColor("#BA0C0C"));
+                et_pw.setHintTextColor(Color.WHITE);
+            }
         }
     }
 
     private void fade_in_ui() {
         // UI entry appearance
-        llay_pw.animate().alpha(0f).setListener(new AnimatorListenerAdapter() {
+        llay_pw.animate().alpha(0f).setListener(
+            new AnimatorListenerAdapter() {
 
-            @Override
-            public void onAnimationEnd(Animator animation) {
+                @Override
+                public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 DrawerLayout llay_drawer = findViewById(R.id.drawer_layout);
                 llay_pw.setVisibility(View.GONE);
                 llay_drawer.setAlpha(0.01f);
                 llay_drawer.setVisibility(View.VISIBLE);
-                llay_drawer.animate().alpha(1f).setListener(new AnimatorListenerAdapter() {
+                llay_drawer.animate().alpha(1f).setListener(
+                    new AnimatorListenerAdapter() {
 
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                        }
                     }
-                });
+                );
+                }
             }
-        });
+        );
     }
 
     private void activity_load() {
@@ -438,33 +550,28 @@ public class InboxPager extends AppCompatActivity {
 
         // Current Inbox Refresh Button
         ib_refresh = findViewById(R.id.refresh);
-        ib_refresh.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
+        ib_refresh.setOnClickListener(
+            v -> {
                 if (current_inbox != -2) refresh_current();
             }
-        });
+        );
 
         // No accounts message is visible if the user has not init-ed the app
         tv_background = findViewById(R.id.text_background);
-        tv_background.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                drawer_flip();
-            }
-        });
+        tv_background.setOnClickListener(v -> drawer_flip());
 
         // Setting up the SSL authentication application
         iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
-        iv_ssl_auth.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog_servers();
-            }
-        });
+        iv_ssl_auth.setOnClickListener(v -> dialog_servers());
+        if (last_connection_data_id > -1 && last_connection_data_id == current_inbox) {
+            iv_ssl_auth.setVisibility(View.VISIBLE); // restore connection security icon
+            if (last_connection_data != null && !last_connection_data.isEmpty())
+                iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
+            else
+                iv_ssl_auth.setImageResource(R.drawable.padlock_error);
+        } else {
+            iv_ssl_auth.setVisibility(View.GONE);
+        }
 
         // ListView for Messages
         msg_list_view = findViewById(R.id.msg_list_view);
@@ -472,10 +579,8 @@ public class InboxPager extends AppCompatActivity {
         // Floating unread messages' focus mode
         iv_unread_focus_mode = findViewById(R.id.iv_unread_focus_mode);
         iv_unread_focus_mode.setVisibility(View.VISIBLE);
-        iv_unread_focus_mode.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
+        iv_unread_focus_mode.setOnClickListener(
+            view -> {
                 if (unread_focus_mode_state) {
                     unread_focus_mode_state = false;
                     iv_unread_focus_mode.setImageResource(R.drawable.focus_mode_allmsg);
@@ -485,40 +590,35 @@ public class InboxPager extends AppCompatActivity {
                 }
                 populate_messages_list_view();
             }
-        });
-        iv_unread_focus_mode.setImageResource(unread_focus_mode_state ?
-                R.drawable.focus_mode_unread : R.drawable.focus_mode_allmsg);
+        );
+        iv_unread_focus_mode.setImageResource(
+            unread_focus_mode_state ? R.drawable.focus_mode_unread : R.drawable.focus_mode_allmsg
+        );
 
         // Floating Send Suggestion
         iv_send_activity = findViewById(R.id.iv_send_activity);
         iv_send_activity.setVisibility(View.VISIBLE);
-        iv_send_activity.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
+        iv_send_activity.setOnClickListener(
+            view -> {
                 Intent in = new Intent(getApplicationContext(), InboxSend.class);
                 Bundle bn = new Bundle();
                 bn.putInt("db_id", current.get_id());
                 bn.putString("title", current.get_email());
-                startActivityForResult(in.putExtras(bn), 1000);
+                startActivity(in.putExtras(bn));
                 overridePendingTransition(R.anim.left_in, R.anim.left_out);
             }
-        });
+        );
 
         llay_drawer = findViewById(R.id.drawer_layout);
 
-        ActionBarDrawerToggle drawer_toggle = new ActionBarDrawerToggle(this, llay_drawer,
-                tb, R.string.drawer_open, R.string.drawer_close);
+        ActionBarDrawerToggle drawer_toggle = new ActionBarDrawerToggle(
+        this, llay_drawer, tb, R.string.drawer_open, R.string.drawer_close
+        );
         llay_drawer.addDrawerListener(drawer_toggle);
         drawer_toggle.syncState();
         drawer_toggle.setDrawerIndicatorEnabled(false);
         drawer_toggle.setHomeAsUpIndicator(R.drawable.drawer);
-        drawer_toggle.setToolbarNavigationClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawer_flip();
-            }
-        });
+        drawer_toggle.setToolbarNavigationClickListener(v -> drawer_flip());
 
         // Filling the ListView accounts in the drawer
         inbox_list_view = findViewById(R.id.list_view_drawer);
@@ -539,25 +639,25 @@ public class InboxPager extends AppCompatActivity {
     public void populate_accounts_list_view() {
         ArrayList<Inbox> list_accounts = db.get_all_accounts();
 
-        if (list_accounts.size() == 0) {
+        if (list_accounts.isEmpty()) {
+            current_inbox = -2;
             al_accounts_items = new ArrayList<>();
-
             tv_background.setText(getString(R.string.no_accounts));
             tv_background.setVisibility(View.VISIBLE);
+            tv_pager_title.setText("");
 
             if (inbox_list_view != null) inbox_list_view.setAdapter(null);
         } else {
             // Update data set
-            if (al_accounts_items.size() > 0) {
+            if (!al_accounts_items.isEmpty()) {
                 al_accounts_items.clear();
             }
 
             // Sort accounts' list
-            Collections.sort(list_accounts, new Comparator<Inbox>() {
-                public int compare(Inbox inn1, Inbox inn2) {
-                    return inn1.get_email().compareTo(inn2.get_email());
-                }
-            });
+            Collections.sort(
+                list_accounts,
+                (inn1, inn2) -> inn1.get_email().compareTo(inn2.get_email())
+            );
 
             for (int i = 0; i < list_accounts.size(); i++) {
                 // Check and update unseen message counts
@@ -568,8 +668,9 @@ public class InboxPager extends AppCompatActivity {
                     nfo.set_unseen(unseen_count);
                 }
 
-                al_accounts_items.add(new InboxListItem(nfo.get_id(), nfo.get_email(),
-                        nfo.get_unseen()));
+                al_accounts_items.add(
+                    new InboxListItem(nfo.get_id(), nfo.get_email(), nfo.get_unseen())
+                );
             }
 
             // Add list adapter
@@ -579,28 +680,22 @@ public class InboxPager extends AppCompatActivity {
             }
 
             inbox_adapter.notifyDataSetChanged();
-            inbox_list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                @Override
-                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                    InboxListItem inbox_itm = (InboxListItem) parent.getItemAtPosition(position);
-                    current_inbox = inbox_itm.get_id();
-                    set_current_inbox();
-                    onBackPressed();
-                }
+            inbox_list_view.setOnItemClickListener((parent, v, position, id) -> {
+                InboxListItem inbox_itm = (InboxListItem) parent.getItemAtPosition(position);
+                current_inbox = inbox_itm.get_id();
+                set_current_inbox();
             });
         }
     }
 
     public void mass_refresh_check() {
-        if (list_mass_refresh.size() < 1) {
+        if (list_mass_refresh.isEmpty()) {
             // Prevents screen rotation crash
-            handle_orientation(true);
+            Common.fixed_or_rotating_orientation(true, this);
 
-            // Starting a spinning animation dialog
-            spt = new SpinningStatus(true, true, this, handler);
-            spt.execute();
-            spt.onProgressUpdate(getString(R.string.progress_title), "");
+            // Starting an animated dialog
+            spt = new SpinningStatus(true, true, this, network_thread);
+            spt.set_progress(getString(R.string.progress_title), "");
             list_mass_refresh = db.get_all_accounts_id();
             mass_refresh();
         }
@@ -610,19 +705,19 @@ public class InboxPager extends AppCompatActivity {
      * Handles new message checks to all participating accounts.
      **/
     public void mass_refresh() {
-        if (list_mass_refresh.size() > 0) {
+        if (!list_mass_refresh.isEmpty()) {
             Inbox inn = db.get_account(list_mass_refresh.get(0));
             list_mass_refresh.remove(0);
             if (inn.get_imap_or_pop()) {
-                handler = new IMAP(this);
+                network_thread = new IMAP(this);
             } else {
-                handler = new POP(this);
+                network_thread = new POP(this);
             }
-            handler.sp = spt;
-            handler.default_action(true, inn, this);
-            handler.start();
+            network_thread.sp = spt;
+            network_thread.default_action(true, inn, this);
+            network_thread.start();
         } else {
-            spt.unblock = true;
+            spt.do_after();
             populate_accounts_list_view();
             set_current_inbox();
         }
@@ -630,7 +725,7 @@ public class InboxPager extends AppCompatActivity {
 
     public void set_current_inbox() {
         if (al_accounts_items != null) {
-            if (al_accounts_items.size() == 0) {
+            if (al_accounts_items.isEmpty()) {
                 // No accounts exist, load nothing
                 tv_pager_title.setText(getString(R.string.activity_pager_title).toUpperCase());
                 tv_background.setText(getString(R.string.no_accounts));
@@ -673,7 +768,9 @@ public class InboxPager extends AppCompatActivity {
     }
 
     public void populate_messages_list_view() {
-        al_messages = db.get_all_messages(current.get_id(), unread_focus_mode_state);
+        if (current != null) {
+            al_messages = db.get_all_messages(current.get_id(), unread_focus_mode_state);
+        }
 
         // If there is any SMTP
         try {
@@ -686,23 +783,21 @@ public class InboxPager extends AppCompatActivity {
 
         tv_background.setText(getString(R.string.no_messages));
 
-        if (al_messages.size() == 0) {
+        if (al_messages == null || al_messages.isEmpty()) {
             tv_background.setVisibility(View.VISIBLE);
             msg_list_view.setVisibility(View.GONE);
         } else {
             tv_background.setVisibility(View.GONE);
             msg_list_view.setVisibility(View.VISIBLE);
 
-            InboxMessageExpList msg_list_adapter = new InboxMessageExpList(current_inbox, this,
-                    new ArrayList<>(al_messages.keySet()), al_messages);
+            InboxMessageExpList msg_list_adapter = new InboxMessageExpList(
+                this,
+                new ArrayList<>(al_messages.keySet()),
+                al_messages
+            );
             msg_list_view.setAdapter(msg_list_adapter);
             msg_list_view.setOnChildClickListener(
-                    new ExpandableListView.OnChildClickListener() {
-
-                @Override
-                public boolean onChildClick(ExpandableListView parent, View v,
-                                            int group_pos, int child_pos, long id) {
-
+                (parent, v, group_pos, child_pos, id) -> {
                     Object key = al_messages.keySet().toArray()[group_pos];
                     Message m = al_messages.get(key).get(child_pos);
 
@@ -723,26 +818,20 @@ public class InboxPager extends AppCompatActivity {
                     b.putString("title", current.get_email());
                     b.putBoolean("no_send", current.get_smtp_server().isEmpty());
                     b.putBoolean("imap_or_pop", current.get_imap_or_pop());
-                    startActivityForResult(i.putExtras(b), 1000);
-                    overridePendingTransition(R.anim.left_in, R.anim.left_out);
-
-                    return false;
-                }
-            });
-
-            // Direct Reply Send Option
-            msg_list_view.setOnItemLongClickListener(
-                    new ExpandableListView.OnItemLongClickListener() {
-
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    if (view.findViewById(R.id.message_group) != null
-                            && (view.getId() == view.findViewById(R.id.message_group).getId())) {
-                        view.findViewById(R.id.message_group_send_to).setVisibility(View.VISIBLE);
+                    start_activity_for_result.launch(i.putExtras(b));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
+                        overrideActivityTransition(
+                            OVERRIDE_TRANSITION_OPEN,
+                            R.anim.left_in,
+                            R.anim.left_out
+                        );
+                    } else { // Android API <= 33
+                        overridePendingTransition(R.anim.left_in, R.anim.left_out);
                     }
+
                     return false;
                 }
-            });
+            );
         }
 
         // Update message counter
@@ -763,64 +852,57 @@ public class InboxPager extends AppCompatActivity {
     }
 
     private void set_count_top() {
-        int i = current.get_unseen();
+        if (current != null) {
+            int i = current.get_unseen();
 
-        // Checking for discrepancies
-        int unseen_count = db.count_unseen_account_messages(current_inbox);
-        if (i != unseen_count) {
-            i = unseen_count;
-            current.set_unseen(i);
-        }
+            // Checking for discrepancies
+            int unseen_count = db.count_unseen_account_messages(current_inbox);
+            if (i != unseen_count) {
+                i = unseen_count;
+                current.set_unseen(i);
+            }
 
-        String str = "000";
-        if (i < 1) {
-            tv_page_counter.setText(str);
-            tv_page_counter.setVisibility(View.GONE);
-            return;
+            if (i < 1) {
+                tv_page_counter.setText("000");
+                tv_page_counter.setVisibility(View.GONE);
+                return;
+            } else {
+                tv_page_counter.setVisibility(View.VISIBLE);
+            }
+            if (i < 10) {
+                tv_page_counter.setText("00" + i);
+            } if (i > 9 && i < 100) {
+                tv_page_counter.setText("0" + i);
+            } else if (i > 100 && i <= 999) {
+                tv_page_counter.setText(String.valueOf(i));
+            } else if (i > 999) {
+                tv_page_counter.setText("+999");
+            }
         } else {
-            tv_page_counter.setVisibility(View.VISIBLE);
-        }
-        if (i < 10) {
-            str = "00" + i;
-            tv_page_counter.setText(str);
-        } if (i > 9 && i < 100) {
-            str = "0" + i;
-            tv_page_counter.setText(str);
-        } else if (i > 100 && i <= 999) {
-            str = String.valueOf(i);
-            tv_page_counter.setText(str);
-        } else if (i > 999) {
-            str = "+999";
-            tv_page_counter.setText(str);
+            tv_page_counter.setVisibility(View.GONE);
         }
     }
 
     public void refresh_current() {
         // Prevents screen rotation crash
-        handle_orientation(true);
+        Common.fixed_or_rotating_orientation(true, this);
 
         // Starting a spinning animation dialog
-        SpinningStatus sp = new SpinningStatus(true, false, this, handler);
-        sp.execute();
-        sp.onProgressUpdate(getString(R.string.progress_title),
-                getString(R.string.progress_refreshing));
+        SpinningStatus sp = new SpinningStatus(true, false, this, network_thread);
+        sp.set_progress(
+            getString(R.string.progress_title),
+            getString(R.string.progress_refreshing)
+        );
 
         // Starting refresh INBOX
         if (current.get_imap_or_pop()) {
-            handler = new IMAP(this);
+            network_thread = new IMAP(this);
         } else {
-            handler = new POP(this);
+            network_thread = new POP(this);
         }
-        handler.sp = sp;
-        handler.start();
-        handler.default_action(false, current, this);
-    }
-
-    public void handle_orientation(boolean fixed_or_rotating) {
-        if (fixed_or_rotating) {
-            orientation = getResources().getConfiguration().orientation;
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-        } else setRequestedOrientation(orientation);
+        network_thread.sp = sp;
+        network_thread.start();
+        network_thread.default_action(false, current, this);
     }
 
     /**
@@ -828,43 +910,47 @@ public class InboxPager extends AppCompatActivity {
      **/
     private void dialog_statistical() {
         int sz = current.get_total_size();
-        String total_size = "";
+        String total_size;
         if (sz < 1024) {
-            total_size += sz + " " + getString(R.string.attch_bytes);
+            total_size = sz + " " + getString(R.string.attch_bytes);
         } else if (sz < 1048576) {
-            total_size += (sz/1024) + " " + getString(R.string.attch_kilobytes);
+            total_size = (sz/1024) + " " + getString(R.string.attch_kilobytes);
         } else {
-            total_size += (sz/1048576) + " " + getString(R.string.attch_megabytes);
+            total_size = (sz/1048576) + " " + getString(R.string.attch_megabytes);
         }
 
-        String msg = String.format(Locale.getDefault(), "%d %s, %s %s, %s",
-                current.get_messages(), getString(R.string.stats_messages), current.get_unseen(),
-                getString(R.string.stats_unseen), total_size);
+        String msg = String.format(
+            Locale.getDefault(),
+            "%d %s, %s %s, %s",
+            current.get_messages(),
+            getString(R.string.stats_messages),
+            current.get_unseen(),
+            getString(R.string.stats_unseen),
+            total_size
+        );
 
         Dialogs.dialog_simple(getString(R.string.stats_title), msg, this);
     }
 
     public void connection_security() {
-        if (handler == null) return;
-        good_incoming_server = handler.get_hostname_verify();
-        if (good_incoming_server) {
-            if (handler != null && handler.get_last_connection_data() != null
-                    && (handler.get_last_connection_data_id() == current.get_id())) {
-                good_incoming_server = !handler.get_last_connection_data().isEmpty();
+        if (network_thread == null) return;
+        last_connection_data_id = network_thread.last_connection_data_id;
+        last_connection_data = network_thread.last_connection_data;
+        if (last_connection_data_id > -1) {
+            if (network_thread.last_connection_data_id == current_inbox) {
                 iv_ssl_auth.setVisibility(View.VISIBLE);
-                if (good_incoming_server) {
+                if (!network_thread.last_connection_data.isEmpty()) {
                     iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
                 } else {
                     iv_ssl_auth.setImageResource(R.drawable.padlock_error);
                 }
             } else {
-                good_incoming_server = false;
                 iv_ssl_auth.setVisibility(View.GONE);
             }
         } else {
-            iv_ssl_auth.setVisibility(View.VISIBLE);
+            iv_ssl_auth.setVisibility(View.GONE);
             iv_ssl_auth.setImageResource(R.drawable.padlock_error);
-            Dialogs.toaster(true, getString(R.string.err_action_failed), this);
+            Dialogs.toaster(false, getString(R.string.err_action_failed), this);
         }
     }
 
@@ -872,16 +958,15 @@ public class InboxPager extends AppCompatActivity {
      * Intermediaries' SSL certificates of the last live connection.
      **/
     private void dialog_servers() {
-        Dialogs.dialog_view_ssl(this.good_incoming_server, this.handler, this);
+        Dialogs.dialog_simple(
+            getString(R.string.ssl_auth_popup_title),
+            last_connection_data == null ? getString(R.string.ssl_auth_popup_bad_connection)
+                : last_connection_data,
+            this
+        );
     }
 
     public static DBAccess get_db() {
         return db;
-    }
-
-    public static void notify_update() {
-        if (!ring.isPlaying() && prefs.getBoolean("beeps", false)) ring.play();
-
-        if (prefs.getBoolean("vibrates", false)) vib.vibrate(1000);
     }
 }

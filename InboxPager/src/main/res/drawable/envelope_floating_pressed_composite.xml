@@ -4,13 +4,13 @@
         <layer-list>
             <item
                 android:state_enabled="true"
-                android:drawable="@drawable/unseen_floating_normal"/>
+                android:drawable="@drawable/envelope_floating_pressed"/>
             <item
-                android:top="14dp"
-                android:left="-24dp"
+                android:top="15dp"
+                android:left="-40dp"
                 android:gravity="center"
                 android:state_enabled="true"
-                android:drawable="@drawable/reply_arrow"/>
+                android:drawable="@drawable/reply_arrow_pressed"/>
         </layer-list>
     </item>
 </selector>

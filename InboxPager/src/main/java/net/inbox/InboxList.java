@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,15 +25,16 @@ import android.widget.TextView;
 
 import net.inbox.pager.R;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class InboxList extends BaseAdapter {
 
-    private Context ctx;
     private ArrayList<InboxListItem> inboxes;
+    private WeakReference<Context> ctx;
 
-    InboxList(Context ctx, ArrayList<InboxListItem> inboxes) {
-        this.ctx = ctx;
+    InboxList(Context ct, ArrayList<InboxListItem> inboxes) {
+        ctx = new WeakReference<>(ct);
         this.inboxes = inboxes;
     }
 
@@ -55,7 +56,9 @@ public class InboxList extends BaseAdapter {
     @Override
     public View getView(int position, View v, ViewGroup parent) {
         if (v == null) {
-            v = (LayoutInflater.from(this.ctx)).inflate(R.layout.inbox_list_row, parent, false);
+            v = (LayoutInflater.from(this.ctx.get())).inflate(
+                R.layout.inbox_list_row, parent, false
+            );
         }
 
         InboxListItem itm = (InboxListItem) getItem(position);
@@ -67,7 +70,6 @@ public class InboxList extends BaseAdapter {
         } else {
             tv_count.setVisibility(View.VISIBLE);
         }
-
         tv_count.setText(itm.get_count());
 
         return v;

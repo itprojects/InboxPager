@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2018-2024  ITPROJECTS
+ * Copyright (C) 2018-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 package net.inbox.visuals;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,22 +25,24 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
+
 import net.inbox.pager.R;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class SendFileList extends BaseAdapter {
 
-    // Picked Files or Browser
-    private boolean picked_mode;
-
-    private Context ctx;
+    private boolean picked_mode; // picked files or browser
     private ArrayList<SendFileItem> file_folders;
+    private WeakReference<Context> ctx;
 
-    SendFileList(boolean picked_m, Context ctx, ArrayList<SendFileItem> file_folders) {
-        this.picked_mode = picked_m;
-        this.ctx = ctx;
-        this.file_folders = file_folders;
+    SendFileList(boolean picked_m, Context ct, ArrayList<SendFileItem> f_folders) {
+        picked_mode = picked_m;
+        ctx = new WeakReference<>(ct);
+        file_folders = f_folders;
     }
 
     @Override
@@ -60,22 +63,16 @@ public class SendFileList extends BaseAdapter {
     @Override
     public View getView(int position, View v, ViewGroup parent) {
         if (v == null) {
-            v = (LayoutInflater.from(this.ctx)).inflate(R.layout.file_picker_list_row, parent, false);
+            v = (LayoutInflater.from(ctx.get())).inflate(
+                R.layout.file_picker_list_row, parent, false
+            );
         }
         final SendFileItem itm = (SendFileItem) getItem(position);
         ImageView iv_pick_action = v.findViewById(R.id.pick_action);
         if (!itm.get_file_or_directory()) iv_pick_action.setVisibility(View.GONE);
-        iv_pick_action.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                if (itm.get_file_or_directory()) {
-                    if (picked_mode) {
-                        ((SendFilePicker) ctx).add_or_remove_attachment(false, itm.get_file_uri());
-                    } else {
-                        ((SendFilePicker) ctx).add_or_remove_attachment(true, itm.get_file_uri());
-                    }
-                }
+        iv_pick_action.setOnClickListener(view -> {
+            if (itm.get_file_or_directory()) {
+                ((SendFilePicker) ctx.get()).add_or_remove_attachment(!picked_mode, itm.get_file_uri());
             }
         });
         TextView tv_pick_file_name = v.findViewById(R.id.pick_file_name);
@@ -84,15 +81,21 @@ public class SendFileList extends BaseAdapter {
         TextView tv_pick_size = v.findViewById(R.id.pick_size);
         ImageView iv_pick_type = v.findViewById(R.id.pick_type);
         if (itm.get_file_or_directory()) {
-            iv_pick_type.setImageDrawable(this.ctx.getDrawable(R.drawable.pick_file));
+            iv_pick_type.setImageDrawable(
+                AppCompatResources.getDrawable(ctx.get(), R.drawable.pick_file)
+            );
             iv_pick_action.setVisibility(View.VISIBLE);
             tv_pick_size.setText(itm.get_file_size_s());
             tv_pick_size.setVisibility(View.VISIBLE);
 
             if (picked_mode) {
-                iv_pick_action.setImageDrawable(this.ctx.getDrawable(R.drawable.remove_item));
+                iv_pick_action.setImageDrawable(
+                    AppCompatResources.getDrawable(ctx.get(), R.drawable.remove_item)
+                );
             } else {
-                iv_pick_action.setImageDrawable(this.ctx.getDrawable(R.drawable.attachment));
+                iv_pick_action.setImageDrawable(
+                    AppCompatResources.getDrawable(ctx.get(), R.drawable.attachment)
+                );
             }
 
             // Content-type determination
@@ -104,11 +107,27 @@ public class SendFileList extends BaseAdapter {
             }
         } else {
             // Folder item
-            iv_pick_type.setImageDrawable(this.ctx.getDrawable(R.drawable.pick_folder));
+            iv_pick_type.setImageDrawable(
+                AppCompatResources.getDrawable(
+                    ctx.get(), R.drawable.pick_folder
+                )
+            );
             iv_pick_action.setVisibility(View.GONE);
             tv_pick_size.setVisibility(View.GONE);
             tv_pick_file_type.setVisibility(View.GONE);
         }
+
+        // Set item click listener
+        v.setOnClickListener(
+            view -> {
+                SendFileItem item = file_folders.get(position);
+                Dialogs.dialog_simple(
+                    parent.getContext().getString(R.string.attch_title_generic),
+                    item.get_file_name() + "\n\n" + Uri.decode(item.get_file_uri()),
+                    ((AppCompatActivity) ctx.get())
+                );
+            }
+        );
 
         return v;
     }
@@ -123,8 +142,14 @@ class SendFileItem {
     private String file_uri;
     private String file_type;
 
-    SendFileItem(boolean file_or_directory, long file_size_l, String file_size_s,
-                   String file_name, String file_uri, String file_type) {
+    SendFileItem(
+        boolean file_or_directory,
+        long file_size_l,
+        String file_size_s,
+        String file_name,
+        String file_uri,
+        String file_type
+    ) {
         this.file_or_directory = file_or_directory;
         this.file_size_l = file_size_l;
         this.file_size_s = file_size_s;

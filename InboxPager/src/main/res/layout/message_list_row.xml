@@ -1,4 +1,5 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:minHeight="?android:attr/listPreferredItemHeight">
@@ -18,7 +19,7 @@
         android:layout_centerVertical="true"
         android:layout_alignParentStart="true"
         android:layout_marginStart="22sp"
-        android:layout_toStartOf="@+id/message_list_attachments" >
+        android:layout_toStartOf="@+id/message_list_attachments">
 
         <TextView
             android:id="@+id/message_list_title"
@@ -37,21 +38,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toStartOf="@+id/message_list_attachments_img"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="14sp"
         android:fontFamily="@font/dottz"
+        android:fallbackLineSpacing="false"
         android:maxLines="1"
         android:textSize="@dimen/text_size_message_item"
-        android:visibility="gone" />
+        android:gravity="center"
+        android:textAlignment="center"
+        app:drawableEndCompat="@drawable/attachment"
+        android:visibility="gone"/>
 
-    <ImageView
-        android:id="@+id/message_list_attachments_img"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_marginEnd="4sp"
-        android:contentDescription="@string/stats_unseen"
-        android:src="@drawable/attachment"
-        android:visibility="gone" />
+    <!-- fallbackLineSpacing corrects the TextView extra height space issue on API >= 33 -->
 
 </RelativeLayout>

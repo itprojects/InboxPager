@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 package net.inbox.visuals;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
@@ -28,42 +27,38 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import net.inbox.InboxPager;
 import net.inbox.pager.R;
 import net.inbox.server.EndToEnd;
-import net.inbox.server.Handler;
+import net.inbox.server.NetworkThread;
 
 public class Dialogs {
 
-    public static void dialog_simple(final String title, final String msg, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                if (title == null) builder.setTitle(ct.getString(R.string.app_name));
+    public static void dialog_simple(final String title, final String msg, final AppCompatActivity at) {
+        at.runOnUiThread(
+            () -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(at);
+                if (title == null) builder.setTitle(at.getString(R.string.app_name));
                 else builder.setTitle(title);
                 builder.setMessage(msg);
                 builder.setCancelable(true);
-                builder.setPositiveButton(ct.getString(android.R.string.ok), null);
+                builder.setPositiveButton(at.getString(android.R.string.ok), null);
                 make_text_selectable(builder.show());
             }
-        });
+        );
     }
 
-    public static void dialog_exception(final Exception e, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                builder.setTitle(ct.getString(R.string.ex_title));
+    public static void dialog_exception(final Exception e, final AppCompatActivity at) {
+        at.runOnUiThread(
+            () -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(at);
+                builder.setTitle(at.getString(R.string.ex_title));
                 String str = e.getMessage() + "\n\n";
                 StackTraceElement[] stack = e.getStackTrace();
                 for (int i = 0;i < e.getStackTrace().length;++i) {
@@ -71,52 +66,37 @@ public class Dialogs {
                 }
                 builder.setMessage(str);
                 builder.setCancelable(true);
-                builder.setPositiveButton(ct.getString(android.R.string.ok), null);
+                builder.setPositiveButton(at.getString(android.R.string.ok), null);
                 make_text_selectable(builder.show());
             }
-        });
+        );
     }
 
-    public static void dialog_view_message(final String msg, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-                builder.setTitle(ct.getString(R.string.menu_see_full_message_title));
+    public static void dialog_view_message(final String msg, final AppCompatActivity at) {
+        at.runOnUiThread(
+            () -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(at);
+                builder.setTitle(at.getString(R.string.menu_see_full_message_title));
                 builder.setMessage(msg);
                 builder.setCancelable(true);
-                builder.setPositiveButton(ct.getString(android.R.string.ok), null);
+                builder.setPositiveButton(at.getString(android.R.string.ok), null);
                 make_text_selectable(builder.show());
             }
-        });
+        );
     }
 
-    public static void dialog_view_log(AppCompatActivity ct) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-        builder.setTitle(ct.getString(R.string.menu_log));
+    public static void dialog_view_log(AppCompatActivity at) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(at);
+        builder.setTitle(at.getString(R.string.menu_log));
         builder.setMessage(InboxPager.log);
         builder.setCancelable(true);
-        builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-        builder.setNeutralButton(ct.getString(R.string.btn_log_clear),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        InboxPager.log = " ";
-                    }
-                });
-        builder.show();
-        make_text_selectable(builder.show());
-    }
-
-    public static void dialog_view_ssl(boolean ssl_status, Handler handler, AppCompatActivity ct) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(ct);
-        builder.setTitle(ct.getString(R.string.ssl_auth_popup_title));
-        builder.setCancelable(true);
-        builder.setPositiveButton(ct.getString(android.R.string.ok), null);
-        if (ssl_status) {
-            builder.setMessage(handler.get_last_connection_data());
-        } else {
-            builder.setMessage(ct.getString(R.string.ssl_auth_popup_bad_connection));
-        }
+        builder.setPositiveButton(at.getString(android.R.string.ok),
+            (dialog, id) -> dialog.dismiss()
+        );
+        builder.setNeutralButton(
+            at.getString(R.string.btn_log_clear),
+            (dialog, which) -> InboxPager.log = " "
+        );
         make_text_selectable(builder.show());
     }
 
@@ -125,27 +105,30 @@ public class Dialogs {
         if (text_box != null) text_box.setTextIsSelectable(true);
     }
 
-    public static void dialog_pw_txt(AlertDialog.Builder builder, AppCompatActivity ct) {
-        builder.setTitle(ct.getString(R.string.crypto_title));
+    public static void dialog_pw_txt(AlertDialog.Builder builder, AppCompatActivity at) {
+        builder.setTitle(at.getString(R.string.crypto_title));
 
-        LayoutInflater inflater = ct.getLayoutInflater();
+        LayoutInflater inflater = at.getLayoutInflater();
         View v = inflater.inflate(R.layout.pw_txt, null);
         builder.setView(v);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ct);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(at);
 
         // Spinners for text encryption parameters
         Spinner spin_cipher_type = v.findViewById(R.id.spin_cipher);
-        spin_cipher_type.setAdapter(new ArrayAdapter<CharSequence>(ct,
-                R.layout.spinner_item, EndToEnd.cipher_types));
+        spin_cipher_type.setAdapter(
+            new ArrayAdapter<CharSequence>(at, R.layout.spinner_item, EndToEnd.cipher_types)
+        );
 
         Spinner spin_cipher_mode = v.findViewById(R.id.spin_cipher_mode);
-        spin_cipher_mode.setAdapter(new ArrayAdapter<CharSequence>(ct,
-                R.layout.spinner_item, EndToEnd.cipher_modes));
+        spin_cipher_mode.setAdapter(
+            new ArrayAdapter<CharSequence>(at, R.layout.spinner_item, EndToEnd.cipher_modes)
+        );
 
         Spinner spin_cipher_padding = v.findViewById(R.id.spin_cipher_padding);
-        spin_cipher_padding.setAdapter(new ArrayAdapter<CharSequence>(ct,
-                R.layout.spinner_item, EndToEnd.cipher_paddings));
+        spin_cipher_padding.setAdapter(
+            new ArrayAdapter<CharSequence>(at, R.layout.spinner_item, EndToEnd.cipher_paddings)
+        );
 
         // Getting application current preferences
         String spin_type = prefs.getString("list_cipher_types", "AES");
@@ -174,36 +157,35 @@ public class Dialogs {
         }
 
         CheckBox cb_pw = v.findViewById(R.id.cb_pw);
-        cb_pw.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
-
-            @Override
-            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
+        cb_pw.setOnCheckedChangeListener(
+            (v1, isChecked) -> {
                 // Find EditText, this must change, is layout changes
-                LinearLayout lv = (LinearLayout) v.getParent().getParent();
+                LinearLayout lv = (LinearLayout) v1.getParent().getParent();
                 if (isChecked) {
-                    ((EditText)lv.findViewById(R.id.et_key))
-                            .setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                    ((EditText) lv.findViewById(R.id.et_key)).setInputType(
+                            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                    );
                 } else {
-                    ((EditText)lv.findViewById(R.id.et_key)).setInputType(InputType.TYPE_CLASS_TEXT
-                            | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                    ((EditText) lv.findViewById(R.id.et_key)).setInputType(
+                        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD
+                    );
                 }
             }
-        });
+        );
 
-        builder.setPositiveButton(ct.getString(R.string.crypto_decrypt), null);
+        builder.setPositiveButton(at.getString(R.string.crypto_decrypt), null);
     }
 
     public static void toaster(final boolean time, final String msg, final AppCompatActivity ct) {
-        ct.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+        ct.runOnUiThread(
+            () -> {
                 if (time) {
                     Toast.makeText(ct, msg, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(ct, msg, Toast.LENGTH_LONG).show();
                 }
             }
-        });
+        );
     }
 
     public static void toaster(final boolean time, final String msg, final Context ct) {

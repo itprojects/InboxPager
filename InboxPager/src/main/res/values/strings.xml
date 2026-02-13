@@ -1,7 +1,7 @@
 <resources>
 
     <string name="app_name">Inbox Pager</string>
-    <string name="author">Copyright &#169; 2016 &#8211; 2020  ITPROJECTS</string>
+    <string name="author">Copyright &#169; 2016 &#8211; 2026  ITPROJECTS</string>
     <string name="disclaimer">DISCLAIMER:</string>
     <string name="disclaimer_text">The authors of this software are not liable for ANY damages that this software may cause - accidental or otherwise, under ANY and EVERY law or regulation, and in ANY and EVERY country or territory of the world.</string>
     <string name="dialog_license">License Information</string>
@@ -92,6 +92,8 @@
     <string name="progress_connecting">Connecting to</string>
     <string name="progress_connected">Connected.</string>
     <string name="progress_authenticated">Authenticated.</string>
+    <string name="progress_test">Test</string>
+    <string name="progress_unknown_eml">unknown</string>
 
     <!-- Account Statistics Dialog -->
     <string name="stats_title">Account Situation</string>
@@ -107,16 +109,19 @@
     <string name="ex_no_internet">No internet! Check your connection.</string>
 
     <!-- Attachments List Dialog -->
+    <string name="attch_title_generic">Attachment</string>
     <string name="attch_title">Download To</string>
     <string name="attch_bytes">B</string>
     <string name="attch_kilobytes">KB</string>
     <string name="attch_megabytes">MB</string>
     <string name="attch_added_attachment">Added:</string>
 
-    <!-- Folder Picker Dialog -->
+    <!-- File/Folder Picker Dialog -->
     <string name="folder_title">FOLDER</string>
     <string name="file_title">FILES</string>
     <string name="picker_pick">PICK</string>
+    <string name="picker_pick_a_folder">Pick a folder…</string>
+    <string name="picker_no_selection">No file or folder selected.</string>
 
     <!-- Error Dialogs -->
     <string name="err_title_write_perms">Writing Prohibited</string>
@@ -127,6 +132,7 @@
     <string name="err_title_android_permission">Android Permissions</string>
     <string name="err_wrong_user_or_pass">Wrong user name or password</string>
     <string name="err_read_file">You do not have the permission to read this file.</string>
+    <string name="err_missing_permissions">Missing permissions for action.</string>
     <string name="err_size_attachments_title">Attachments Problem</string>
     <string name="err_size_attachments">Your attachments are larger than the outgoing server will allow. Remove some attachments.</string>
     <string name="err_size_attachments_continue">Ignore and Continue</string>
@@ -144,17 +150,20 @@
     <string name="err_server_not_configured">Outgoing server has not been configured correctly.</string>
     <string name="err_not_saved">Could not complete save action.</string>
     <string name="err_imap_attachment_saving">Offline attachment file saving failed. Download attachment online and delete full message from database.</string>
-    <string name="err_action_failed">Action failed (see log).</string>
+    <string name="err_action_failed">Action may have failed (see log).</string>
     <string name="err_refresh">Errors in</string>
     <string name="err_pick_signing_key">Pick a signing key!</string>
     <string name="err_pick_rcpt_keys">Pick recipient keys!</string>
     <string name="err_missing_crypto_mime">Missing message cryptographic data!</string>
+    <string name="err_missing_webview">Missing WebView package for html display!</string>
+    <string name="err_bad_hash">Cannot produce password hash!</string>
+    <string name="err_unknown_error">Unknown Error</string>
 
     <!-- InboxPager activity -->
     <string name="activity_pw">PASSWORD</string>
     <string name="activity_pager_title">Pager</string>
     <string name="menu_refresh">Refresh</string>
-    <string name="menu_settings">Settings</string>
+    <string name="menu_preferences">Application Preferences</string>
     <string name="menu_about">About</string>
     <string name="menu_add_account">Add Account</string>
     <string name="no_accounts">Add Message Accounts</string>
@@ -180,6 +189,10 @@
     <string name="ssl_auth_popup_title">Last Connection</string>
     <string name="ssl_auth_popup_bad_connection">You may be experiencing NO SECURITY AT ALL! Remote server had bad or missing SSL/TLS certificates, or the host name cannot be verified.</string>
     <string name="no_messages">Empty Inbox</string>
+
+    <!-- Notifications -->
+    <string name="notification_new_message">You have new messages.</string>
+    <string name="notification_sent_message">Message sent.</string>
 
     <!-- InboxPreferences activity -->
     <string name="activity_add_account_title">Add Account</string>
@@ -274,17 +287,22 @@
 
     <!-- Settings -->
     <string name="sett_auto_check_title">Refresh All Inboxes</string>
-    <string name="sett_auto_check_summary">Default setting. ALL participating message accounts will be checked, when the home screen refresh button if clicked.</string>
-    <string name="sett_beeps_download_title">Beep on new messages</string>
-    <string name="sett_beeps_download_summary">Device will make a beeping sound, when new messages arrive.</string>
+    <string name="sett_auto_check_summary">Default setting. ALL participating message accounts will be checked, when the home screen refresh button is clicked.</string>
+    <string name="sett_notifies_download_title">Notify if new messages arrive</string>
+    <string name="sett_notifies_download_summary">Device will show a notification, when new messages arrive. User must allow notifications for this application in the system settings.</string>
     <string name="sett_vibrates_download_title">Vibration on new messages</string>
     <string name="sett_vibrates_download_summary">Device will vibrate, when new messages arrive.</string>
+    <string name="sett_transparent_webview_title">Transparent WebView</string>
+    <string name="sett_transparent_webview_summary">Set WebView background to transparent.</string>
     <string name="sett_msg_font_size_title">Font SIZE</string>
     <string name="sett_msg_font_size_summary">Font size for the fields, when viewing a message.</string>
-    <string name="sett_enable_pw_title">Password Protection</string>
-    <string name="sett_enable_pw_summary_off">Password Status: DISABLED.</string>
-    <string name="sett_enable_pw_summary_on">Password Status: ENABLED.</string>
+    <string name="sett_enable_pw_title">Application Password</string>
+    <string name="sett_enable_pw_summary_off">Protection Status: DISABLED</string>
+    <string name="sett_enable_pw_summary_on">Protection Status: ENABLED</string>
+    <string name="sett_enable_pw_emergency_summary_off">Protection Status: DISABLED\n\nWhen enabled, DELETES the application database, after typed in application password window.</string>
+    <string name="sett_enable_pw_emergency_summary_on">Protection Status: ENABLED\n\nWhen enabled, DELETES the application database, after typed in application password window.</string>
     <string name="sett_change_pw_title">Password</string>
+    <string name="sett_change_pw_emergency_title">Emergency Deletion Password</string>
     <string name="sett_change_pw_new">NEW PASSWORD</string>
     <string name="sett_change_pw_retype">REPEAT NEW PASS</string>
     <string name="sett_change_pw_text">>= 12 symbols</string>
@@ -302,18 +320,18 @@
     <!-- GPG -->
     <string name="open_pgp_dialog_title">Cryptography</string>
     <string name="open_pgp_reset">RESET</string>
-    <string name="open_pgp_ready">READY</string>
-    <string name="open_pgp_start" translatable="false">GPG</string>
+    <string name="open_pgp_ready">4. DONE</string>
+    <string name="open_pgp_start" translatable="false">3. GPG</string>
     <string name="open_pgp_press_start">Press GPG button.</string>
-    <string name="open_pgp_none_found">OpenKeychain not found! No encryption/decryption!!</string>
+    <string name="open_pgp_none_found">OpenKeychain not found!\nNo encryption/decryption!!</string>
     <string name="open_pgp_list_items_encrypt">ENCRYPT MESSAGE</string>
     <string name="open_pgp_list_items_sign_encrypt">SIGN AND ENCRYPT MESSAGE</string>
     <string name="open_pgp_list_items_detach_sign">SIGN CLEAR TEXT MESSAGE</string>
     <string name="open_pgp_list_items_decrypt_and_verify">DECRYPT AND VERIFY</string>
-    <string name="open_pgp_signing_key_check">&#10003; Signing key</string>
-    <string name="open_pgp_signing_key_cross">&#10060; Signing key</string>
-    <string name="open_pgp_rcpt_key_check">&#10003; Recipient keys</string>
-    <string name="open_pgp_rcpt_key_cross">&#10060; Recipient keys</string>
+    <string name="open_pgp_signing_key_check">1. Signing key ✓</string>
+    <string name="open_pgp_signing_key_cross">1. Signing key ❌</string>
+    <string name="open_pgp_rcpt_key_check">2. Recipient keys ✓</string>
+    <string name="open_pgp_rcpt_key_cross">2. Recipient keys ❌</string>
     <string name="open_pgp_recipients">RECIPIENTS</string>
     <string name="open_pgp_message">CLEAR MESSAGE</string>
     <string name="open_pgp_message_encrypted_block">ENCRYPTED MESSAGE</string>
@@ -327,9 +345,10 @@
     <string name="empty_string" translatable="false"/>
     <string name="crypto_title">Encrypted Text</string>
     <string name="crypto_key_32_symbols">=&lt; 32 symbols</string>
-    <string name="crypto_plain_warning">Encrypt or Decrypt text of message, with key below.</string>
-    <string name="crypto_encrypt">&#128274; Encrypt</string>
-    <string name="crypto_decrypt">&#128275; Decrypt</string>
+    <string name="crypto_key_pw">key / password</string>
+    <string name="crypto_plain_warning">Encrypt or Decrypt selected text.</string>
+    <string name="crypto_encrypt">Encrypt &#128274;</string>
+    <string name="crypto_decrypt">Decrypt &#128275;</string>
     <string name="crypto_no_text">Missing message text.</string>
     <string name="crypto_invalid_key">Invalid KEY OR LENGTH.</string>
     <string name="crypto_success">SUCCESS!</string>

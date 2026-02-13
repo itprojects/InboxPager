@@ -1,15 +1,15 @@
 [versions]
-agp = "8.5.0"
-androidDatabaseSqlcipher = "4.4.0"
-appcompat = "1.7.0"
-material = "1.12.0"
-constraintlayout = "2.1.4"
+agp = "9.0.0"
+androidDatabaseSqlcipher = "4.5.4"
+appcompat = "1.7.1"
+material = "1.13.0"
+constraintlayout = "2.2.1"
 preference = "1.2.1"
-sqlite = "2.4.0"
+sqlite = "2.6.2"
 
 [libraries]
 android-database-sqlcipher = { module = "net.zetetic:android-database-sqlcipher", version.ref = "androidDatabaseSqlcipher" }
-documentfile = { module = "androidx.documentfile:documentfile" }
+documentfile = { module = "androidx.documentfile:documentfile", version = "1.1.0" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }

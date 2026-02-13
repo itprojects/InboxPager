@@ -1,0 +1,7 @@
+Minimum SDK API 23, Android 6 Marshmallow.
+
+Updated gradle version, build scripts.
+
+Updated dependencies.
+
+Updated German translation.

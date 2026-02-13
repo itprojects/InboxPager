@@ -5,6 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- fallbackLineSpacing corrects the TextView extra height space issue on API >= 33 -->
+    <!-- Text rendering for dottz requires fixed height, no includeFontPadding, bottom gravity -->
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -23,65 +26,77 @@
                 android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-                <ImageButton
-                    android:id="@+id/refresh"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="@string/menu_refresh"
-                    android:padding="4sp"
-                    android:src="@drawable/btn_refresh"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/pager_page_counter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:background="@drawable/counter_rounded"
-                    android:fontFamily="@font/dottz"
-                    android:padding="4sp"
-                    android:shadowColor="@color/color_title"
-                    android:shadowDx="0"
-                    android:shadowDy="0"
-                    android:shadowRadius="3"
-                    android:textAppearance="@android:style/TextAppearance.Large.Inverse"
-                    android:textColor="@color/color_home_bar_background"
-                    android:visibility="gone" />
-
-                <ImageView
-                    android:id="@+id/ssl_auth_img_vw"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:contentDescription="@string/ssl_auth_popup_title"
-                    android:paddingStart="0sp"
-                    android:paddingTop="4sp"
-                    android:paddingEnd="0sp"
-                    android:paddingBottom="4sp"
-                    android:src="@drawable/padlock_error"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/pager_title"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="@font/dottz"
-                    android:letterSpacing="0.1"
-                    android:maxLines="1"
-                    android:paddingLeft="0sp"
-                    android:paddingTop="4sp"
-                    android:paddingRight="0sp"
-                    android:paddingBottom="4sp"
-                    android:shadowColor="@color/color_title"
-                    android:shadowDx="0"
-                    android:shadowDy="0"
-                    android:shadowRadius="3"
-                    android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
-                    android:textColor="@color/color_title"
-                    android:visibility="visible" />
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/ssl_auth_img_vw"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start|center_vertical"
+                        android:layout_marginStart="0sp"
+                        android:layout_marginEnd="10sp"
+                        android:paddingStart="0sp"
+                        android:paddingEnd="0sp"
+                        android:contentDescription="@string/ssl_auth_popup_title"
+                        android:src="@drawable/padlock_error"
+                        android:visibility="gone"/>
+
+                    <TextView
+                        android:id="@+id/pager_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6sp"
+                        android:layout_gravity="start|center_vertical"
+                        android:ellipsize="end"
+                        android:fallbackLineSpacing="false"
+                        android:fontFamily="@font/dottz"
+                        android:letterSpacing="0.1"
+                        android:maxLines="1"
+                        android:shadowColor="@color/color_title"
+                        android:shadowDx="0"
+                        android:shadowDy="0"
+                        android:shadowRadius="3"
+                        android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
+                        android:textColor="@color/color_title"
+                        android:visibility="visible"/>
+
+                    <TextView
+                        android:id="@+id/pager_page_counter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="22sp"
+                        android:layout_marginStart="6sp"
+                        android:layout_marginEnd="2sp"
+                        android:layout_gravity="end|center_vertical"
+                        android:fallbackLineSpacing="false"
+                        android:gravity="center"
+                        android:textAlignment="center"
+                        android:fontFamily="@font/dottz"
+                        android:includeFontPadding="false"
+                        android:padding="4sp"
+                        android:shadowColor="@color/color_title"
+                        android:shadowDx="0"
+                        android:shadowDy="0"
+                        android:shadowRadius="3"
+                        android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
+                        android:textColor="@color/color_home_bar_background"
+                        android:background="@drawable/counter_rounded"
+                        android:visibility="gone"/>
+
+                    <ImageButton
+                        android:id="@+id/refresh"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|center_vertical"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="@string/menu_refresh"
+                        android:src="@drawable/btn_refresh"
+                        android:visibility="gone"/>
+
+                </LinearLayout>
 
             </androidx.appcompat.widget.Toolbar>
 
@@ -104,7 +119,7 @@
                 android:layout_centerInParent="true"
                 android:fontFamily="@font/dottz"
                 android:textAllCaps="true"
-                android:textSize="@dimen/text_size_edit_accounts_msg" />
+                android:textSize="@dimen/text_size_edit_accounts_msg"/>
 
             <ImageView
                 android:id="@+id/iv_unread_focus_mode"
@@ -116,9 +131,9 @@
                 android:layout_alignParentStart="true"
                 android:layout_alignParentBottom="true"
                 android:contentDescription="@string/empty_string"
-                android:padding="4sp"
+                android:padding="4dp"
                 android:src="@drawable/focus_mode_allmsg"
-                android:visibility="gone" />
+                android:visibility="gone"/>
 
             <ImageView
                 android:id="@+id/iv_send_activity"
@@ -128,9 +143,9 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
                 android:contentDescription="@string/send_send"
-                android:padding="4sp"
+                android:padding="4dp"
                 android:src="@drawable/btn_send_activity"
-                android:visibility="gone" />
+                android:visibility="gone"/>
 
         </RelativeLayout>
 

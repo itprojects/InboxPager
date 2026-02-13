@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/openpgp_activity"
+    android:id="@+id/root_view_openpgp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
+
+    <!-- fallbackLineSpacing corrects the TextView extra height space issue on API >= 33 -->
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/send_toolbar"
@@ -15,14 +17,15 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
         <TextView
-            android:id="@+id/tv_start"
+            android:id="@+id/tv_ready"
             style="@style/action_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginEnd="7sp"
             android:background="@drawable/btn_green"
-            android:text="@string/open_pgp_start" />
+            android:fallbackLineSpacing="false"
+            android:text="@string/open_pgp_ready" />
 
         <TextView
             android:id="@+id/tv_reset"
@@ -32,30 +35,31 @@
             android:layout_gravity="end"
             android:layout_marginEnd="7sp"
             android:background="@drawable/btn_orange"
+            android:fallbackLineSpacing="false"
             android:text="@string/open_pgp_reset" />
 
         <TextView
-            android:id="@+id/tv_ready"
+            android:id="@+id/tv_start"
             style="@style/action_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginEnd="7sp"
             android:background="@drawable/btn_green"
-            android:text="@string/open_pgp_ready" />
+            android:fallbackLineSpacing="false"
+            android:text="@string/open_pgp_start" />
 
         <TextView
             android:id="@+id/openpgp_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:ellipsize="end"
+            android:fallbackLineSpacing="false"
             android:fontFamily="@font/dottz"
             android:letterSpacing="0.1"
             android:maxLines="1"
-            android:paddingLeft="0sp"
             android:paddingTop="4sp"
-            android:paddingRight="0sp"
-            android:paddingBottom="4sp"
             android:shadowColor="@color/color_title"
             android:shadowDx="0"
             android:shadowDy="0"
@@ -82,12 +86,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:spinnerMode="dialog"
+                android:spinnerMode="dropdown"
                 android:dropDownWidth="match_parent"
                 android:popupTheme="@android:style/ThemeOverlay.Material.Light"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                android:backgroundTint="@color/color_orange"
-                android:background="@drawable/spinner_selector" /> <!-- transparent #00FF0000 -->
+                android:backgroundTint="@color/color_orange" /> <!-- transparent #00FF0000 -->
 
             <TextView
                 android:id="@+id/tv_pick_sign_key"
@@ -187,7 +190,5 @@
                 android:paddingTop="5sp" />
 
         </LinearLayout>
-
     </ScrollView>
-
 </LinearLayout>

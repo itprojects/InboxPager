@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@ package net.inbox.db;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -236,8 +235,15 @@ public class DBAccess extends SQLiteOpenHelper {
 
     public Inbox get_account(int id) {
         // Query database
-        Cursor cursor = dbw.query(table_accounts, new String[] { "*" }, "id = " + id,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_accounts,
+            new String[] { "*" },
+            "id = " + id,
+            null,
+            null,
+            null,
+            null
+        );
 
         // If the account (id) is found
         if (cursor != null) {
@@ -274,8 +280,15 @@ public class DBAccess extends SQLiteOpenHelper {
 
     // Legacy code
     public int get_global_unseen_count() {
-        Cursor cursor = dbw.query(table_accounts, new String[] { key_unseen }, null,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_accounts,
+            new String[] { key_unseen },
+            null,
+            null,
+            null,
+            null,
+            null
+        );
 
         int count = 0;
         if (cursor.moveToFirst()) {
@@ -295,14 +308,22 @@ public class DBAccess extends SQLiteOpenHelper {
 
         int current_count = -1;
 
-        Cursor cursor = dbw.query(table_accounts, new String[] { key_unseen }, "id = " + id,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_accounts,
+            new String[] { key_unseen },
+            "id = " + id,
+            null,
+            null,
+            null,
+            null
+        );
 
         if (cursor.moveToFirst()) current_count = cursor.getInt(0);
 
         // Updating unread messages count for account
-        if (current_count != -1 && current_count != count) dbw.execSQL("UPDATE " + table_accounts
-                + " SET unseen=" + count + " WHERE id = " + id);
+        if (current_count != -1 && current_count != count) {
+            dbw.execSQL("UPDATE " + table_accounts + " SET unseen=" + count + " WHERE id = " + id);
+        }
 
         // Prevent memory issues
         cursor.close();
@@ -316,8 +337,15 @@ public class DBAccess extends SQLiteOpenHelper {
     public int count_unseen_account_messages(int account_id) {
         int count = -1;
         try {
-            Cursor cursor = dbw.query(table_messages, new String[] { "COUNT(1)" },
-                    "account = " + account_id + " AND seen = 0", null, null, null, null);
+            Cursor cursor = dbw.query(
+                table_messages,
+                new String[] { "COUNT(1)" },
+                "account = " + account_id + " AND seen = 0",
+                null,
+                null,
+                null,
+                null
+            );
             if (!cursor.moveToFirst()) {
                 count = -1000;
             } else {
@@ -326,14 +354,23 @@ public class DBAccess extends SQLiteOpenHelper {
             cursor.close();
         } catch (Exception e) {
             // A rare exception.
-            InboxPager.log = InboxPager.log.concat(e.getMessage() == null ? "!DB!" : e.getMessage());
+            InboxPager.log = InboxPager.log.concat(
+                e.getMessage() == null ? "!DB!" : e.getMessage()
+            );
         }
         return count;
     }
 
     public ArrayList<Inbox> get_all_accounts() {
-        Cursor cursor = dbw.query(table_accounts, new String[] { "*" }, null,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_accounts,
+            new String[] { "*" },
+            null,
+            null,
+            null,
+            null,
+            null
+        );
 
         ArrayList<Inbox> accounts = new ArrayList<>();
         Inbox current;
@@ -364,8 +401,15 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public ArrayList<Integer> get_all_accounts_id() {
-        Cursor cursor = dbw.query(table_accounts, new String[] { "*" }, null,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_accounts,
+            new String[] { "*" },
+            null,
+            null,
+            null,
+            null,
+            null
+        );
 
         ArrayList<Integer> accounts = new ArrayList<>();
         Integer current;
@@ -383,11 +427,17 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public void delete_account(int id) {
-        if (table_exists(table_attachments)) dbw.delete(table_attachments, key_account + " = " + id, null);
+        if (table_exists(table_attachments)) {
+            dbw.delete(table_attachments, key_account + " = " + id, null);
+        }
 
-        if (table_exists(table_messages)) dbw.delete(table_messages, key_account + " = " + id, null);
+        if (table_exists(table_messages)) {
+            dbw.delete(table_messages, key_account + " = " + id, null);
+        }
 
-        if (table_exists(table_accounts)) dbw.delete(table_accounts, key_id + " = " + id, null);
+        if (table_exists(table_accounts)) {
+            dbw.delete(table_accounts, key_id + " = " + id, null);
+        }
     }
 
     public void add_message(Message current) {
@@ -456,8 +506,15 @@ public class DBAccess extends SQLiteOpenHelper {
     }
 
     public Message get_message(int id) {
-        Cursor cursor = dbw.query(table_messages, new String[] { "*" }, "id = " + id,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_messages,
+            new String[] { "*" },
+            "id = " + id,
+            null,
+            null,
+            null,
+            null
+        );
 
         // If the message (id) is found
         if (cursor != null) {
@@ -502,16 +559,25 @@ public class DBAccess extends SQLiteOpenHelper {
     public void seen_unseen_message(int account_id, String uid, boolean seen) {
         int i_seen = 0;
         if (seen) i_seen = 1;
-        dbw.execSQL("UPDATE " + table_messages + " SET seen='" + i_seen
-                + "' WHERE (uid='" + uid + "' AND account='" + account_id + "')");
+        dbw.execSQL(
+            "UPDATE " + table_messages + " SET seen='" + i_seen
+            + "' WHERE (uid='" + uid + "' AND account='" + account_id + "')"
+        );
     }
 
     /**
      * Changes all messages' status to seen.
      **/
     public void mark_all_seen(int id) {
-        Cursor cursor = dbw.query(table_messages, new String[] { "*" }, "account = " + id,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_messages,
+            new String[] { "*" },
+            "account = " + id,
+            null,
+            null,
+            null,
+            null
+        );
 
         if (cursor.moveToFirst()) {
             do {
@@ -530,8 +596,15 @@ public class DBAccess extends SQLiteOpenHelper {
      * Counts the messages for an account.
      **/
     public int get_messages_count(int id) {
-        Cursor cursor = dbw.query(table_messages, new String[] { "COUNT(*)" }, "account = " + id,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_messages,
+            new String[] { "COUNT(*)" },
+            "account = " + id,
+            null,
+            null,
+            null,
+            null
+        );
 
         int result = 0;
         if (cursor.moveToFirst()) result = cursor.getInt(0);
@@ -546,8 +619,15 @@ public class DBAccess extends SQLiteOpenHelper {
      * Used with inbox statistical dialog.
      **/
     public int get_total_size(int id) {
-        Cursor cursor = dbw.query(table_accounts, new String[] { key_total_size }, "id = " + id,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_accounts,
+            new String[] { key_total_size },
+            "id = " + id,
+            null,
+            null,
+            null,
+            null
+        );
 
         int result = 0;
         if (cursor.moveToFirst()) result = cursor.getInt(0);
@@ -563,8 +643,15 @@ public class DBAccess extends SQLiteOpenHelper {
      * Used with IMAP.
      **/
     public void refresh_total_size(int id) {
-        Cursor cursor = dbw.query(table_messages, new String[] { key_size }, "account = " + id,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_messages,
+            new String[] { key_size },
+            "account = " + id,
+            null,
+            null,
+            null,
+            null
+        );
 
         int result = 0;
         if (cursor.moveToFirst()) {
@@ -584,8 +671,15 @@ public class DBAccess extends SQLiteOpenHelper {
      * Get the DB id and uid of a message. Every row is a message.
      **/
     public HashMap<Integer, String> get_all_message_uids(int id) {
-        Cursor cursor = dbw.query(table_messages, new String[] { "*" }, "account = " + id,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_messages,
+                new String[] { "*" },
+                "account = " + id,
+                null,
+                null,
+                null,
+                null
+        );
 
         HashMap<Integer, String> messages = new HashMap<>();
 
@@ -609,17 +703,22 @@ public class DBAccess extends SQLiteOpenHelper {
     public SortedMap<String, ArrayList<Message>> get_all_messages(int id, boolean unread_only) {
         String q = "account = " + id;
         if (unread_only) q += " AND seen = 0";
-        Cursor cursor = dbw.query(table_messages, new String[] {"*"}, q, null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_messages,
+            new String[] {"*"}, q,
+            null,
+            null,
+            null,
+            null
+        );
 
         ArrayList<Message> msgs = new ArrayList<>();
         HashMap<String, String> msg_set_unique_addr = new HashMap<>();
 
         // Sender email@example.com has a Message list
-        SortedMap<String, ArrayList<Message>> messages = new TreeMap<>(new Comparator<String>() {
-            @Override public int compare(String s1, String s2) {
-                return s1.compareToIgnoreCase(s2);
-            }
-        });
+        SortedMap<String, ArrayList<Message>> messages = new TreeMap<>(
+            (s1, s2) -> s1.compareToIgnoreCase(s2)
+        );
 
         int ind;
         String addr;
@@ -670,7 +769,9 @@ public class DBAccess extends SQLiteOpenHelper {
                 try {
                     message_list.add(0, msg);
                 } catch (Exception e) {
-                    InboxPager.log = InboxPager.log.concat(e.getMessage() == null ? "!MSG!" : e.getMessage());
+                    InboxPager.log = InboxPager.log.concat(
+                        e.getMessage() == null ? "!MSG!" : e.getMessage()
+                    );
                 }
             } else {
                 ArrayList<Message> message_list = new ArrayList<>();
@@ -761,8 +862,14 @@ public class DBAccess extends SQLiteOpenHelper {
      * Get a list of attachments for a specific message of an account.
      **/
     public ArrayList<Attachment> get_all_attachments_of_msg(int mid) {
-        Cursor cursor = dbw.query(table_attachments, new String[] { "*" }, "message = " + mid,
-                null, null, null, null);
+        Cursor cursor = dbw.query(
+            table_attachments, new String[] { "*" },
+            "message = " + mid,
+            null,
+            null,
+            null,
+            null
+        );
 
         ArrayList<Attachment> attachments = new ArrayList<>();
         Attachment current;
@@ -791,8 +898,15 @@ public class DBAccess extends SQLiteOpenHelper {
 
     private boolean table_exists(String s) {
         if (s == null) return false;
-        Cursor cursor = dbw.query("sqlite_master", new String[] { "COUNT(1)" },
-                "type = 'table' AND name = '" + s + "'", null, null, null, null);
+        Cursor cursor = dbw.query(
+            "sqlite_master",
+            new String[] { "COUNT(1)" },
+            "type = 'table' AND name = '" + s + "'",
+            null,
+            null,
+            null,
+            null
+        );
         if (!cursor.moveToFirst()) return false;
         boolean ret = cursor.getInt(0) > 0;
         cursor.close();

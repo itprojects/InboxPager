@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_view_send"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    tools:context=".InboxMessage">
+    android:orientation="vertical">
+
+    <!-- fallbackLineSpacing corrects the TextView extra height space issue on API >= 33 -->
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/send_toolbar"
@@ -15,55 +16,54 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/send_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@+id/ssl_auth_img_vw"
-                android:ellipsize="end"
-                android:fontFamily="@font/dottz"
-                android:letterSpacing="0.1"
-                android:maxLines="1"
-                android:paddingLeft="0sp"
-                android:paddingTop="4sp"
-                android:paddingRight="0sp"
-                android:paddingBottom="4sp"
-                android:shadowColor="@color/color_title"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="3"
-                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
-                android:textColor="@color/color_title" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/ssl_auth_img_vw"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@id/tv_send"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="0sp"
+                android:layout_marginEnd="10sp"
                 android:contentDescription="@string/send_send"
-                android:paddingStart="10sp"
-                android:paddingEnd="4sp"
                 android:src="@drawable/padlock_error"
-                android:visibility="gone" />
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/send_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fallbackLineSpacing="false"
+                android:fontFamily="@font/dottz"
+                android:letterSpacing="0.1"
+                android:maxLines="1"
+                android:paddingTop="4sp"
+                android:shadowColor="@color/color_title"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="3"
+                android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
+                android:textColor="@color/color_title"
+                android:visibility="visible"/>
 
             <TextView
                 android:id="@+id/tv_send"
                 style="@style/action_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="10sp"
                 android:layout_marginEnd="1sp"
                 android:background="@drawable/btn_green"
-                android:text="@string/send_send" />
+                android:text="@string/send_send"/>
 
-        </RelativeLayout>
+        </LinearLayout>
 
     </androidx.appcompat.widget.Toolbar>
 
@@ -91,7 +91,7 @@
                     android:layout_marginRight="15sp"
                     android:text="@string/message_to"
                     android:textAppearance="@android:style/TextAppearance"
-                    android:textColor="@color/color_message_headers" />
+                    android:textColor="@color/color_message_headers"/>
 
                 <EditText
                     android:id="@+id/send_to"
@@ -100,7 +100,7 @@
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
                     android:autofillHints="@string/empty_string"
-                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
+                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine"/>
 
             </LinearLayout>
 
@@ -113,18 +113,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="15sp"
-                    android:layout_marginLeft="15sp"
-                    android:layout_marginEnd="15sp"
-                    android:layout_marginRight="15sp"
+                    android:layout_marginEnd="25sp"
                     android:text="@string/message_cc"
                     android:textAppearance="@android:style/TextAppearance"
-                    android:textColor="@color/color_message_headers" />
+                    android:textColor="@color/color_message_headers"/>
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/send_cc_check"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="15sp" />
+                    android:layout_marginEnd="15sp"/>
 
                 <EditText
                     android:id="@+id/send_cc"
@@ -133,7 +131,7 @@
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
                     android:autofillHints="@string/empty_string"
-                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
+                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine"/>
 
             </LinearLayout>
 
@@ -151,7 +149,7 @@
                     android:layout_marginRight="15sp"
                     android:text="@string/message_bcc"
                     android:textAppearance="@android:style/TextAppearance"
-                    android:textColor="@color/color_message_headers" />
+                    android:textColor="@color/color_message_headers"/>
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/send_bcc_check"
@@ -166,7 +164,7 @@
                     android:layout_marginEnd="20sp"
                     android:hint="@string/send_addresses_hint"
                     android:autofillHints="@string/empty_string"
-                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine" />
+                    android:inputType="textEmailAddress|textNoSuggestions|textMultiLine"/>
 
             </LinearLayout>
 
@@ -180,7 +178,7 @@
                 android:layout_marginRight="15sp"
                 android:text="@string/message_subject"
                 android:textAppearance="@android:style/TextAppearance"
-                android:textColor="@color/color_message_headers" />
+                android:textColor="@color/color_message_headers"/>
 
             <EditText
                 android:id="@+id/send_subject"
@@ -193,7 +191,7 @@
                 android:hint="@string/empty_string"
                 android:autofillHints="@string/empty_string"
                 android:inputType="textEmailSubject|textNoSuggestions|textMultiLine"
-                android:maxLength="500" />
+                android:maxLength="500"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -209,52 +207,43 @@
                     android:layout_height="wrap_content"
                     android:text="@string/message_contents"
                     android:textAppearance="@android:style/TextAppearance"
-                    android:textColor="@color/color_message_headers" />
+                    android:textColor="@color/color_message_headers"/>
 
                 <TextView
                     android:id="@+id/send_attachments_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="13sp"
-                    android:fontFamily="@font/dottz"
-                    android:textAppearance="@android:style/TextAppearance"
-                    android:textColor="@color/color_message_headers" />
-
-                <ImageView
-                    android:id="@+id/send_attachments_img"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@string/send_attachments"
-                    android:src="@drawable/attachment"
-                    android:textColor="@color/color_message_headers" />
-
-                <ImageView
-                    android:id="@+id/iv_encryption_txt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15sp"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginStart="7sp"
-                    android:contentDescription="@string/crypto_title"
-                    android:src="@drawable/padlock_txt" />
+                    android:fallbackLineSpacing="false"
+                    android:fontFamily="@font/dottz"
+                    android:maxLines="1"
+                    android:textSize="@dimen/text_size_message_item"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:contentDescription="@string/send_attachments"
+                    android:textAppearance="@android:style/TextAppearance"
+                    android:textColor="@color/color_message_headers"
+                    app:drawableEndCompat="@drawable/attachment"/>
 
                 <ImageView
                     android:id="@+id/iv_encryption_pgp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginStart="7sp"
+                    android:layout_marginStart="15sp"
                     android:contentDescription="@string/send_encrypt"
-                    android:src="@drawable/padlock_pgp_open" />
+                    android:src="@drawable/padlock_pgp_open"/>
 
                 <TextView
                     android:id="@+id/tv_encryption_pgp_reset"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="7sp"
+                    android:layout_marginStart="15sp"
                     android:text="@string/open_pgp_reset"
                     android:textAppearance="@android:style/TextAppearance.Small"
                     android:textColor="@color/color_orange"
-                    android:visibility="gone" />
+                    android:visibility="gone"/>
 
             </LinearLayout>
 
@@ -269,7 +258,7 @@
                 android:layout_marginBottom="15sp"
                 android:hint="@string/empty_string"
                 android:autofillHints="@string/empty_string"
-                android:inputType="text|textNoSuggestions|textMultiLine" />
+                android:inputType="text|textNoSuggestions|textMultiLine"/>
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/send_sw_previous"
@@ -291,8 +280,8 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <WebView
-                    android:id="@+id/send_contents_previous_webview"
+                <TextView
+                    android:id="@+id/tv_send_contents_previous"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20sp"
@@ -301,6 +290,7 @@
                     android:layout_marginRight="20sp"
                     android:layout_marginBottom="15sp"
                     android:textIsSelectable="true"
+                    android:background="@android:color/transparent"
                     android:visibility="visible"/>
 
             </LinearLayout>

@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2018-2024  ITPROJECTS
+ * Copyright (C) 2018-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 package net.inbox.visuals;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,16 +27,17 @@ import android.widget.TextView;
 
 import net.inbox.pager.R;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 public class AttachmentsList extends BaseAdapter {
 
-    private Context ctx;
     private ArrayList<AttachmentItem> attachment_items;
+    private WeakReference<Context> ctx;
 
-    AttachmentsList(Context ctx, ArrayList<AttachmentItem> attachment_items) {
-        this.ctx = ctx;
-        this.attachment_items = attachment_items;
+    AttachmentsList(Context ct, ArrayList<AttachmentItem> att_items) {
+        ctx = new WeakReference<>(ct);
+        attachment_items = att_items;
     }
 
     @Override
@@ -56,13 +58,16 @@ public class AttachmentsList extends BaseAdapter {
     @Override
     public View getView(int position, View v, ViewGroup parent) {
         if (v == null) {
-            v = (LayoutInflater.from(this.ctx)).inflate(R.layout.folder_picker_attachment_list_row, parent, false);
+            v = (LayoutInflater.from(ctx.get())).inflate(
+                R.layout.folder_picker_attachment_list_row, parent, false
+            );
         }
         final AttachmentItem itm = (AttachmentItem) getItem(position);
         RadioButton rb_attachments = v.findViewById(R.id.rb_attachments);
         rb_attachments.setChecked(itm.get_picked());
         TextView tv_pick_file_name = v.findViewById(R.id.attachments_name);
         tv_pick_file_name.setText(itm.get_file_name());
+        tv_pick_file_name.setEllipsize(TextUtils.TruncateAt.MIDDLE);
         TextView tv_pick_file_type = v.findViewById(R.id.attachment_type);
         tv_pick_file_type.setText(itm.get_file_type());
         if (itm.get_file_type() == null) {
@@ -77,49 +82,3 @@ public class AttachmentsList extends BaseAdapter {
     }
 }
 
-class AttachmentItem {
-
-    private boolean picked = false;
-    private int i_file_size;
-    private String s_file_size;
-    private String file_name;
-    private String file_type;
-    private String file_uuid;
-
-    AttachmentItem(int i_file_size, String s_file_size, String file_name, String file_type,
-                   String file_uuid) {
-        this.i_file_size = i_file_size;
-        this.s_file_size = s_file_size;
-        this.file_name = file_name;
-        this.file_type = file_type;
-        this.file_uuid = file_uuid;
-    }
-
-    int get_i_file_size() {
-        return i_file_size;
-    }
-
-    String get_s_file_size() {
-        return s_file_size;
-    }
-
-    String get_file_name() {
-        return file_name;
-    }
-
-    String get_file_type() {
-        return file_type;
-    }
-
-    String get_file_uuid() {
-        return file_uuid;
-    }
-
-    boolean get_picked() {
-        return picked;
-    }
-
-    void set_picked(boolean p) {
-        this.picked = p;
-    }
-}

@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="270sp"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_centerHorizontal="true"
     android:orientation="vertical"
     android:padding="10sp">
@@ -35,28 +36,28 @@
         android:layout_marginTop="15sp"
         android:layout_marginBottom="0sp">
 
-        <CheckBox
-            android:id="@+id/cb_pw"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginStart="10sp"
-            android:layout_marginEnd="0sp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:text="@string/sett_change_pw_vis" />
-
         <TextView
             android:id="@+id/tv_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
+            android:layout_marginStart="10sp"
+            android:layout_marginEnd="0sp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="@string/sett_change_pw_text"
+            tools:ignore="RelativeOverlap" />
+
+        <CheckBox
+            android:id="@+id/cb_pw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
             android:layout_marginStart="0sp"
             android:layout_marginEnd="10sp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:text="@string/sett_change_pw_text"
-            tools:ignore="RelativeOverlap" />
+            android:text="@string/sett_change_pw_vis" />
 
     </RelativeLayout>
 

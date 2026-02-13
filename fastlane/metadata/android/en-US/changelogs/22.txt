@@ -1,0 +1,70 @@
+Target API changed to 36, minimum API remains 23 (Android 6).
+
+Application now follows system theme setting, light or dark.
+
+Added file information dialog when attachments are clicked.
+
+Added option to make HTML message with transparent background.
+
+Added password viewing in account preferences.
+
+Added emergency deletion password.
+
+Added a Toolbar to Settings Activity.
+
+Added automatic (UTC) DATE field message tagging in SMTP.
+
+Changed button style spacings, and many icon changes.
+
+Fixed overlapping system bars with application bar.
+
+Fixed misalignment of CC with BCC in Send Activity.
+
+Fixed crash, when bottom left grouped button pressed, but no accounts exist yet.
+
+Fixed crash, when WebView is disabled or missing in Android.
+
+Fixed TextView text appearing at the top, using fallbackLineSpacing.
+
+Fixed various permissions issues, related to API changes.
+
+Fixed application password EditText dark theme contrast.
+
+Fixed duplication of MessageId in SMTP preventing message sending.
+
+Fixed many file reading and writng operations for messages and attachments.
+
+Fixed TextViews set to deafault, after orientation change.
+
+Fixed orientation handling of activities, when screen is rotated.
+
+Moved connection security ImageView to left side, to prevent accidental button clicks.
+
+Removed onBackPressed() functionality for Activity animations.
+
+Removed long-press Send button on grouped emails.
+
+Renamed Handler to NetworkThread for more clarifty.
+
+Replace Attachments activity with dialog.
+
+Replaced (audio) beeping mechanism with notifications (user must enable in Settings).
+
+Replaced circular animations with android.R.anim.fade_in.
+
+Replaced custom fade_in with android.R.anim.fade_in.
+
+Replace AsyncTask with other functionality.
+
+Replaced Send button icon.
+
+Replaced Send Activity WebView with TextView.
+
+Updated gradle dependencies.
+    agp, 9.0.0
+    androidDatabaseSqlcipher, 4.5.4
+    appcompat, 1.7.1
+    material, 1.13.0
+    constraintlayout, 2.2.1
+    preference, 1.2.1
+    sqlite, 2.6.2

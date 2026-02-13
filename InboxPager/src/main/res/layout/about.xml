@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_view_about"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
+    <!-- fallbackLineSpacing corrects the TextView extra height space issue on API >= 33 -->
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/about_toolbar"
@@ -17,14 +20,13 @@
             android:id="@+id/about_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:ellipsize="end"
-            android:fontFamily="@font/dottz"
             android:letterSpacing="0.1"
+            android:fallbackLineSpacing="false"
+            android:fontFamily="@font/dottz"
             android:maxLines="1"
-            android:paddingLeft="0sp"
             android:paddingTop="4sp"
-            android:paddingRight="0sp"
-            android:paddingBottom="4sp"
             android:shadowColor="@color/color_title"
             android:shadowDx="0"
             android:shadowDy="0"

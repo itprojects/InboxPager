@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/picker_activity"
+    android:id="@+id/root_view_file_picker_activity"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:visibility="gone"
-    tools:context=".visuals.SendFilePicker">
+    android:orientation="vertical">
+
+    <!-- fallbackLineSpacing corrects the TextView extra height space issue on API >= 33 -->
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/picker_toolbar"
@@ -26,6 +25,7 @@
             android:layout_marginStart="1sp"
             android:layout_marginEnd="7sp"
             android:background="@drawable/btn_green"
+            android:fallbackLineSpacing="false"
             android:textAllCaps="true"
             android:text="@string/message_action_done"/>
 
@@ -38,13 +38,16 @@
             android:layout_marginStart="1sp"
             android:layout_marginEnd="7sp"
             android:background="@drawable/btn_orange"
+            android:fallbackLineSpacing="false"
             android:text="@string/picker_pick"/>
 
         <TextView
             android:id="@+id/picker_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:ellipsize="end"
+            android:fallbackLineSpacing="false"
             android:fontFamily="@font/dottz"
             android:letterSpacing="0.1"
             android:maxLines="1"
@@ -71,6 +74,7 @@
         android:ellipsize="start"
         android:singleLine="true"
         android:background="@color/color_home_bar_background"
+        android:fallbackLineSpacing="false"
         android:visibility="gone"/>
 
     <ListView

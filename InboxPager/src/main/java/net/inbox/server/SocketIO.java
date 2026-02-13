@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  **/
 package net.inbox.server;
 
-import android.content.Context;
-
 import net.inbox.InboxPager;
 import net.inbox.pager.R;
 
@@ -26,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.lang.ref.WeakReference;
 import java.security.PublicKey;
 import java.security.interfaces.DSAPublicKey;
 import java.security.interfaces.ECPublicKey;
@@ -42,9 +41,9 @@ import javax.security.cert.X509Certificate;
 
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
-class SocketIO implements Runnable {
+import android.content.Context;
 
-    private Context ctx;
+class SocketIO implements Runnable {
 
     private BufferedReader r;
     private PrintWriter w;
@@ -52,27 +51,29 @@ class SocketIO implements Runnable {
 
     private int port;
     private String server;
-    private Handler handler;
+    private NetworkThread network_thread;
 
-    SocketIO(String srv, int prt, IMAP hand, Context ct) {
+    private WeakReference<Context> ctx;
+
+    SocketIO(String srv, int prt, IMAP net_thread, Context ct) {
         server = srv;
         port = prt;
-        handler = hand;
-        ctx = ct;
+        network_thread = net_thread;
+        ctx = new WeakReference<>(ct);
     }
 
-    SocketIO(String srv, int prt, POP hand, Context ct) {
+    SocketIO(String srv, int prt, POP net_thread, Context ct) {
         server = srv;
         port = prt;
-        handler = hand;
-        ctx = ct;
+        network_thread = net_thread;
+        ctx = new WeakReference<>(ct);
     }
 
-    SocketIO(String srv, int prt, SMTP hand, Context ct) {
+    SocketIO(String srv, int prt, SMTP net_thread, Context ct) {
         server = srv;
         port = prt;
-        handler = hand;
-        ctx = ct;
+        network_thread = net_thread;
+        ctx = new WeakReference<>(ct);
     }
 
     public void run() {
@@ -82,42 +83,34 @@ class SocketIO implements Runnable {
 
             HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
             if (!hv.verify(server, s.getSession())) {
-                InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field)
-                        + "Possibly Unverified Host: '" + server + "' != '"
-                        + s.getSession().getPeerHost() + "'" + "\n\n");
+                String s_error = ctx.get().getString(R.string.ex_field)
+                    + " Possibly Unverified Host: '" + server + "' != '"
+                    + s.getSession().getPeerHost() + "'";
+                InboxPager.log = InboxPager.log.concat(s_error + "\n\n");
+                //throw new Exception(s_error); // do not proceed with unverified hosts
             }
 
             try {
-                StringBuilder sb = new StringBuilder();
                 w = new PrintWriter(new OutputStreamWriter(s.getOutputStream()));
                 r = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                int i;
-                boolean cr = false;
-                while ((i = r.read()) != -1) {
-                    if (i == 10 && cr) {
-                        sb.append((char) i);
-                        sb.deleteCharAt(sb.length() - 1);
-                        sb.deleteCharAt(sb.length() - 1);
-                        handler.reply(sb.toString());
-                        sb.setLength(0);
-                    } else if (i == 13) {
-                        cr = true;
-                        sb.append((char) i);
-                    } else {
-                        cr = false;
-                        sb.append((char) i);
-                    }
+                String line;
+                while ((line = r.readLine()) != null) {
+                    // System.out.println("SOCKET:SERVER(REMOTE): " + line.toString()); // for debugging
+                    network_thread.reply(line);
                 }
             } catch (IOException ee) {
-                if (r != null) r.close();
+                if (r != null) r.close(); // mostly closed socket
             }
             if (w != null) w.close();
             if (r != null) r.close();
-            if (s != null && !s.isClosed()) s.close();
+            closing();
         } catch (Exception e) {
-            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
-            handler.excepted = true;
-            handler.error_dialog(e);
+            closing();
+            InboxPager.log = InboxPager.log.concat(
+                ctx.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+            );
+            network_thread.excepted = true;
+            network_thread.error_dialog(e);
         }
     }
 
@@ -125,7 +118,10 @@ class SocketIO implements Runnable {
         try {
             if (s != null && !s.isClosed()) s.close();
         } catch (IOException e) {
-            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
+            InboxPager.log = InboxPager.log.concat(
+                ctx.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+            );
+            network_thread.error_dialog(e);
         }
     }
 
@@ -133,9 +129,10 @@ class SocketIO implements Runnable {
         return (s == null || s.isClosed());
     }
 
-    public boolean write(String l) {
+    public boolean write(String line) {
         if (w == null || r == null || s == null) return false;
-        w.print(l + "\r\n");
+        // System.out.println("SOCKET::::CLIENT(APP): " + line); // for debugging
+        w.print(line + "\r\n");
         w.flush();
         return true;
     }
@@ -147,16 +144,18 @@ class SocketIO implements Runnable {
         try {
             lb = session_0.getPeerHost() + ":" + session_0.getPeerPort() + "\n\n";
             for (X509Certificate cert : session_0.getPeerCertificateChain()) {
-                lb = lb.concat("\n\uD83D\uDCDC"
-                        + cert.getIssuerDN().getName() + "\n\n"
-                        + getKeyLength(cert.getPublicKey())
-                        + cert.getSigAlgName() + "\n"
-                        + "SHA-256:\n\n" + sha256Hex(cert.getEncoded()).toUpperCase() + "\n\n");
+                lb = lb.concat(
+                    "\n\uD83D\uDCDC" + cert.getIssuerDN().getName() + "\n\n"
+                    + getKeyLength(cert.getPublicKey()) + cert.getSigAlgName() + "\n"
+                    + "SHA-256:\n\n" + sha256Hex(cert.getEncoded()).toUpperCase() + "\n\n"
+                );
             }
 
             lb = lb.replaceAll("(?i)(CN=|O=|OU=|L=|ST=|C=)", "\n");
         } catch (SSLPeerUnverifiedException | CertificateEncodingException ee) {
-            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + ee.getMessage() + "\n\n");
+            InboxPager.log = InboxPager.log.concat(
+                ctx.get().getString(R.string.ex_field) + ee.getMessage() + "\n\n"
+            );
         }
 
         return lb;
@@ -169,7 +168,6 @@ class SocketIO implements Runnable {
             return ((RSAPublicKey) pk).getModulus().bitLength() + " bit RSA Public Key\n";
         } else if (pk instanceof ECPublicKey) {
             java.security.spec.ECParameterSpec pk_spec = ((ECPublicKey) pk).getParams();
-
             return pk_spec == null ? "? Public Key\n" : pk_spec.getOrder().bitLength()
                     + " bit Elliptic Curve Public Key\n";
         } else if (pk instanceof DSAPublicKey) {

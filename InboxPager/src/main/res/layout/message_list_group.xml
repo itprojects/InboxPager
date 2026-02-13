@@ -19,18 +19,6 @@
         android:textSize="@dimen/text_size_message_item_subtitle" />
 
     <ImageView
-        android:id="@+id/message_group_send_to"
-        android:layout_width="45sp"
-        android:layout_height="45sp"
-        android:layout_centerVertical="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginStart="4sp"
-        android:layout_marginEnd="24sp"
-        android:contentDescription="@string/stats_unseen"
-        android:src="@drawable/sent_to_specific"
-        android:visibility="gone" />
-
-    <ImageView
         android:id="@+id/message_group_unseen_mark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,6 +28,6 @@
         android:layout_marginEnd="4sp"
         android:contentDescription="@string/stats_unseen"
         android:src="@drawable/unseen_in_group"
-        android:visibility="gone" />
+        android:visibility="visible" />
 
 </RelativeLayout>

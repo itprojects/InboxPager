@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,11 @@
  **/
 package net.inbox.server;
 
-import android.content.Context;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
 
 import android.net.Uri;
+import android.os.Build;
 import android.util.Base64;
 
 import net.inbox.InboxPager;
@@ -29,17 +29,26 @@ import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
 import net.inbox.pager.R;
-import net.inbox.visuals.Common;
+import net.inbox.Common;
 import net.inbox.visuals.Dialogs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Locale;
+import java.util.TimeZone;
 
-public class SMTP extends Handler {
+public class SMTP extends NetworkThread {
 
     private static class DataSMTP extends Data {
         // SMTP host
@@ -60,8 +69,8 @@ public class SMTP extends Handler {
 
     private DataSMTP data;
 
-    public SMTP(Context ct) {
-        super(ct);
+    public SMTP(AppCompatActivity at) {
+        super(at);
     }
 
     @Override
@@ -88,9 +97,9 @@ public class SMTP extends Handler {
     }
 
     @Override
-    public void test_server(Inbox inn, Context ct) {
+    public void test_server(Inbox inn, AppCompatActivity at) {
         current_inbox = inn;
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -110,26 +119,31 @@ public class SMTP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
+            InboxPager.log = InboxPager.log.concat(
+                act.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+            );
         }
 
         if (!excepted) {
             // Prepare a callback for results
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+            new Thread(
+                () -> {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
+                        InboxPager.log = InboxPager.log.concat(
+                            act.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+                        );
                     }
 
                     if (current_inbox.get_smtp_extensions() != null
-                            && !current_inbox.get_smtp_extensions().isEmpty()) {
+                        && !current_inbox.get_smtp_extensions().isEmpty()
+                    ) {
                         String tested;
                         if (current_inbox.get_smtp_extensions()
-                                .equals(ctx.getString(R.string.err_no_ehlo))) {
-                            tested = ctx.getString(R.string.err_no_ehlo);
+                            .equals(act.get().getString(R.string.err_no_ehlo))
+                        ) {
+                            tested = act.get().getString(R.string.err_no_ehlo);
                         } else {
                             // Preparing the dialog message
                             data.auths = new ArrayList<>();
@@ -148,7 +162,7 @@ public class SMTP extends Handler {
                                     data.general.add(parts[g]);
                                 }
                             }
-                            tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
+                            tested = act.get().getString(R.string.edit_account_check_login_types) + "\n\n";
                             for (int i = 0;i < data.auths.size();++i) {
                                 if (i == (data.auths.size() - 1)) {
                                     tested += data.auths.get(i).toUpperCase();
@@ -156,7 +170,7 @@ public class SMTP extends Handler {
                                     tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
                                 }
                             }
-                            tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
+                            tested += "\n\n" + act.get().getString(R.string.edit_account_check_other) + "\n\n";
                             for (int i = 0;i < data.general.size();++i) {
                                 if (i == (data.general.size() - 1)) {
                                     tested += data.general.get(i).toUpperCase();
@@ -165,34 +179,42 @@ public class SMTP extends Handler {
                                 }
                             }
                         }
-                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_smtp),
-                                tested, (AppCompatActivity) ctx);
+                        Dialogs.dialog_simple(
+                            act.get().getString(R.string.edit_account_check_smtp),
+                            tested,
+                            act.get()
+                        );
                     } else {
-                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_smtp),
-                                ctx.getString(R.string.edit_account_check_fail),
-                                (AppCompatActivity) ctx);
+                        Dialogs.dialog_simple(
+                            act.get().getString(R.string.edit_account_check_smtp),
+                            act.get().getString(R.string.edit_account_check_fail),
+                            act.get()
+                        );
                     }
                     reset();
                     over = true;
                 }
-            }).start();
+            ).start();
         }
         over = true;
     }
 
     @Override
-    public void default_action(boolean multi, Inbox inn, Context ct) {}
+    public void default_action(boolean multi, Inbox inn, AppCompatActivity at) {}
 
     @Override
-    public void attachment_action(int aid, Attachment att, Object doc_file, Context ct) {}
+    public void attachment_action(int aid, Attachment att, Object doc_file, AppCompatActivity at) {}
 
     @Override
-    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, Context ct) {
+    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, AppCompatActivity at) {
         current_inbox = db.get_account(aid);
-        ctx = ct;
+        act = new WeakReference<>(at);
         if (sp != null) {
-            on_ui_thread("-1", ctx.getString(R.string.progress_connecting) + " "
-                    + current_inbox.get_smtp_server());
+            on_ui_thread(
+                "-1",
+                act.get().getString(R.string.progress_connecting) + " "
+                    + current_inbox.get_smtp_server()
+            );
         }
 
         // A partial reset of variables
@@ -215,16 +237,17 @@ public class SMTP extends Handler {
 
         try {
             // Check for attachments
-            if (doc_file != null) data.msg_current_attachments = (ArrayList<String>) doc_file;
+            if (doc_file != null)
+                data.msg_current_attachments = (ArrayList<String>) doc_file;
         } catch (Exception e) {
             InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
-            Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
+            Dialogs.dialog_exception(e, act.get());
         }
         socket_start_smtp(this);
     }
 
     @Override
-    public void move_action(int aid, Message msg, Context ct) {}
+    public void move_action(int aid, Message msg, AppCompatActivity at) {}
 
     @Override
     public void load_extensions() {
@@ -335,10 +358,10 @@ public class SMTP extends Handler {
             cancel_action();
 
             // Dismiss the spinning dialog
-            if (sp != null) sp.unblock = true;
+            if (sp != null) sp.do_after();
 
             // Start a exception details new dialog
-            Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
+            Dialogs.dialog_exception(e, act.get());
         }
     }
 
@@ -414,14 +437,14 @@ public class SMTP extends Handler {
      * <domain> Service closing transmission channel.
      **/
     private void smtp_221() {
-        if (sp != null) sp.unblock = true;
+        if (sp != null) sp.do_after();
     }
 
     /**
      * Authentication successful.
      **/
     private void smtp_235() {
-        if (sp != null) on_ui_thread("-1", ctx.getString(R.string.progress_authenticated));
+        if (sp != null) on_ui_thread("-1", act.get().getString(R.string.progress_authenticated));
 
         // Prepare certificate information
         last_connection_data_id = current_inbox.get_id();
@@ -452,7 +475,7 @@ public class SMTP extends Handler {
      **/
     private void smtp_250() {
         if (ready) {
-            if (over || data.sequence.size() < 1) {
+            if (over || data.sequence.isEmpty()) {
                 over = true;
                 write("QUIT");
                 return;
@@ -463,14 +486,14 @@ public class SMTP extends Handler {
                 case "RCPT":
                     tag = "RCPT TO";
                     String s = "RCPT to: <";
-                    if (data.total_list.size() > 0) {
+                    if (!data.total_list.isEmpty()) {
                         s += data.total_list.get(0);
                         data.total_list.remove(0);
                     }
                     s += ">";
                     if (!data.smtp_utf_8) Utils.to_ascii(s);
                     write(s);
-                    if (data.total_list.size() < 1) data.sequence.remove(0);
+                    if (data.total_list.isEmpty()) data.sequence.remove(0);
                     break;
                 case "DATA":
                     tag = "DATA";
@@ -483,7 +506,7 @@ public class SMTP extends Handler {
             temp = data.cmd_return_pars;
             temp += data.cmd_return;
             ready = true;
-            if (sp != null) on_ui_thread("-1", ctx.getString(R.string.progress_connected));
+            if (sp != null) on_ui_thread("-1", act.get().getString(R.string.progress_connected));
             if (current_inbox.get_smtp_extensions().equals("-1")) {
                 if (temp.contains(data.smtp_host)) {
                     String[] arr_ext = temp.split("\n");
@@ -508,7 +531,7 @@ public class SMTP extends Handler {
                     tag = "AUTH PLAIN";
                     write(tag);
                 } else {
-                    error_dialog(ctx.getString(R.string.err_no_authentication));
+                    error_dialog(act.get().getString(R.string.err_no_authentication));
                     data.sequence.clear();
                     cancel_action();
                 }
@@ -525,11 +548,15 @@ public class SMTP extends Handler {
     private void smtp_334() {
         if (data.auth.equalsIgnoreCase("LOGIN")) {
             // LOGIN type of authentication
-            String str = new String(Base64.decode(data.cmd_return.trim().getBytes(),
-                    Base64.DEFAULT)).toUpperCase();
+            String str = new String(
+                Base64.decode(data.cmd_return.trim().getBytes(), Base64.DEFAULT)
+            ).toUpperCase();
             if (str.startsWith("USERNAME")) {
-                write(new String(Base64.encode(current_inbox.get_username().getBytes(),
-                        Base64.DEFAULT)).trim());
+                write(
+                    new String(
+                        Base64.encode(current_inbox.get_username().getBytes(), Base64.DEFAULT)
+                    ).trim()
+                );
             } else if (str.startsWith("PASSWORD")) {
                 str = current_inbox.get_pass();
                 if (str.isEmpty()) {
@@ -545,8 +572,10 @@ public class SMTP extends Handler {
             }
         } else if (data.auth.equalsIgnoreCase("PLAIN")) {
             // PLAIN type of authentication
-            String str = Base64.encodeToString(("\0"+ current_inbox.get_username() + "\0"
-                    + current_inbox.get_pass()).getBytes(), Base64.DEFAULT);
+            String str = Base64.encodeToString(
+                ("\0" + current_inbox.get_username() + "\0" + current_inbox.get_pass()).getBytes(),
+                Base64.DEFAULT
+            );
             if (str.length() > 500) {
                 write_limited(str.toCharArray());
             } else {
@@ -578,24 +607,45 @@ public class SMTP extends Handler {
                 if (!data.smtp_utf_8) st = Utils.to_ascii(st);
                 write_limited(st.toCharArray());
             }
+
             // Message-ID
-            st = "Message-ID: <" + (Math.random() * 1000);
-            st += System.currentTimeMillis() + ">";
+            st = "Message-ID: <" + (Math.random() * 1000) + System.currentTimeMillis() + ">";
             write(st);
+
+            // Date
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // Android >= 24
+                ZonedDateTime utc_date_and_time = Instant.now().atZone(ZoneId.of("UTC"));
+                st = "Date: " + utc_date_and_time.format(
+                    DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH)
+                );
+            } else {
+                SimpleDateFormat sdf = new SimpleDateFormat(
+                        "EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH
+                );
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+                st = sdf.format(calendar.getTime());
+            }
+            write(st);
+
+            // Subject
             if (data.msg_current.get_subject() != null
-                    && !data.msg_current.get_subject().isEmpty()) {
+                && !data.msg_current.get_subject().isEmpty()
+            ) {
                 st = "Subject: ";
                 if (!Utils.all_ascii(data.msg_current.get_subject())) {
                     st += Utils.to_base64_utf8(data.msg_current.get_subject()).trim();
                 } else {
                     st += data.msg_current.get_subject().trim();
                 }
+            } else {
+                st = "";
             }
             write_limited(st.toCharArray());
-            if (sp != null) on_ui_thread("-1", ctx.getString(R.string.send_headers_sent));
+            if (sp != null) on_ui_thread("-1", act.get().getString(R.string.send_headers_sent));
             sleep(100);
-            if (data.msg_current.get_contents_crypto() != null) {
-                // PGP/MIME
+            if (data.msg_current.get_contents_crypto() != null) { // PGP/MIME
                 System.gc();
                 write("MIME-Version: 1.0");
                 String dat = data.msg_current.get_contents_crypto();
@@ -616,7 +666,7 @@ public class SMTP extends Handler {
                     write(sb_write_out.toString());
                     sb_write_out.setLength(0);
                 }
-            } else if (data.msg_current_attachments.size() > 0) {
+            } else if (!data.msg_current_attachments.isEmpty()) {
                 write("MIME-Version: 1.0");
                 String bounds = Utils.boundary();
                 write("Content-type: multipart/mixed; boundary=" + "\"" + bounds + "\"");
@@ -635,14 +685,15 @@ public class SMTP extends Handler {
                 ArrayList<Byte> line_buf_bytes = new ArrayList<>();
                 for (int i = 0;i < data.msg_current_attachments.size();++i) {
                     Uri uri = Uri.parse(data.msg_current_attachments.get(i));
-
-                    Common.check_read_give((AppCompatActivity) ctx, uri);
-
-                    DocumentFile ff = DocumentFile.fromSingleUri(ctx, uri);
+                    Common.check_read_give(act.get(), uri);
+                    DocumentFile ff = DocumentFile.fromSingleUri(act.get(), uri);
 
                     if (sp != null) {
-                        on_ui_thread("-1", ctx.getString(R.string.send_upload_attachment)
-                                + " " + ff.getName());
+                        on_ui_thread(
+                            "-1",
+                            act.get().getString(R.string.send_upload_attachment) + " "
+                                + ff.getName()
+                        );
                     }
 
                     String mime_type_guess = URLConnection.guessContentTypeFromName(ff.getName());
@@ -664,15 +715,19 @@ public class SMTP extends Handler {
                     write("\n");
                     ByteArrayOutputStream b_stream = new ByteArrayOutputStream();
                     try {
-                        InputStream in_stream = ctx.getContentResolver().openInputStream(uri);
-                        byte[] bfr = new byte[(int)ff.length()];
-                        if ((int)ff.length() > 0) {
-                            int t;
-                            while ((t = in_stream.read(bfr)) != -1) { b_stream.write(bfr, 0, t); }
+                        try (InputStream in_stream = act.get().getContentResolver().openInputStream(uri)) {
+                            byte[] bfr = new byte[(int) ff.length()];
+                            if ((int) ff.length() > 0) {
+                                int t;
+                                while ((t = in_stream.read(bfr)) != -1) {
+                                    b_stream.write(bfr, 0, t);
+                                }
+                            }
                         }
                     } catch (IOException e) {
-                        InboxPager.log = InboxPager.log.concat(ctx.getString
-                                (R.string.ex_field) + e.getMessage() + "\n\n");
+                        InboxPager.log = InboxPager.log.concat(
+                            act.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+                        );
                     }
                     byte[] a_bytes = Base64.encode(b_stream.toByteArray(), Base64.DEFAULT);
                     for (byte b : a_bytes) {
@@ -685,7 +740,7 @@ public class SMTP extends Handler {
                             line_buf_bytes = new ArrayList<>();
                         } else line_buf_bytes.add(b);
                     }
-                    if (line_buf_bytes.size() > 0) {
+                    if (!line_buf_bytes.isEmpty()) {
                         byte[] b64s = new byte[line_buf_bytes.size()];
                         for (int d = 0;d < line_buf_bytes.size();d++) {
                             b64s[d] = line_buf_bytes.get(d);
@@ -708,21 +763,17 @@ public class SMTP extends Handler {
             write("\r\n.");
             write("QUIT");
             if (sp != null) {
-                on_ui_thread("-1", ctx.getString(R.string.send_sent));
-                sp.unblock = true;
-                Dialogs.toaster(false, ctx.getString(R.string.send_sent), (AppCompatActivity) ctx);
+                on_ui_thread("-1", act.get().getString(R.string.send_sent));
+                sp.do_after();
+                Dialogs.toaster(false, act.get().getString(R.string.send_sent), act.get());
             }
-            InboxPager.notify_update();
-            final InboxSend inb = (InboxSend) ctx;
-            ((InboxSend) ctx).runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-                    inb.connection_security();
-                }
-            });
+            Common.notify_update(act.get().getString(R.string.notification_sent_message), act.get());
+            final InboxSend inb = (InboxSend) act.get();
+            inb.runOnUiThread(inb::connection_security);
         } catch (InterruptedException e) {
-            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
+            InboxPager.log = InboxPager.log.concat(
+                act.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+            );
         }
     }
 
@@ -781,7 +832,7 @@ public class SMTP extends Handler {
      **/
     private void smtp_502() {
         if (data.test_mode) {
-            current_inbox.set_smtp_extensions(ctx.getString(R.string.err_no_ehlo));
+            current_inbox.set_smtp_extensions(act.get().getString(R.string.err_no_ehlo));
             db.update_account(current_inbox);
         } else {
             error_dialog(data.cmd_return);
@@ -806,10 +857,11 @@ public class SMTP extends Handler {
      * No such authentication.
      **/
     private void smtp_535() {
-        if (data.cmd_return.startsWith("5.7.8") && data.cmd_return.toLowerCase()
-                .contains("authentication failure")) {
+        if (data.cmd_return.startsWith("5.7.8")
+            && data.cmd_return.toLowerCase().contains("authentication failure")
+        ) {
             // Bad User Name or Password
-            error_dialog(ctx.getString(R.string.err_wrong_user_or_pass));
+            error_dialog(act.get().getString(R.string.err_wrong_user_or_pass));
         } else {
             error_dialog(data.cmd_return);
         }

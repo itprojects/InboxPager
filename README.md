@@ -1,6 +1,6 @@
 # InboxPager
 
-An E-mail client for the Android (java) platform. Supports IMAP, POP, and SMTP protocols through SSL/TLS.
+An E-mail client for the Android (Java) platform. Supports IMAP, POP, and SMTP protocols through SSL/TLS.
 
 ![screenshot](https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/phoneScreenshots/9.png)
 
@@ -14,9 +14,9 @@ You can download InboxPager from the free and open-source F-Droid app store.
 
 In order to use this application, you have to enable SSL/TLS application-email-checking through your email account's web interface. Some email servers may have this feature already turned on (NOT GMAIL!, see below). If your account's server does not support this feature, this app won't work.
 
-You can set up an account in InboxPager by going to "Settings" > "Add Account". There you have to enter your account's credentials and server parameters. If you don't know what your email account's server parameters are, use the automatic tools provided to find out, or enter and test your own configuration. Optionally, if you'd like to receive a sound or vibration notification, tick those settings. If you wish to have a specific account refresh only when you want it to, untick the "Allow in all-accounts-refresh" in that account's settings.
+You can set up an account in InboxPager by going to "Settings" > "Add Account". There you have to enter your account's credentials and server parameters. If you don't know what your email account's server parameters are, use the automatic tools provided to find out, or enter and test your own configuration. Optionally, if you'd like to receive a textual, sound or vibration notification, tick those settings. If you wish to manually refresh a specific account, untick the "Allow in all-accounts-refresh" in the account's settings.
 
-By default InboxPager DOES <b>NOT</b> KEEP "FULL MESSAGE" copies of emails. It just downloads the main textual contents of the message. If you wish to change this policy, you can do this in the settings for an individual account. Keeping full messages can consume your device's internal memory very quickly. In order to save emails, the full message must first be downloaded into the internal database. Also, unless the full email message is already inside the internal database, downloading attachments will require access to the internet.
+By default InboxPager DOES <b>NOT</b> KEEP "FULL MESSAGE" copies of emails. It just downloads the main textual contents of the message. If you wish to change this policy, you can do this in the settings for an individual account. **Keeping full messages can consume your device's internal memory very quickly.** In order to save an email or it's attachment, the full message is first downloaded into (RAM) memory, and then saved to file. The downloaded message won't remain, unless policy is set in account settings, or if downloaded through `Download ➠ Database`. If the full message is already in database, then no internet is necessary to save either message or attachments. If an email message has many attachments, it is better to download it to internal database, and then save them.
 
 # Features
 
@@ -34,13 +34,15 @@ The app can:
 
 - Keep track of your unread messages.
 
-- Notify with sound of new messages (per user choice).
+- Notify with text and sound of new messages (per user choice).
 
 - Notify with device vibration of new messages (per user choice).
 
 - Work with OpenPGP messages.
 
-- Verify hostnames (if self-signed certificates aren't available).
+- Emergency wipe password.
+
+- Verify hostnames.
 
 # Permissions
 
@@ -54,6 +56,10 @@ VIBRATE:
 
 Device can be made to vibrate, if new messages have arrived. Users can disable this setting from inside the application.
 
+MANAGE_EXTERNAL_STORAGE:
+
+The application may, or may not, work without this permission, but cannot save emails and cannot save (or send) attachments. The user must manually give permission in system settings, because it is not asked for. This permission is the new way to deliver the READ and WRITE device permissions.
+
 WRITE_EXTERNAL_STORAGE:
 
 In order to save messages, or attachments, to the device.
@@ -61,6 +67,10 @@ In order to save messages, or attachments, to the device.
 READ_EXTERNAL_STORAGE:
 
 In order to send messages with attachments.
+
+POST_NOTIFICATIONS
+
+Necessary to show notifications. Can be disabled, see internal and external application settings.
 
 ## Requirements
 
@@ -72,9 +82,9 @@ For a POP (Post Office Protocol 3) mail server:
 
 - LOTS of internal phone memory.
 
-## Known Items
+## Known Issues
 
-If there are any errors in the application, you should be able to see those in the internal application Event Log. For data leak prevention, this log is automatically deleted if the app is closed or crashes. The crashes should be visible in android's log (logcat).
+If there are any errors in the application, you should be able to see those in the internal application Event Log. For data leak prevention, this log is automatically deleted if the app is closed or crashes. The crashes should be visible in Android's logcat.
 
 - If you experience errors while downloading a large attachment, close some other applications to get more RAM.
 
@@ -88,43 +98,42 @@ If there are any errors in the application, you should be able to see those in t
 
 - Device orientation is frozen during sending and downloading to prevent crashing. This is restored when finished.
 
-- IF YOU DOWNLOAD TOO MANY ATTACHMENTS TOO QUICKLY, your server may ban you. Download the full message and save them afterwards.
+- IF YOU DOWNLOAD TOO MANY ATTACHMENTS TOO QUICKLY, your **server may ban you**. Download the full message to database first, and then save them afterwards. You may wish to remove the full message from database after that to save memory. 
 
 - Message dates (>=v5.1) are reformatted and converted to the LOCAL DEVICE TIMEZONE. Press "DATE", to see converted datetime header in a widget. Press the text of the date, to see the original raw datetime.
 
-## WON'T FIX
+## WON'T FIX ISSUES
 
-- Automatically, on a cloud server, Save/Restore internal database. If a backup of the local device is necessary, close the app and copy/paste the database from "/data/data/...".
+InboxPager:
 
-- Backend that runs in the background, as a constantly present service.
+- Does not allow backups and of internal database. If a backup of the local device is really necessary, close the app and copy/paste database and xml setting files from "/data/data/..." with root.
 
-- Contacts integration with the rest of the Android OS.
+- Does not have a separate back-end, that runs in the background, as a constantly present service.
 
-- Forwarding messages (digests) from inside the app.
+- Does not integrate with the rest of the Android OS.
 
-- Full IMAP folders. The app is "lite".
+- Does not forward messages (digests) from inside the app.
 
-- Ordinary non-SSL/TLS. This includes (STARTTLS).
+- Does not include the message being replied to in the new message.
 
-- Printing messages on paper. You can save them to file and print them manually.
+- Does not support all IMAP folder operations. The app is "lite".
 
-- Automatic inclusion of the message being replied to in the new message.
+- Does not support insecure (non-SSL/TLS) servers.
+
+- Does not print messages on paper. You can save them to file and print them manually.
 
 ## Bug Reporting
 
 https://github.com/itprojects/InboxPager/issues
 
-# Gmail Configuration
+# GMail Configuration
 
-Requires Two Factor Authentication (2FA).
+To use a GMail inbox, you need to setup an App Password.
 
-Make sure you have enabled IMAP access in Google Account.
-
-To use a Gmail inbox, you need to setup an App Password.
-
-1. Login to Gmail.
-2. To enable App Passwords for you google account, you need to have Two Factor Authentication (2FA).
-3. In GMail > Security > App Passwords.
+1. Login to GMail.
+2. Enable IMAP and SMTP access.
+3. Enable App Passwords for you account.
+    GMail > Security > App Passwords
 4. [IMPORTANT STEP] Press Select app > Other (Custom name)
 5. Give it a name. Done.
 6. Enter the letters (without spaces!) as password.
@@ -132,8 +141,8 @@ To use a Gmail inbox, you need to setup an App Password.
 App Password:
 
 - ONLY 16 symbols.
-- REVOKED (or disabled) when you CHANGE you Gmail PASSWORD. Set it again in GMail > Security > App Passwords.
-- to be CHANGED regularly, IF you WANT any SECURITY at all!
+- CHANGE regularly, IF you WANT any SECURITY at all!
+- REVOKED (or disabled) when you CHANGE you GMail PASSWORD. Set it again in GMail > Security > App Passwords.
 
 The other Gmail account settings are: 
 
@@ -155,13 +164,13 @@ If you are using POP with Gmail, make sure to enable it from Gmail's settings we
 
 ## Text Block Encryption
 
-The text of the message you send and/or receive can be encrypted/decrypted with either AES or Twofish cryptography. This WILL NOT ENCRYPT your message attachments. [For attachments encryption use OpenPGP.] Encrypting the texts with AES or Twofish makes it easy to send simple text message emails with minimal setup. All you need is a passphrase (a key), that both the sender and receiver already know. Although it should be technically possible to encrypt with an empty passphrase, it's a bad practice. The passphrase must be no longer than 32 symbols (=256bits). If the passphrase length is less than 32, then extra symbols (called padding) are automatically added. You can choose the type of padding to be PKCS7Padding or TBC. Additionally, you can also select the type of block encryption mode - CBC/CTR/ECB/ICM/OFB. The best privacy and security is when you encrypt your text with Block encryption, and then also with OpenPGP.
+Parts of the plain text of the message you send and/or receive can be encrypted/decrypted with either AES or Twofish cryptography. Just select the text you want to encrypt or decrypt, and choose encrypt or decrypt padlock icon from the context menu. This WILL NOT ENCRYPT your message attachments. [For attachments encryption use OpenPGP.] Encrypting the texts with AES or Twofish makes it easy to send simple text message emails with minimal setup. All you need is a passphrase (a key), that both the sender and receiver already know. Although it should be technically possible to encrypt with an empty passphrase, it's a bad practice. The passphrase must be no longer than 32 symbols (=256bits). If the passphrase length is less than 32, then extra symbols (called padding) are automatically added. You can choose the type of padding to be PKCS7Padding or TBC. Additionally, you can also select the type of block encryption mode - CBC/CTR/ECB/ICM/OFB. The best privacy and security is when you encrypt your text with block encryption, and then also with OpenPGP.
 
 The procedure for block text encryption/decryption is simple. Select some text, a context menu appears, press encrypt/decrypt as applicable. See images below.
 
 ## OpenPGP Usage
 
-In order to use cryptographic services, you need to install an app called OpenKeychain and make, or import, some pgp-keys. OpenKeychain applies OpenPGP privacy/security to a given message, and the process is described below, or (better) just look at the screenshots. Sending inline messages in non-pgp/mime standard is not supported, but third party apps exist that can do that through the system clipboard buffer.
+In order to use the OpenPGP cryptographic services, you need to install an app called OpenKeychain and make, or import, some pgp-keys. OpenKeychain applies OpenPGP privacy/security to a given message, and the process is described below, or (better) just look at the screenshots. Sending inline messages in non-pgp/mime standard is not supported, but third party apps exist that can do that through the system clipboard buffer.
 
 IMPORTANT, for BCC messages:
 
@@ -239,7 +248,7 @@ Gnu Crypto, GPL2
 
 # Translations
 
-In Portuguese by Hanelore, initially.
+In Portuguese initially by Hanelore.
 
 # Screenshots
 

@@ -10,8 +10,8 @@
     <!-- Default: sound notification for new messages. -->
     <CheckBoxPreference android:key="beeps"
         android:defaultValue="true"
-        android:title="@string/sett_beeps_download_title"
-        android:summary="@string/sett_beeps_download_summary"/>
+        android:title="@string/sett_notifies_download_title"
+        android:summary="@string/sett_notifies_download_summary"/>
 
     <!-- Default: vibration notification for new messages. -->
     <CheckBoxPreference android:key="vibrates"
@@ -19,18 +19,18 @@
         android:title="@string/sett_vibrates_download_title"
         android:summary="@string/sett_vibrates_download_summary"/>
 
+    <!-- Default: vibration notification for new messages. -->
+    <CheckBoxPreference android:key="transparent_webview_background"
+        android:defaultValue="true"
+        android:title="@string/sett_transparent_webview_title"
+        android:summary="@string/sett_transparent_webview_summary"/>
+
     <!-- Default: font size in message view. -->
     <EditTextPreference android:key="sett_msg_font_size"
         android:defaultValue="18"
         android:inputType="number"
         android:title="@string/sett_msg_font_size_title"
         android:summary="@string/sett_msg_font_size_summary"/>
-
-    <!-- Password: enable password for application. -->
-    <Preference android:key="pw_protection"
-        android:defaultValue="false"
-        android:title="@string/sett_enable_pw_title"
-        android:summary="@string/sett_enable_pw_summary_off"/>
 
     <!-- [Not PGP] Default: AES Text Cryptography. -->
     <ListPreference
@@ -55,5 +55,17 @@
         android:key="list_cipher_paddings"
         android:entries="@array/crypto_cipher_paddings"
         android:entryValues="@array/crypto_cipher_paddings"/>
+
+    <!-- Password: enable password for application. -->
+    <Preference android:key="pw_protection"
+        android:defaultValue="false"
+        android:title="@string/sett_enable_pw_title"
+        android:summary="@string/sett_enable_pw_summary_off"/>
+
+    <!-- Password: enable emergency password for application. -->
+    <Preference android:key="pw_emergency_protection"
+        android:defaultValue="false"
+        android:title="@string/sett_change_pw_emergency_title"
+        android:summary="@string/sett_enable_pw_emergency_summary_off"/>
 
 </androidx.preference.PreferenceScreen>

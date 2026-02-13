@@ -8,6 +8,15 @@
     android:orientation="vertical"
     android:padding="10sp">
 
+    <TextView
+        android:id="@+id/et_pw"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:autofillHints="@string/empty_string"
+        android:text="@string/crypto_plain_warning" />
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
@@ -19,11 +28,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10sp"
             android:spinnerMode="dropdown"
-            android:dropDownWidth="wrap_content"
+            android:padding="0dp"
             android:popupTheme="@android:style/ThemeOverlay.Material.Light"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             android:backgroundTint="@color/color_orange"
-            android:background="@drawable/spinner_selector"/>
+            android:background="@drawable/spinner_transparent"/>
 
         <Spinner
             android:id="@+id/spin_cipher_mode"
@@ -31,33 +40,27 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10sp"
             android:spinnerMode="dropdown"
+            android:padding="0dp"
             android:dropDownWidth="wrap_content"
             android:popupTheme="@android:style/ThemeOverlay.Material.Light"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             android:backgroundTint="@color/color_orange"
-            android:background="@drawable/spinner_selector"/>
+            android:background="@drawable/spinner_transparent"/>
 
         <Spinner
             android:id="@+id/spin_cipher_padding"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="10sp"
             android:spinnerMode="dropdown"
+            android:padding="0dp"
             android:dropDownWidth="wrap_content"
             android:popupTheme="@android:style/ThemeOverlay.Material.Light"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             android:backgroundTint="@color/color_orange"
-            android:background="@drawable/spinner_selector"/>
+            android:background="@drawable/spinner_transparent"/>
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/et_pw"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:autofillHints="@string/empty_string"
-        android:drawablePadding="7sp"
-        android:text="@string/crypto_plain_warning"
-        app:drawableStartCompat="@drawable/attachments_unaffected"/>
 
     <EditText
         android:id="@+id/et_key"
@@ -65,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
-        android:hint="@string/empty_string"
+        android:hint="@string/crypto_key_pw"
         android:autofillHints="@string/empty_string"
         android:inputType="textPassword|textNoSuggestions"
         android:maxLines="1"

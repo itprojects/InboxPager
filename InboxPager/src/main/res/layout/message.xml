@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_view_message"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    tools:context=".InboxMessage">
+    android:orientation="vertical">
+
+    <!-- fallbackLineSpacing corrects the TextView extra height space issue on API >= 33 -->
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/message_toolbar"
@@ -15,78 +16,55 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/ssl_auth_img_vw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="0sp"
+                android:layout_marginEnd="10sp"
+                android:contentDescription="@string/message_contents"
+                android:src="@drawable/padlock_error"
+                android:visibility="gone"/>
 
             <TextView
                 android:id="@+id/message_title"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@+id/llay_right"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
                 android:ellipsize="end"
+                android:fallbackLineSpacing="false"
                 android:fontFamily="@font/dottz"
                 android:letterSpacing="0.1"
                 android:maxLines="1"
-                android:paddingLeft="0sp"
                 android:paddingTop="4sp"
-                android:paddingRight="0sp"
-                android:paddingBottom="4sp"
                 android:shadowColor="@color/color_title"
                 android:shadowDx="0"
                 android:shadowDy="0"
                 android:shadowRadius="3"
                 android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
                 android:textColor="@color/color_title"
-                android:visibility="visible" />
+                android:visibility="visible"/>
 
-            <LinearLayout
-                android:id="@+id/llay_right"
+            <TextView
+                android:id="@+id/tv_reply"
+                style="@style/action_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:orientation="horizontal">
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="10sp"
+                android:layout_marginEnd="1sp"
+                android:background="@drawable/btn_green"
+                android:text="@string/message_reply"
+                android:contentDescription="@string/message_reply"/>
 
-                <ImageView
-                    android:id="@+id/ssl_auth_img_vw"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:contentDescription="@string/message_contents"
-                    android:paddingStart="10sp"
-                    android:paddingEnd="2sp"
-                    android:src="@drawable/padlock_error"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/message_attachments"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/dottz"
-                    android:paddingTop="4sp"
-                    android:paddingBottom="4sp"
-                    android:paddingStart="2sp"
-                    android:paddingEnd="6sp"
-                    android:shadowDx="0"
-                    android:shadowDy="0"
-                    android:shadowRadius="3"
-                    app:drawableEndCompat="@drawable/attachment" />
-
-                <TextView
-                    android:id="@+id/tv_reply"
-                    style="@style/action_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="1sp"
-                    android:background="@drawable/btn_green"
-                    android:text="@string/message_reply" />
-
-            </LinearLayout>
-
-        </RelativeLayout>
+        </LinearLayout>
 
     </androidx.appcompat.widget.Toolbar>
 
@@ -121,14 +99,14 @@
                     android:text="@string/message_from"
                     android:textAppearance="@android:style/TextAppearance"
                     android:textColor="@color/color_message_headers"
-                    app:drawableEndCompat="@drawable/location" />
+                    app:drawableEndCompat="@drawable/location"/>
 
                 <TextView
                     android:id="@+id/message_from"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="2sp"
-                    android:textIsSelectable="true" />
+                    android:textIsSelectable="true"/>
 
             </LinearLayout>
 
@@ -143,7 +121,7 @@
                 android:layout_marginBottom="15sp"
                 android:text="@string/message_to"
                 android:textAppearance="@android:style/TextAppearance"
-                android:textColor="@color/color_message_headers" />
+                android:textColor="@color/color_message_headers"/>
 
             <TextView
                 android:id="@+id/message_to"
@@ -153,7 +131,7 @@
                 android:layout_marginLeft="20sp"
                 android:layout_marginEnd="20sp"
                 android:layout_marginRight="20sp"
-                android:textIsSelectable="true" />
+                android:textIsSelectable="true"/>
 
             <TextView
                 android:id="@+id/message_cc_title"
@@ -166,7 +144,7 @@
                 android:layout_marginBottom="15sp"
                 android:text="@string/message_cc"
                 android:textAppearance="@android:style/TextAppearance"
-                android:textColor="@color/color_message_headers" />
+                android:textColor="@color/color_message_headers"/>
 
             <TextView
                 android:id="@+id/message_cc"
@@ -176,7 +154,7 @@
                 android:layout_marginLeft="20sp"
                 android:layout_marginEnd="20sp"
                 android:layout_marginRight="20sp"
-                android:textIsSelectable="true" />
+                android:textIsSelectable="true"/>
 
             <TextView
                 android:id="@+id/message_bcc_title"
@@ -189,7 +167,7 @@
                 android:layout_marginBottom="15sp"
                 android:text="@string/message_bcc"
                 android:textAppearance="@android:style/TextAppearance"
-                android:textColor="@color/color_message_headers" />
+                android:textColor="@color/color_message_headers"/>
 
             <TextView
                 android:id="@+id/message_bcc"
@@ -199,7 +177,7 @@
                 android:layout_marginLeft="20sp"
                 android:layout_marginEnd="20sp"
                 android:layout_marginRight="20sp"
-                android:textIsSelectable="true" />
+                android:textIsSelectable="true"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -222,13 +200,13 @@
                     android:text="@string/message_date"
                     android:textAppearance="@android:style/TextAppearance"
                     android:textColor="@color/color_message_headers"
-                    app:drawableEndCompat="@drawable/datetime" />
+                    app:drawableEndCompat="@drawable/datetime"/>
 
                 <TextView
                     android:id="@+id/message_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="2sp" />
+                    android:padding="2sp"/>
 
             </LinearLayout>
 
@@ -243,7 +221,7 @@
                 android:layout_marginBottom="15sp"
                 android:text="@string/message_subject"
                 android:textAppearance="@android:style/TextAppearance"
-                android:textColor="@color/color_message_headers" />
+                android:textColor="@color/color_message_headers"/>
 
             <TextView
                 android:id="@+id/message_subject"
@@ -253,66 +231,70 @@
                 android:layout_marginLeft="20sp"
                 android:layout_marginEnd="20sp"
                 android:layout_marginRight="20sp"
-                android:textIsSelectable="true" />
+                android:textIsSelectable="true"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="15sp"
+                android:layout_marginEnd="5sp"
+                android:layout_marginBottom="15sp"
                 android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="15sp"
-                    android:layout_marginTop="15sp"
                     android:layout_marginEnd="0sp"
-                    android:layout_marginBottom="5sp"
                     android:text="@string/message_contents"
                     android:textAppearance="@android:style/TextAppearance"
-                    android:textColor="@color/color_message_headers" />
+                    android:textColor="@color/color_message_headers"/>
 
                 <Spinner
                     android:id="@+id/message_spinner_texts"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="15sp"
-                    android:layout_marginStart="10sp"
                     android:spinnerMode="dropdown"
                     android:dropDownWidth="wrap_content"
-                    android:popupTheme="@android:style/ThemeOverlay.Material.Light"
-                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                     android:backgroundTint="@color/color_orange"
-                    android:background="@drawable/spinner_selector" /><!-- transparent with #00FF0000 -->
+                    android:background="@drawable/spinner_transparent"
+                    android:padding="0dp"/>
 
-                <ImageView
-                    android:id="@+id/iv_decryption_txt"
+                <TextView
+                    android:id="@+id/message_attachments"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="7sp"
-                    android:layout_marginTop="24sp"
-                    android:contentDescription="@string/crypto_title"
-                    android:src="@drawable/padlock_txt"
-                    android:visibility="gone"/>
+                    android:layout_gravity="center"
+                    android:layout_marginStart="15sp"
+                    android:fontFamily="@font/dottz"
+                    android:maxLines="1"
+                    android:fallbackLineSpacing="false"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    app:drawableEndCompat="@drawable/attachment"
+                    android:textSize="@dimen/text_size_message_item"
+                    android:textAppearance="@android:style/TextAppearance"
+                    android:textColor="@color/color_message_headers"/>
 
                 <ImageView
                     android:id="@+id/iv_gpg_crypto"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="7sp"
-                    android:layout_marginTop="24sp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="15sp"
                     android:contentDescription="@string/send_encrypt"
                     android:src="@drawable/padlock_pgp_closed_inverted"
-                    android:visibility="gone" />
+                    android:visibility="gone"/>
 
                 <ImageView
                     android:id="@+id/iv_gpg_signature"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="7sp"
-                    android:layout_marginTop="26sp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="15sp"
                     android:contentDescription="@string/open_pgp_message_signature"
                     android:src="@drawable/signature"
-                    android:visibility="gone" />
+                    android:visibility="gone"/>
 
             </LinearLayout>
 
@@ -326,25 +308,21 @@
                 android:layout_marginRight="20sp"
                 android:layout_marginBottom="15sp"
                 android:hint="@string/message_contents_loop_no"
-                android:textIsSelectable="true" />
+                android:textIsSelectable="true"/>
 
             <LinearLayout
+                android:id="@+id/llay_message"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20sp"
+                android:layout_marginLeft="20sp"
+                android:layout_marginEnd="20sp"
+                android:layout_marginRight="20sp"
+                android:layout_marginBottom="15sp"
                 android:orientation="vertical">
 
-                <WebView
-                    android:id="@+id/message_contents_webview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="20sp"
-                    android:layout_marginLeft="20sp"
-                    android:layout_marginEnd="20sp"
-                    android:layout_marginRight="20sp"
-                    android:layout_marginBottom="15sp"
-                    android:hint="@string/message_contents_loop_no"
-                    android:textIsSelectable="true"
-                    android:visibility="visible"/>
+                <!-- WebView inserted here, if installed and enabled, otherwise TextView -->
+
             </LinearLayout>
 
         </LinearLayout>

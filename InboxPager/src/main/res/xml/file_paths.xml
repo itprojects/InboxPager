@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Application files from internal storage /data/data/<app>/files/ folder -->
+    <!-- Context.getFilesDir() -->
+    <files-path name="app_internal_files" path="." />
+
+    <!-- Application's external storage /sdcard/Android/data/<app>/files/ folder -->
+    <!-- Context.getExternalFilesDir(null) -->
+    <external-files-path name="app_external_files" path="." />
+
+    <!-- Other (USB) devices' external storage photos/videos folders -->
+    <!-- Context.getExternalMediaDirs() -->
+    <external-media-path name="device_media_path" path="."/>
+</paths>

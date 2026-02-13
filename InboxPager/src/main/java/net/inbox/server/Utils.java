@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ public class Utils {
 
     // Types of MIME data
     private static String t_composite =
-            "ALTERNATIVE|DIGEST|ENCRYPTED|FORM DATA|MESSAGE|MIXED|RELATED|REPORT|SIGNED";
+        "ALTERNATIVE|DIGEST|ENCRYPTED|FORM DATA|MESSAGE|MIXED|RELATED|REPORT|SIGNED";
 
     /**
      * Parses IMAP bodystructure into java objects.
@@ -117,7 +117,7 @@ public class Utils {
             } else if (txt[1].charAt(i) == ')') {
                 int begin = char_positions.get(char_positions.size() - 1);
                 char_positions.remove(char_positions.get(char_positions.size() - 1));
-                if (char_positions.size() == 0) {
+                if (char_positions.isEmpty()) {
                     structure.add(new String[] { "-1",  txt[1].substring(begin + 1, i) });
                 }
                 continue;
@@ -132,7 +132,7 @@ public class Utils {
                     }
                 }
             }
-            if (char_positions.size() == 0) {
+            if (char_positions.isEmpty()) {
                 sb_between.append(txt[1].charAt(i));
             }
         }
@@ -236,7 +236,7 @@ public class Utils {
 
         // Remaining items are attachments
         ArrayList<String[]> return_structure = new ArrayList<>();
-        if (structure.size() > 0) {
+        if (!structure.isEmpty()) {
             for (int j = 0;j < structure.size();++j) {
                 return_structure.add(j, imap_parse_attachment_params(structure.get(j)));
             }
@@ -389,14 +389,18 @@ public class Utils {
         }
 
         // BASE64 OR Quoted-printable
-        pat = Pattern.compile(".*\\(\"ATTACHMENT\" \\(\"FILENAME\" \"(.*)\"\\)\\) .*",
-                Pattern.CASE_INSENSITIVE);
+        pat = Pattern.compile(
+            ".*\\(\"ATTACHMENT\" \\(\"FILENAME\" \"(.*)\"\\)\\) .*",
+            Pattern.CASE_INSENSITIVE
+        );
         mat = pat.matcher(temp);
         if (mat.matches()) name = mat.group(1);
 
         // URL-encoded filename
-        pat = Pattern.compile(".*\\(\"ATTACHMENT\" \\(\"FILENAME\\*\" (.*)\\)\\) .*",
-                Pattern.CASE_INSENSITIVE);
+        pat = Pattern.compile(
+            ".*\\(\"ATTACHMENT\" \\(\"FILENAME\\*\" (.*)\\)\\) .*",
+            Pattern.CASE_INSENSITIVE
+        );
         mat = pat.matcher(temp);
         if (mat.matches()) {
             name = mat.group(1);
@@ -429,8 +433,9 @@ public class Utils {
         String[] sequence = null;
 
         String[] toArray() {
-            return new String[]
-                    { index, mime_type, boundary, name, transfer_encoding, charset, size };
+            return new String[]{
+                index, mime_type, boundary, name, transfer_encoding, charset, size
+            };
         }
     }
 
@@ -446,8 +451,10 @@ public class Utils {
         boundaries.add(m_boundary);
 
         // Finding the boundaries
-        Pattern pat_border = Pattern.compile(".*boundary=\"(.*)\".*",
-                Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+        Pattern pat_border = Pattern.compile(
+            ".*boundary=\"(.*)\".*",
+            Pattern.CASE_INSENSITIVE|Pattern.MULTILINE
+        );
         mat = pat_border.matcher(buff);
         while (mat.find()) { boundaries.add("--" + mat.group(1)); }
 
@@ -582,7 +589,7 @@ public class Utils {
                     if (mat.matches()) {
                         parts.get(i).name = mat.group(2).trim();
                         // From B64, QP, or URL to text
-                        if (parts.get(i).name.length() > 0) {
+                        if (!parts.get(i).name.isEmpty()) {
                             if (is_encoded_word(parts.get(i).name)) {
                                 parts.get(i).name = parse_encoded_word(parts.get(i).name);
                             } else {
@@ -590,9 +597,11 @@ public class Utils {
                             }
                             // Remove quotes
                             if (parts.get(i).name.startsWith("\"")
-                                    && parts.get(i).name.endsWith("\"")) {
-                                parts.get(i).name = parts.get(i).name.
-                                        substring(1, parts.get(i).name.length() - 1);
+                                && parts.get(i).name.endsWith("\"")) {
+                                parts.get(i).name = parts.get(i).name.substring(
+                                    1,
+                                    parts.get(i).name.length() - 1
+                                );
                             }
                         }
                     }
@@ -681,8 +690,12 @@ public class Utils {
     /**
      * Parses a MIME to set message texts.
      **/
-    public static void mime_parse_full_msg_into_texts(String txt, ArrayList<String[]> msg_structure,
-                                                      ArrayList<String[]> msg_texts, Message msg) {
+    public static void mime_parse_full_msg_into_texts(
+        String txt,
+        ArrayList<String[]> msg_structure,
+        ArrayList<String[]> msg_texts,
+        Message msg
+    ) {
         // Preparing texts
         boolean has_texts = false;
         ListIterator<String[]> iterate = msg_structure.listIterator();
@@ -692,9 +705,9 @@ public class Utils {
                 if (!has_texts) has_texts = true;
                 msg_texts.add(arr);
                 iterate.remove();
-            } else if (msg.get_content_type().toLowerCase()
-                    .contains("multipart/alternative")
-                    || (arr[0].startsWith("2") && !has_texts && arr[1].startsWith("text/"))) {
+            } else if (msg.get_content_type().toLowerCase().contains("multipart/alternative")
+                || (arr[0].startsWith("2") && !has_texts && arr[1].startsWith("text/"))
+            ) {
                 msg_texts.add(arr);
                 iterate.remove();
             }
@@ -712,8 +725,10 @@ public class Utils {
                 if (arr[4].equalsIgnoreCase("BASE64")) {
                     txt_tmp = Utils.parse_BASE64(txt_tmp);
                 } else if (arr[4].equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                    txt_tmp = Utils.parse_quoted_printable(txt_tmp,
-                            (arr[5].isEmpty() ? arr[5] : "UTF-8"));
+                    txt_tmp = Utils.parse_quoted_printable(
+                        txt_tmp,
+                        (arr[5].isEmpty() ? arr[5] : "UTF-8")
+                    );
                 }
                 msg.set_contents_plain(txt_tmp);
             } else if (arr[1].startsWith("text/html")) {
@@ -731,8 +746,10 @@ public class Utils {
                     str = "";
                     hold = "";
                 } else if (arr[4].equalsIgnoreCase("QUOTED-PRINTABLE")) {
-                    txt_tmp = Utils.parse_quoted_printable(txt_tmp,
-                            (arr[5].isEmpty() ? arr[5] : "UTF-8"));
+                    txt_tmp = Utils.parse_quoted_printable(
+                        txt_tmp,
+                        (arr[5].isEmpty() ? arr[5] : "UTF-8")
+                    );
                 }
                 msg.set_contents_html(txt_tmp);
             } else {
@@ -823,8 +840,11 @@ public class Utils {
         String ret = "";
         String[] lines = b64_text.split("\r\n");
         for (String l : lines) {
-            ret = ret.concat(new String(Base64.decode(
-                    l.replaceAll("([\r\n=])", ""), Base64.DEFAULT)));
+            ret = ret.concat(
+                new String(
+                    Base64.decode(l.replaceAll("([\r\n=])", ""), Base64.DEFAULT)
+                )
+            );
         }
         return ret;
     }
@@ -833,10 +853,16 @@ public class Utils {
         try {
             if (enc.equalsIgnoreCase("UTF-8") || enc.equals("-1")) {
                 return new String(Base64.decode(
-                        b64_text.replaceAll("([\r\n=])", ""), Base64.DEFAULT));
+                    b64_text.replaceAll("([\r\n=])", ""), Base64.DEFAULT)
+                );
             } else {
-                return new String(Base64.decode(
-                        b64_text.replaceAll("([\r\n=])", ""), Base64.DEFAULT), enc);
+                return new String(
+                    Base64.decode(
+                        b64_text.replaceAll("([\r\n=])", ""),
+                        Base64.DEFAULT
+                    ),
+                    enc
+                );
             }
         } catch (UnsupportedEncodingException e) {
             InboxPager.log = InboxPager.log.concat("!B64!PARSE!" + e.getMessage() + "\n\n");
@@ -848,7 +874,6 @@ public class Utils {
      * Encoded-word decoding.
      * Decides appropriate non-ascii string encoding.
      * Converts from BASE64 or Quoted Printable to UTF-8.
-     *
      * i.e.: (not a real word)
      * =?utf-8?B?Kkg1YTQtdC=?=
      * =?utf-8?Q?=D6=93=D4=BE=D1?=
@@ -867,7 +892,6 @@ public class Utils {
      * Convert an ASCII Quoted Printable to UTF-8 string.
      * Line length must be maximum 76 chars long.
      * Therefore a re-assembly is required, before processing.
-     *
      * Creme de la creme:
      * Cr=C3=A8me de la cr=C3=A8me
      **/
@@ -906,7 +930,6 @@ public class Utils {
 
     /**
      * Converts (encode-decode) URL-style filenames for transmission.
-     *
      * filename*=UTF-8''Na%C3%AFve%20file.txt
      **/
     public static String content_disposition_name(boolean encode, String filename) {
@@ -924,8 +947,10 @@ public class Utils {
                     if (mat.group(1).equalsIgnoreCase("UTF-8")) {
                         return URLDecoder.decode(mat.group(3), mat.group(1));
                     } else {
-                        return new String(URLDecoder.decode(mat.group(3), mat.group(1))
-                                .getBytes(), StandardCharsets.UTF_8);
+                        return new String(
+                            URLDecoder.decode(mat.group(3), mat.group(1)).getBytes(),
+                            StandardCharsets.UTF_8
+                        );
                     }
                 } else {
                     return filename;

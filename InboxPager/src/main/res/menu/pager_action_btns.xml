@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:title="@string/menu_settings"
+        android:title="@string/menu_preferences"
         android:icon="@drawable/settings"
         app:showAsAction="always">
 
         <menu>
             <item android:id="@+id/about_menu" android:title="@string/menu_about"/>
             <item android:id="@+id/add_menu" android:title="@string/menu_add_account"/>
-            <item android:id="@+id/defaults_menu" android:title="@string/menu_settings"/>
+            <item android:id="@+id/defaults_menu" android:title="@string/menu_preferences"/>
             <item android:id="@+id/mass_refresh_menu" android:title="@string/sett_auto_check_title"/>
             <item android:id="@+id/log_menu" android:title="@string/menu_log"/>
             <item android:id="@+id/status_menu" android:title="@string/menu_status"/>

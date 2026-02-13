@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  **/
 package net.inbox.server;
 
-import android.content.Context;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -28,11 +27,13 @@ import net.inbox.db.Attachment;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
 import net.inbox.pager.R;
+import net.inbox.Common;
 import net.inbox.visuals.Dialogs;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +42,7 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class IMAP extends Handler {
+public class IMAP extends NetworkThread {
 
     private static class DataIMAP extends Data {
         // Command sequence index
@@ -87,8 +88,8 @@ public class IMAP extends Handler {
     // Command sent index
     private int num = 0;
 
-    public IMAP(Context ct) {
-        super(ct);
+    public IMAP(AppCompatActivity act) {
+        super(act);
     }
 
     @Override
@@ -125,7 +126,6 @@ public class IMAP extends Handler {
                 stat = 2;
                 data.sequence.clear();
                 data.sequence.add("logout");
-
                 String str_tmp = tag + " NO";
                 error_dialog(current_inbox.get_email() + "\n\n" + l.substring(str_tmp.length()));
             } else if (l.startsWith(tag + " BAD")) {
@@ -167,9 +167,9 @@ public class IMAP extends Handler {
      * Test remote server for correct operation.
      **/
     @Override
-    public void test_server(Inbox inn, Context ct) {
+    public void test_server(Inbox inn, AppCompatActivity at) {
         current_inbox = inn;
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -191,30 +191,36 @@ public class IMAP extends Handler {
         try {
             sleep(1000);
         } catch (InterruptedException e) {
-            InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+            InboxPager.log = InboxPager.log.concat(
+                act.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+            );
         }
 
         if (!excepted) {
             // Prepare a callback for results
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+            new Thread(
+                () -> {
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {
-                        InboxPager.log += ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n";
+                        InboxPager.log = InboxPager.log.concat(
+                            act.get().getString(R.string.ex_field) + e.getMessage() + "\n\n"
+                        );
                     }
 
                     if (current_inbox.get_imap_or_pop_extensions() != null
-                            && !current_inbox.get_imap_or_pop_extensions().isEmpty()) {
+                        && !current_inbox.get_imap_or_pop_extensions().isEmpty()
+                    ) {
                         String tested;
                         if (current_inbox.get_imap_or_pop_extensions()
-                                .equals(ctx.getString(R.string.err_no_capability))) {
-                            tested = ctx.getString(R.string.err_no_capability);
+                                .equals(act.get().getString(R.string.err_no_capability))
+                        ) {
+                            tested = act.get().getString(R.string.err_no_capability);
                         } else {
                             // Preparing the dialog message
                             load_extensions();
-                            tested = ctx.getString(R.string.edit_account_check_login_types) + "\n\n";
+                            tested = act.get().getString(R.string.edit_account_check_login_types)
+                                + "\n\n";
                             for (int i = 0;i < data.auths.size();++i) {
                                 if (i == (data.auths.size() - 1)) {
                                     tested += data.auths.get(i).toUpperCase();
@@ -222,7 +228,8 @@ public class IMAP extends Handler {
                                     tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
                                 }
                             }
-                            tested += "\n\n" + ctx.getString(R.string.edit_account_check_other) + "\n\n";
+                            tested += "\n\n"
+                                + act.get().getString(R.string.edit_account_check_other) + "\n\n";
                             for (int i = 0;i < data.general.size();++i) {
                                 if (i == (data.general.size() - 1)) {
                                     tested += data.general.get(i).toUpperCase();
@@ -231,26 +238,31 @@ public class IMAP extends Handler {
                                 }
                             }
                         }
-                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_incoming),
-                                tested, (AppCompatActivity) ctx);
+                        Dialogs.dialog_simple(
+                            act.get().getString(R.string.edit_account_check_incoming),
+                            tested,
+                            act.get()
+                        );
                     } else {
-                        Dialogs.dialog_simple(ctx.getString(R.string.edit_account_check_incoming),
-                                ctx.getString(R.string.edit_account_check_fail),
-                                (AppCompatActivity) ctx);
+                        Dialogs.dialog_simple(
+                            act.get().getString(R.string.edit_account_check_incoming),
+                            act.get().getString(R.string.edit_account_check_fail),
+                            act.get()
+                        );
                     }
                     reset();
                 }
-            }).start();
+            ).start();
         } else {
             reset();
         }
     }
 
     @Override
-    public void default_action(boolean multi, Inbox inn, Context ct) {
+    public void default_action(boolean multi, Inbox inn, AppCompatActivity at) {
         multiple = multi;
         current_inbox = inn;
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -266,11 +278,15 @@ public class IMAP extends Handler {
         }
 
         if (multiple) {
-            on_ui_thread(current_inbox.get_email(),
-                    ctx.getString(R.string.progress_refreshing));
+            on_ui_thread(
+                current_inbox.get_email(),
+                act.get().getString(R.string.progress_refreshing)
+            );
         } else {
-            on_ui_thread(ctx.getString(R.string.progress_title),
-                    ctx.getString(R.string.progress_refreshing));
+            on_ui_thread(
+                act.get().getString(R.string.progress_title),
+                act.get().getString(R.string.progress_refreshing)
+            );
         }
 
         // Refresh messages sequence
@@ -283,11 +299,16 @@ public class IMAP extends Handler {
     }
 
     @Override
-    public void attachment_action(int account_id, Attachment att, Object doc_file, Context ct) {
+    public void attachment_action(
+        int account_id,
+        Attachment att,
+        Object doc_file,
+        AppCompatActivity at
+    ) {
         current_inbox = db.get_account(account_id);
-        ctx = ct;
+        act = new WeakReference<>(at);
 
-        // A partial reset of variables
+        // A partial ret of variables
         over = false;
         ready = false;
         excepted = false;
@@ -304,11 +325,13 @@ public class IMAP extends Handler {
         if (doc_file == null) {
             data.a_file = null;
         } else {
-            data.a_file = ((DocumentFile) doc_file).createFile("application/octet-stream",
-                    data.att_item.get_name());
+            Common.check_write_give(act.get(), ((DocumentFile) doc_file).getUri());
+            data.a_file = ((DocumentFile) doc_file).createFile(
+                "application/octet-stream", data.att_item.get_name()
+            );
         }
 
-        on_ui_thread(ctx.getString(R.string.progress_downloading), data.att_item.get_name());
+        on_ui_thread(act.get().getString(R.string.progress_downloading), data.att_item.get_name());
 
         // Refresh messages sequence
         data.sequence.add("LOGIN");
@@ -320,9 +343,9 @@ public class IMAP extends Handler {
     }
 
     @Override
-    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, Context ct) {
+    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, AppCompatActivity at) {
         current_inbox = db.get_account(aid);
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -342,11 +365,18 @@ public class IMAP extends Handler {
         if (doc_file == null) {
             data.a_file = null;
         } else {
-            data.a_file = ((DocumentFile)doc_file).createFile("application/octet-stream",
-                    data.msg_current.get_subject() + ".eml");
+            Common.check_write_give(act.get(), ((DocumentFile) doc_file).getUri());
+            String full_message_file_name;
+            if (data.msg_current.get_subject() == null || data.msg_current.get_subject().isEmpty())
+                full_message_file_name = act.get().getString(R.string.progress_unknown_eml);
+            else
+                full_message_file_name = data.msg_current.get_subject() + ".eml";
+            data.a_file = ((DocumentFile) doc_file).createFile(
+                "message/rfc822", full_message_file_name
+            );
         }
 
-        on_ui_thread(ctx.getString(R.string.progress_downloading), msg.get_subject());
+        on_ui_thread(act.get().getString(R.string.progress_downloading), msg.get_subject());
 
         // Refresh messages sequence
         data.sequence.add("LOGIN");
@@ -358,9 +388,9 @@ public class IMAP extends Handler {
     }
 
     @Override
-    public void move_action(int aid, Message msg, Context ct) {
+    public void move_action(int aid, Message msg, AppCompatActivity at) {
         current_inbox = db.get_account(aid);
-        ctx = ct;
+        act = new WeakReference<>(at);
 
         // A partial reset of variables
         over = false;
@@ -377,12 +407,14 @@ public class IMAP extends Handler {
 
         data.msg_current = msg;
 
-        on_ui_thread(ctx.getString(R.string.progress_deleting),
-                ctx.getString(R.string.progress_deleting_msg) + " " + msg.get_subject());
+        on_ui_thread(
+            act.get().getString(R.string.progress_deleting),
+            act.get().getString(R.string.progress_deleting_msg) + " " + msg.get_subject()
+        );
 
         // Refresh messages sequence
         data.sequence.add("LOGIN");
-        data.sequence.add("SELECT");// RW
+        data.sequence.add("SELECT"); // RW
         data.sequence.add("DELETE_MSG");
         data.sequence.add("EXPUNGE");
         data.sequence.add("LOGOUT");
@@ -429,7 +461,7 @@ public class IMAP extends Handler {
     private void imap_conductor(boolean cmd_start) {
         if (over) return;
         try {
-            if (data.sequence.size() < 1) return;
+            if (data.sequence.isEmpty()) return;
             switch (data.sequence.get(0)) {
                 case "CAPABILITY":
                     imap_capability(cmd_start);
@@ -513,14 +545,14 @@ public class IMAP extends Handler {
             }
             if (!cmd_start) {
                 data.sequence.remove(0);
-                if (data.sequence.size() > 0) {
+                if (!data.sequence.isEmpty()) {
                     imap_conductor(true);
                 } else {
                     db.refresh_total_size(current_inbox.get_id());
                     current_inbox.set_total_size(db.get_total_size(current_inbox.get_id()));
                     if (!data.test_mode) reset();
                     if (!multiple && sp != null) {
-                        sp.unblock = true;
+                        sp.do_after();
                     } else if (multiple) {
                         continue_pager();
                     }
@@ -540,7 +572,7 @@ public class IMAP extends Handler {
      **/
     private void imap_delegation(boolean cmd_start) {
         if (!data.delegate) return;
-        if (data.delegation.size() < 1) return;
+        if (data.delegation.isEmpty()) return;
         switch (data.delegation.get(data.cmd_indx)) {
             case "ALL_MSGS":
                 // Adding ALL MESSAGES
@@ -562,8 +594,11 @@ public class IMAP extends Handler {
 
                     // Update spinning dialog message
                     if (sp != null) {
-                        on_ui_thread("-1", (ctx.getString(R.string.progress_fetch_msg) + " "
-                                + (data.msg_indx + 1) + " / " + (data.message_uids.size())));
+                        on_ui_thread(
+                            "-1",
+                            (act.get().getString(R.string.progress_fetch_msg) + " "
+                                + (data.msg_indx + 1) + " / " + (data.message_uids.size()))
+                        );
                     }
                     ++data.msg_indx;
                 }
@@ -639,8 +674,9 @@ public class IMAP extends Handler {
             write(tag + " CAPABILITY");
         } else {
             data.cmd_return_pars = data.cmd_return_pars.substring(12);
-            current_inbox.set_imap_or_pop_extensions
-                    (data.cmd_return_pars.trim().replaceAll(" ", "\n"));
+            current_inbox.set_imap_or_pop_extensions(
+                data.cmd_return_pars.trim().replaceAll(" ", "\n")
+            );
             db.update_account(current_inbox);
             clear_buff();
         }
@@ -655,7 +691,7 @@ public class IMAP extends Handler {
                 write(tag + " LOGIN " + current_inbox.get_username()
                         + " " + current_inbox.get_pass());
             } else {
-                error_dialog(ctx.getString(R.string.err_no_authentication));
+                error_dialog(act.get().getString(R.string.err_no_authentication));
                 data.sequence.clear();
                 imap_logout(true);
             }
@@ -701,15 +737,17 @@ public class IMAP extends Handler {
             if (db.get_messages_count(current_inbox.get_id()) != messages) {
                 current_inbox.set_to_be_refreshed(true);
             } else if (uidnext != current_inbox.get_uidnext()
-                    && uidvalidity != current_inbox.get_uidvalidity()) {
+                && uidvalidity != current_inbox.get_uidvalidity()
+            ) {
                 current_inbox.set_to_be_refreshed(true);
             }
 
             if (messages != current_inbox.get_messages()
-                    || recent != current_inbox.get_recent()
-                    || uidnext != current_inbox.get_uidnext()
-                    || uidvalidity != current_inbox.get_uidvalidity()
-                    || unseen != current_inbox.get_unseen()) {
+                || recent != current_inbox.get_recent()
+                || uidnext != current_inbox.get_uidnext()
+                || uidvalidity != current_inbox.get_uidvalidity()
+                || unseen != current_inbox.get_unseen()
+            ) {
                 current_inbox.set_messages(messages);
                 current_inbox.set_recent(recent);
                 current_inbox.set_uidnext(uidnext);
@@ -837,18 +875,21 @@ public class IMAP extends Handler {
 
         if (local_msgs_var == 0 && local_msgs_db == 0) {
             // Update spinning dialog message
-            on_ui_thread("-1", ctx.getString(R.string.progress_nothing));
-            if (!multiple && sp != null) sp.unblock = true;
+            on_ui_thread("-1", act.get().getString(R.string.progress_nothing));
+            if (!multiple && sp != null) sp.do_after();
         } else if (local_msgs_var == 0 && local_msgs_db > 0) {
             // Update spinning dialog message
             if (sp != null) {
-                on_ui_thread("-1", local_msgs_db + " " + ctx.getString(R.string.progress_deleted_msgs));
+                on_ui_thread(
+                    "-1",
+                    local_msgs_db + " " + act.get().getString(R.string.progress_deleted_msgs)
+                );
             }
             db.delete_all_messages(local_msgs);
-            if (!multiple && sp != null) sp.unblock = true;
+            if (!multiple && sp != null) sp.do_after();
         } else if (local_msgs_var > 0 && local_msgs_db == 0) {
             // Notify the user of the new message(s)
-            InboxPager.notify_update();
+            Common.notify_update(act.get().getString(R.string.notification_new_message), act.get());
 
             // Adding all new messages
             data.delegate = true;
@@ -869,7 +910,7 @@ public class IMAP extends Handler {
             imap_delegation(true);
         } else {
             // Notify - new message(s)
-            InboxPager.notify_update();
+            Common.notify_update(act.get().getString(R.string.notification_new_message), act.get());
 
             // Remove (obsolete) messages from local database
             int deleted_msgs = 0;
@@ -884,7 +925,10 @@ public class IMAP extends Handler {
             }
 
             if (deleted_msgs > 0) {
-                on_ui_thread("-1", deleted_msgs + " " + ctx.getString(R.string.progress_deleted_msgs));
+                on_ui_thread(
+                    "-1",
+                    deleted_msgs + " " + act.get().getString(R.string.progress_deleted_msgs)
+                );
             }
 
             // Looking for new messages, and adding
@@ -897,7 +941,7 @@ public class IMAP extends Handler {
 
             data.message_uids = new_list;
 
-            if (new_list.size() > 0) {
+            if (!new_list.isEmpty()) {
                 // Adding all new messages
                 data.delegate = true;
                 data.delegation.clear();
@@ -954,8 +998,7 @@ public class IMAP extends Handler {
             for (int i = 0;i < rows.length;++i) {
                 String sto = rows[i].trim().toLowerCase();
                 if (sto.startsWith("received:")) {
-                    pat = Pattern.compile("Received:(.*)",
-                            Pattern.CASE_INSENSITIVE);
+                    pat = Pattern.compile("Received:(.*)", Pattern.CASE_INSENSITIVE);
                     mat = pat.matcher(rows[i]);
                     if (mat.matches()) received = received.concat(rows[i].trim() + "\n");
                 } else if (sto.startsWith("to:")) {
@@ -1000,7 +1043,7 @@ public class IMAP extends Handler {
                     // Checking for signed and/or encrypted i.e. PGP/MIME
                     str = data.msg_current.get_content_type().toLowerCase();
                     data.crypto_contents = str.contains("multipart/encrypted")
-                            || str.contains("multipart/signed");
+                        || str.contains("multipart/signed");
                 }
             }
             data.msg_current.set_received(received);
@@ -1020,7 +1063,8 @@ public class IMAP extends Handler {
             // Collecting the bodystructure response
             String body_structure = data.cmd_return_pars.trim();
             if (data.sbuffer.length() > 0) {
-                body_structure += data.sbuffer.toString().replaceAll("\r", "").replaceAll("\n", "");
+                body_structure += data.sbuffer.toString()
+                    .replaceAll("\r", "").replaceAll("\n", "");
             }
 
             // Serialization
@@ -1030,8 +1074,9 @@ public class IMAP extends Handler {
             data.msg_structure = Utils.imap_parse_bodystructure(data.msg_current.get_structure());
 
             // Preparing texts and attachments
-            data.msg_structure = Utils.imap_parse_nodes(data.msg_structure, data.msg_text_plain,
-                    data.msg_text_html);
+            data.msg_structure = Utils.imap_parse_nodes(
+                data.msg_structure, data.msg_text_plain, data.msg_text_html
+            );
 
             // Declare the number of attachments for later
             if (data.msg_structure != null) data.msg_current.set_attachments(data.msg_structure.size());
@@ -1080,8 +1125,9 @@ public class IMAP extends Handler {
 
                     // Convert to text from BASE64 or QUOTED-PRINTABLE
                     if (data.msg_text_plain[3].equalsIgnoreCase("BASE64")) {
-                        str_plain = Utils.parse_BASE64_encoded(str_plain,
-                                data.msg_current.get_charset_plain());
+                        str_plain = Utils.parse_BASE64_encoded(
+                            str_plain, data.msg_current.get_charset_plain()
+                        );
                         data.msg_current.set_content_transfer_encoding("BASE64");
                     } else if (data.msg_text_plain[3].equalsIgnoreCase("QUOTED-PRINTABLE")) {
                         str_plain = Utils.parse_quoted_printable(str_plain, data.msg_current.get_charset_plain());
@@ -1098,8 +1144,9 @@ public class IMAP extends Handler {
 
                     // Convert to text from BASE64 or QUOTED-PRINTABLE
                     if (data.msg_text_html[3].equalsIgnoreCase("BASE64")) {
-                        str_html = Utils.parse_BASE64_encoded(str_html,
-                                data.msg_current.get_charset_html());
+                        str_html = Utils.parse_BASE64_encoded(
+                            str_html, data.msg_current.get_charset_html()
+                        );
                         data.msg_current.set_content_transfer_encoding("BASE64");
                     } else if (data.msg_text_html[3].equalsIgnoreCase("QUOTED-PRINTABLE")) {
                         str_html = Utils.parse_quoted_printable(str_html, data.msg_current.get_charset_html());
@@ -1165,8 +1212,9 @@ public class IMAP extends Handler {
             } else {
                 // Loading full message
                 data.msg_current.set_full_msg(data.sbuffer.toString());
-                Dialogs.toaster(true, ctx.getString(R.string.message_action_done),
-                        (AppCompatActivity) ctx);
+                Dialogs.toaster(
+                    true, act.get().getString(R.string.message_action_done), act.get()
+                );
             }
 
             clear_buff();
@@ -1177,9 +1225,10 @@ public class IMAP extends Handler {
         if (go) {
             // Prepare for direct file write
             try {
-                data.os = ctx.getContentResolver().openOutputStream(data.a_file.getUri(), "rw");
+                data.os = act.get().getContentResolver().openOutputStream(
+                    data.a_file.getUri(), "rw"
+                );
             } catch (FileNotFoundException fnf) {
-                InboxPager.log = InboxPager.log.concat(fnf.getMessage() + "\n\n");
                 error_dialog(fnf);
             }
 
@@ -1210,8 +1259,9 @@ public class IMAP extends Handler {
                         for (int i = 0;i < data.sbuffer.length();++i) {
                             if (data.sbuffer.charAt(i) == '\n') {
                                 if (CR) {
-                                    data.os.write(Base64.decode(sb_tmp.toString().getBytes(),
-                                            Base64.DEFAULT));
+                                    data.os.write(
+                                        Base64.decode(sb_tmp.toString().getBytes(), Base64.DEFAULT)
+                                    );
                                     sb_tmp.setLength(0);
                                     CR = false;
                                 }
@@ -1223,14 +1273,19 @@ public class IMAP extends Handler {
                             }
                         }
                         if (sb_tmp.length() > 0) {
-                            data.os.write(Base64.decode(sb_tmp.toString().getBytes(),
-                                    Base64.DEFAULT));
+                            data.os.write(
+                                Base64.decode(sb_tmp.toString().getBytes(), Base64.DEFAULT)
+                            );
                         }
                     } else if (data.att_item.get_transfer_encoding()
-                            .equalsIgnoreCase("QUOTED-PRINTABLE")) {
+                        .equalsIgnoreCase("QUOTED-PRINTABLE")
+                    ) {
                         // QUOTED-PRINTABLE, data problems: removes \n line endings
-                        data.os.write(Utils.parse_quoted_printable(
-                                data.sbuffer.toString(), "utf-8").getBytes());
+                        data.os.write(
+                            Utils.parse_quoted_printable(
+                                data.sbuffer.toString(), "utf-8"
+                            ).getBytes()
+                        );
                     } else {
                         // 7BIT, 8BIT, BINARY
                         data.os.write(data.sbuffer.toString().getBytes());
@@ -1242,17 +1297,17 @@ public class IMAP extends Handler {
                     }
                 }
                 if (sp != null) {
-                    on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
-                    sp.unblock = true;
-                    Dialogs.toaster(true, ctx.getString(R.string.message_action_done),
-                            (AppCompatActivity) ctx);
+                    on_ui_thread("-1", act.get().getString(R.string.progress_download_complete));
+                    sp.do_after();
+                    Dialogs.toaster(
+                        true, act.get().getString(R.string.message_action_done), act.get()
+                    );
                 }
             } catch (IOException e) {
-                InboxPager.log += e.getMessage() + "\n\n";
                 error_dialog(e);
                 if (sp != null) {
-                    on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
-                    sp.unblock = true;
+                    on_ui_thread("-1", act.get().getString(R.string.err_not_saved));
+                    sp.do_after();
                 }
             }
 
@@ -1267,9 +1322,10 @@ public class IMAP extends Handler {
                 data.os = null;
             } else {
                 try {
-                    data.os = ctx.getContentResolver().openOutputStream(data.a_file.getUri(), "rw");
+                    data.os = act.get().getContentResolver().openOutputStream(
+                        data.a_file.getUri(), "rw"
+                    );
                 } catch (FileNotFoundException fnf) {
-                    InboxPager.log = InboxPager.log.concat(fnf.getMessage() + "\n\n");
                     error_dialog(fnf);
                 }
             }
@@ -1296,20 +1352,20 @@ public class IMAP extends Handler {
                     data.os.flush();
                     data.os.close();
                 } catch (IOException ioe) {
-                    InboxPager.log = InboxPager.log.concat(ioe.getMessage() + "\n\n");
                     error_dialog(ioe);
                     if (sp != null) {
-                        on_ui_thread("-1", ctx.getString(R.string.err_not_saved));
-                        sp.unblock = true;
+                        on_ui_thread("-1", act.get().getString(R.string.err_not_saved));
+                        sp.do_after();
                     }
                 }
             }
 
             if (sp != null) {
-                on_ui_thread("-1", ctx.getString(R.string.progress_download_complete));
-                sp.unblock = true;
-                Dialogs.toaster(true, ctx.getString(R.string.message_action_done),
-                        (AppCompatActivity) ctx);
+                on_ui_thread("-1", act.get().getString(R.string.progress_download_complete));
+                sp.do_after();
+                Dialogs.toaster(
+                    true, act.get().getString(R.string.message_action_done), act.get()
+                );
             }
 
             // Save to DB
@@ -1343,8 +1399,8 @@ public class IMAP extends Handler {
             tag();
             write(tag + " EXPUNGE");
         } else {
-            on_ui_thread("-1", ctx.getString(R.string.progress_deleted_msg));
-            ((InboxMessage) ctx).delete_message_ui();
+            on_ui_thread("-1", act.get().getString(R.string.progress_deleted_msg));
+            ((InboxMessage) act.get()).delete_message_ui();
             clear_buff();
         }
     }

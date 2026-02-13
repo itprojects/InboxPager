@@ -1,6 +1,6 @@
 /*
  * InboxPager, an android email client.
- * Copyright (C) 2016-2024  ITPROJECTS
+ * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  **/
 package net.inbox.server;
 
-import android.content.Context;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -31,15 +30,12 @@ import net.inbox.pager.R;
 import net.inbox.visuals.Dialogs;
 import net.inbox.visuals.SpinningStatus;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class Handler extends Thread {
-
-    protected Context ctx;
-
-    protected DBAccess db;
+public abstract class NetworkThread extends Thread {
 
     public SpinningStatus sp;
 
@@ -53,14 +49,16 @@ public abstract class Handler extends Thread {
     boolean ready = false;
 
     // True, when exchange ends
-    public boolean over = false;
+    boolean over = false;
 
     // Command ID tag
     String tag = "";
 
+    protected DBAccess db;
+    protected WeakReference<AppCompatActivity> act;
+
     /**
      * Command return status codes.
-     *
      * IMAP OK = 1, NO = 2, BAD = 3
      **/
     int stat = 0;
@@ -73,7 +71,7 @@ public abstract class Handler extends Thread {
 
     Thread io_sock_thread;
 
-    public Data data;
+    Data data;
 
     abstract static class Data {
         // Command response returned by server
@@ -120,16 +118,12 @@ public abstract class Handler extends Thread {
     Inbox current_inbox;
 
     // Last session state variables
-    private boolean last_connection_hostname = true;
+    public int last_connection_data_id = -1;
+    public String last_connection_data = null;
 
-    int last_connection_data_id = -1;
-
-    String last_connection_data;
-
-    public Handler(Context ct) {
-        // Get the database
-        db = InboxPager.get_db();
-        ctx = ct;
+    public NetworkThread(AppCompatActivity at) {
+        db = InboxPager.get_db(); // Get the database
+        act = new WeakReference<>(at);
     }
 
     public abstract void reset();
@@ -139,33 +133,33 @@ public abstract class Handler extends Thread {
      **/
     public abstract void reply(String l);
 
-    public abstract void test_server(Inbox inn, Context ct);
+    public abstract void test_server(Inbox inn, AppCompatActivity at);
 
     /**
      * Communicating individually with remote server.
      * Refreshes the inbox (IMAP,POP) with the changes in the messages.
      **/
-    public abstract void default_action(boolean multi, Inbox inn, Context ct);
+    public abstract void default_action(boolean multi, Inbox inn, AppCompatActivity at);
 
     /**
      * Communicating individually with remote server.
      * Downloads an attachment, of a particular message.
      * In the case of SMTP it prepares attachments for transmission.
      **/
-    public abstract void attachment_action(int aid, Attachment att, Object doc_file, Context ct);
+    public abstract void attachment_action(int aid, Attachment att, Object doc_file, AppCompatActivity at);
 
     /**
      * Communicating individually with remote server.
      * Downloads a particular message.
      * In the case of SMTP it tries to send a message.
      **/
-    public abstract void msg_action(int aid, Message msg, Object doc_file, boolean sv, Context ct);
+    public abstract void msg_action(int aid, Message msg, Object doc_file, boolean sv, AppCompatActivity at);
 
     /**
      * Communicating individually with remote server.
      * Moves a particular message to a different folder.
      **/
-    public abstract void move_action(int aid, Message msg, Context ct);
+    public abstract void move_action(int aid, Message msg, AppCompatActivity at);
 
     /**
      * Loads the capability extensions.
@@ -186,18 +180,16 @@ public abstract class Handler extends Thread {
      * Communication through network socket.
      **/
     public void write(String s) {
-        if (!io_sock.write(s)) throw new
-                java.lang.NullPointerException(ctx.getString(R.string.ex_do_io));
+        if (!io_sock.write(s))
+            throw new java.lang.NullPointerException(act.get().getString(R.string.ex_do_io));
     }
 
     /**
      * Writes to socket, bypassing limits.
      * IMAP:
      * ???
-     *
      * POP:
      * Command Line = 255 or Reply Line = 512 (with \r\n).
-     *
      * SMTP:
      * Command Line or Reply Line = 512 (with \r\n).
      * Text Line = 1000 (with \r\n).
@@ -226,24 +218,36 @@ public abstract class Handler extends Thread {
 
     void socket_start_imap(IMAP hand) {
         // Starting communication on socket
-        io_sock = new SocketIO(current_inbox.get_imap_or_pop_server(),
-                current_inbox.get_imap_or_pop_port(), hand, ctx);
+        io_sock = new SocketIO(
+            current_inbox.get_imap_or_pop_server(),
+            current_inbox.get_imap_or_pop_port(),
+            hand,
+            act.get().getBaseContext()
+        );
         io_sock_thread = new Thread(io_sock);
         io_sock_thread.start();
     }
 
     void socket_start_pop(POP hand) {
         // Starting communication on socket
-        io_sock = new SocketIO(current_inbox.get_imap_or_pop_server(),
-                current_inbox.get_imap_or_pop_port(), hand, ctx);
+        io_sock = new SocketIO(
+            current_inbox.get_imap_or_pop_server(),
+            current_inbox.get_imap_or_pop_port(),
+            hand,
+            act.get().getBaseContext()
+        );
         io_sock_thread = new Thread(io_sock);
         io_sock_thread.start();
     }
 
     void socket_start_smtp(SMTP hand) {
         // Starting communication on socket
-        io_sock = new SocketIO(current_inbox.get_smtp_server(),
-               current_inbox.get_smtp_port(), hand, ctx);
+        io_sock = new SocketIO(
+            current_inbox.get_smtp_server(),
+            current_inbox.get_smtp_port(),
+            hand,
+            act.get().getBaseContext()
+        );
         io_sock_thread = new Thread(io_sock);
         io_sock_thread.start();
     }
@@ -252,52 +256,60 @@ public abstract class Handler extends Thread {
         // Stop the current actions
         cancel_action();
 
-        // Dismiss the spinning dialog
-        InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + e.getMessage() + "\n\n");
-
-        if (!multiple) {
-            if (sp != null) sp.unblock = true;
+        if (multiple) {
+            // Only flag errors
+            Dialogs.toaster(
+                true,
+                act.get().getString(R.string.err_refresh) + " " + current_inbox.get_email(),
+                act.get()
+            );
+        } else {
+            if (sp != null) sp.do_after();
 
             // Dialog for common cases
             if (e.getMessage() != null && e.getMessage().matches("(?i).*ENETUNREACH.*")) {
-                Dialogs.dialog_simple(ctx.getString(R.string.ex_title),
-                        ctx.getString(R.string.ex_no_internet), (AppCompatActivity) ctx);
-            } else if (e.getMessage() != null && e.getMessage().matches("(?i).*Unable to resolve host.*")) {
-                Dialogs.dialog_simple(ctx.getString(R.string.ex_title),
-                        ctx.getString(R.string.ex_no_remote_address) + "\n\n"
-                                + e.getMessage(), (AppCompatActivity) ctx);
-            } else Dialogs.dialog_exception(e, (AppCompatActivity) ctx);
+                Dialogs.dialog_simple(
+                    act.get().getString(R.string.ex_title),
+                    act.get().getString(R.string.ex_no_internet),
+                    act.get()
+                );
+            } else if (e.getMessage() != null
+                && e.getMessage().matches("(?i).*Unable to resolve host.*")
+            ) {
+                Dialogs.dialog_simple(
+                    act.get().getString(R.string.ex_title),
+                    act.get().getString(R.string.ex_no_remote_address) + "\n\n" + e.getMessage(),
+                    act.get()
+                );
+            } else Dialogs.dialog_exception(e, act.get());
 
             // Connection icon update
-            ((AppCompatActivity) ctx).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (ctx.getClass().toString().endsWith(".InboxMessage")) {
+            act.get().runOnUiThread(
+                    () -> {
+                    if (act.get().getClass().toString().endsWith(".InboxMessage")) {
                         // Set server certificate details
-                        ((InboxMessage) ctx).connection_security();
-                    } else if (ctx.getClass().toString().endsWith(".InboxSend")) {
+                        ((InboxMessage) act.get()).connection_security();
+                    } else if (act.get().getClass().toString().endsWith(".InboxSend")) {
                         // Set server certificate details
-                        ((InboxSend) ctx).connection_security();
+                        ((InboxSend) act.get()).connection_security();
                     }
                 }
-            });
-        } else {
-            // Flag errors
-            Dialogs.toaster(true, ctx.getString(R.string.err_refresh) + " " +
-                    current_inbox.get_email(), (AppCompatActivity) ctx);
+            );
         }
     }
 
-    void error_dialog(String s) {
+    void error_dialog(String s_error) {
         // Stop the current actions
         cancel_action();
 
         // Dismiss the spinning dialog
         if (multiple) {
-            InboxPager.log = InboxPager.log.concat(ctx.getString(R.string.ex_field) + s + "\n\n");
+            String s = act.get().getString(R.string.ex_field) + s_error;
+            InboxPager.log = InboxPager.log.concat(s + "\n\n");
+            on_ui_thread_toast(s);
         } else {
-            sp.unblock = true;
-            Dialogs.dialog_simple(null, s, (AppCompatActivity) ctx);
+            sp.do_after();
+            Dialogs.dialog_simple(null, s_error, act.get());
         }
     }
 
@@ -306,12 +318,7 @@ public abstract class Handler extends Thread {
      * Updates the spinning status dialog.
      **/
     void on_ui_thread(final String title, final String msg) {
-        ((AppCompatActivity) ctx).runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                sp.onProgressUpdate(title, msg);
-            }
-        });
+        sp.set_progress(title, msg);
     }
 
     /**
@@ -319,24 +326,10 @@ public abstract class Handler extends Thread {
      * Continue mass-refresh.
      **/
     void on_ui_thread_continue_refresh() {
-        final InboxPager page = (InboxPager) ctx;
-        page.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                page.mass_refresh();
-            }
-        });
+        act.get().runOnUiThread(((InboxPager) act.get())::mass_refresh);
     }
 
-    public boolean get_hostname_verify() {
-        return last_connection_hostname;
-    }
-
-    public int get_last_connection_data_id() {
-        return last_connection_data_id;
-    }
-
-    public String get_last_connection_data() {
-        return last_connection_data;
+    void on_ui_thread_toast(String s) {
+        act.get().runOnUiThread(() -> Dialogs.toaster(false, s, act.get()));
     }
 }
