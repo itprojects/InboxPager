@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -56,12 +56,12 @@ import net.inbox.db.Inbox;
 import net.inbox.db.Message;
 import net.inbox.pager.R;
 import net.inbox.server.EndToEnd;
+import net.inbox.server.SMTP;
 import net.inbox.server.Utils;
 import net.inbox.visuals.Dialogs;
 import net.inbox.visuals.SpinningStatus;
 import net.inbox.visuals.SendFilePicker;
 import net.inbox.server.NetworkThread;
-import net.inbox.server.SMTP;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -107,7 +107,7 @@ public class InboxSend extends AppCompatActivity {
     private Message current = new Message();
     private Inbox current_inbox;
 
-    private boolean sending_active = false;
+    private boolean send_button_blocked = false;
 
     private int last_connection_data_id = -1;
     private String last_connection_data = null;
@@ -117,7 +117,7 @@ public class InboxSend extends AppCompatActivity {
     private final ActivityResultLauncher<String> requestPermissionLauncher =
         registerForActivityResult(new ActivityResultContracts.RequestPermission(),
         isGranted -> {/* true or false */}
-        );
+    );
 
     @Override
     public void onCreate(Bundle saved_instance_state) {
@@ -145,7 +145,7 @@ public class InboxSend extends AppCompatActivity {
                 if (attachment_paths == null) attachment_paths = new ArrayList<>();
                 attachments_size = saved_instance_state.getLong("sv_attachments_size");
                 total_size_limit = saved_instance_state.getLong("sv_total_size_limit");
-                sending_active = saved_instance_state.getBoolean("sv_sending_active");
+                send_button_blocked = saved_instance_state.getBoolean("sv_send_button_blocked");
                 last_connection_data_id = saved_instance_state.getInt("sv_last_connection_data_id");
                 last_connection_data = saved_instance_state.getString("sv_last_connection_data");
             }
@@ -153,7 +153,7 @@ public class InboxSend extends AppCompatActivity {
             // Check for extras
             Bundle buns = getIntent().getExtras();
 
-            // Get the database
+            // Get account form database
             current_inbox = InboxPager.get_db().get_account(getIntent().getIntExtra("db_id", -99));
 
             Toolbar tb = findViewById(R.id.send_toolbar);
@@ -174,10 +174,10 @@ public class InboxSend extends AppCompatActivity {
             TextView tv_send = findViewById(R.id.tv_send);
             tv_send.setOnClickListener(
                 v -> {
-                    if (sending_active) {
+                    if (send_button_blocked) {
                         toaster(false, "");
                     } else {
-                        send();
+                        send_check_1();
                     }
                 }
             );
@@ -461,7 +461,7 @@ public class InboxSend extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.send_action_btns, menu);
+        inflater.inflate(R.menu.log_action_btns, menu);
 
         return true;
     }
@@ -483,7 +483,7 @@ public class InboxSend extends AppCompatActivity {
         saved_instance_state.putStringArrayList("sv_attachment_paths", attachment_paths);
         saved_instance_state.putLong("sv_attachments_size", attachments_size);
         saved_instance_state.putLong("sv_total_size_limit", total_size_limit);
-        saved_instance_state.putBoolean("sv_sending_active", sending_active);
+        saved_instance_state.putBoolean("sv_send_button_blocked", send_button_blocked);
         saved_instance_state.putInt("sv_last_connection_data_id", last_connection_data_id);
         saved_instance_state.putString("sv_last_connection_data", last_connection_data);
     }
@@ -544,9 +544,9 @@ public class InboxSend extends AppCompatActivity {
     /**
      * Error checking before sending.
      **/
-    private void send() {
+    private void send_check_1() {
         // Wait for the checks to complete
-        sending_active = true;
+        send_button_blocked = true;
 
         int to_count = 0;
         int cc_count = 0;
@@ -563,7 +563,7 @@ public class InboxSend extends AppCompatActivity {
             // No recipient = no message
             Dialogs.dialog_simple(null, getString(R.string.err_no_rcpt), this);
             InboxPager.log = InboxPager.log.concat(getString(R.string.err_no_rcpt) + "\n\n");
-            sending_active = false;
+            send_button_blocked = false;
             return;
         }
 
@@ -580,7 +580,7 @@ public class InboxSend extends AppCompatActivity {
         if (to_count == 0) { // No recipient = no message
             Dialogs.dialog_simple(null, getString(R.string.err_no_rcpt), this);
             InboxPager.log = InboxPager.log.concat(getString(R.string.err_no_rcpt) + "\n\n");
-            sending_active = false;
+            send_button_blocked = false;
             return;
         }
 
@@ -604,7 +604,7 @@ public class InboxSend extends AppCompatActivity {
         if ((to_count + cc_count + bcc_count) > 100) { // Too many recipients
             Dialogs.dialog_simple(null, getString(R.string.err_too_many_rcpt), this);
             InboxPager.log = InboxPager.log.concat(getString(R.string.err_too_many_rcpt) + "\n\n");
-            sending_active = false;
+            send_button_blocked = false;
             return;
         }
 
@@ -619,7 +619,7 @@ public class InboxSend extends AppCompatActivity {
             // Server will refuse the message, attachments too big
             Dialogs.dialog_simple(null, getString(R.string.err_size_attachments), this);
             InboxPager.log = InboxPager.log.concat(getString(R.string.err_size_attachments) + "\n\n");
-            sending_active = false;
+            send_button_blocked = false;
             return;
         }
 
@@ -633,7 +633,7 @@ public class InboxSend extends AppCompatActivity {
             // Server will refuse the message, it's too big
             Dialogs.dialog_simple(null, getString(R.string.err_msg_too_heavy), this);
             InboxPager.log = InboxPager.log.concat(getString(R.string.err_msg_too_heavy) + "\n\n");
-            sending_active = false;
+            send_button_blocked = false;
             return;
         }
 
@@ -647,11 +647,12 @@ public class InboxSend extends AppCompatActivity {
         current.set_attachments(attachment_paths.size());
 
         // Real sending action
-        send_action();
+        send_check_2();
     }
 
-    private void send_action() {
-        sending_active = false;
+    // Starting SENDing message
+    private void send_check_2() {
+        send_button_blocked = false;
 
         // Prevents screen rotation crash
         Common.fixed_or_rotating_orientation(true, this);
@@ -659,18 +660,18 @@ public class InboxSend extends AppCompatActivity {
         last_connection_data_id = -1;
         last_connection_data = null;
 
-        // Starting an animated dialog
-        SpinningStatus spt = new SpinningStatus(false, false, this, network_thread);
-        spt.set_progress(getString(R.string.send_spin), "");
-
-        // Starting SENDing message
         network_thread = new SMTP(this);
+
+        // Starting an animated dialog
+        SpinningStatus sp = new SpinningStatus(false, false, this, network_thread);
+        sp.set_progress(getString(R.string.send_spin), "");
+
+        network_thread.sp = sp;
         network_thread.start();
-        network_thread.sp = spt;
         if (!attachment_paths.isEmpty()) {
-            network_thread.msg_action(current_inbox.get_id(), current, attachment_paths, false, this);
+            network_thread.msg_action(current_inbox, current, attachment_paths, false, this);
         } else {
-            network_thread.msg_action(current_inbox.get_id(), current, null, false, this);
+            network_thread.msg_action(current_inbox, current, null, false, this);
         }
     }
 
@@ -926,7 +927,6 @@ public class InboxSend extends AppCompatActivity {
         } else {
             iv_ssl_auth.setVisibility(View.GONE);
             iv_ssl_auth.setImageResource(R.drawable.padlock_error);
-            Dialogs.toaster(false, getString(R.string.err_action_failed), this);
         }
     }
 

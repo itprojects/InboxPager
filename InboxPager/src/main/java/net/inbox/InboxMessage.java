@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -60,6 +59,7 @@ import android.widget.TextView;
 
 import net.inbox.db.Attachment;
 import net.inbox.db.DBAccess;
+import net.inbox.db.Inbox;
 import net.inbox.db.Message;
 import net.inbox.pager.R;
 import net.inbox.server.EndToEnd;
@@ -131,7 +131,8 @@ public class InboxMessage extends AppCompatActivity {
     private int last_connection_data_id = -1;
     private String last_connection_data = null;
 
-    private int current_inbox = -2;
+    private int current_inbox_id = -2;
+    private Inbox current_inbox;
 
     private Message current;
     private Attachment chosen_att;
@@ -183,7 +184,7 @@ public class InboxMessage extends AppCompatActivity {
                 msg_signature = saved_instance_state.getString("sv_msg_signature");
                 imap_or_pop = saved_instance_state.getBoolean("sv_imap_or_pop");
                 no_send = saved_instance_state.getBoolean("sv_no_send");
-                current_inbox = saved_instance_state.getInt("sv_current_inbox");
+                current_inbox_id = saved_instance_state.getInt("sv_current_inbox");
                 save_in_db = saved_instance_state.getBoolean("sv_save_in_db");
                 last_connection_data_id = saved_instance_state.getInt("sv_last_connection_data_id");
                 last_connection_data = saved_instance_state.getString("sv_last_connection_data");
@@ -197,10 +198,13 @@ public class InboxMessage extends AppCompatActivity {
 
             if (buns != null) {
                 current = db.get_message(buns.getInt("db_id"));
-                current_inbox = buns.getInt("db_inbox");
+                current_inbox_id = buns.getInt("db_inbox");
                 imap_or_pop = buns.getBoolean("imap_or_pop");
                 no_send = buns.getBoolean("no_send");
             }
+
+            // Get account form database
+            current_inbox = InboxPager.get_db().get_account(current_inbox_id);
 
             // Crypto information
             if (current.get_contents_crypto() != null) {
@@ -375,7 +379,6 @@ public class InboxMessage extends AppCompatActivity {
                     tv_date_raw_popup.showAsDropDown(tv_date);
                     tv_date_raw_popup.setOutsideTouchable(true);
                     tv_date_raw_popup.setFocusable(true);
-                    tv_date_raw_popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 }
             );
 
@@ -436,7 +439,7 @@ public class InboxMessage extends AppCompatActivity {
             // Setting up the SSL authentication application
             iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
             iv_ssl_auth.setOnClickListener(v -> dialog_servers());
-            if (last_connection_data_id > -1 && last_connection_data_id == current_inbox) {
+            if (last_connection_data_id > -1 && last_connection_data_id == current_inbox_id) {
                 iv_ssl_auth.setVisibility(View.VISIBLE); // restore connection security icon
                 if (last_connection_data != null && !last_connection_data.isEmpty())
                     iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
@@ -645,7 +648,7 @@ public class InboxMessage extends AppCompatActivity {
         saved_instance_state.putString("sv_msg_signature", msg_signature);
         saved_instance_state.putBoolean("sv_imap_or_pop", imap_or_pop);
         saved_instance_state.putBoolean("sv_no_send", no_send);
-        saved_instance_state.putInt("sv_current_inbox", current_inbox);
+        saved_instance_state.putInt("sv_current_inbox", current_inbox_id);
         saved_instance_state.putBoolean("sv_save_in_db", save_in_db);
         saved_instance_state.putInt("sv_last_connection_data_id", last_connection_data_id);
         saved_instance_state.putString("sv_last_connection_data", last_connection_data);
@@ -936,20 +939,21 @@ public class InboxMessage extends AppCompatActivity {
         // Prevents screen rotation crash
         Common.fixed_or_rotating_orientation(true, this);
 
-        // Starting an animated dialog
-        SpinningStatus spt = new SpinningStatus(false, false, this, network_thread);
-        spt.set_progress(
-            getString(R.string.progress_downloading),
-            getString(R.string.progress_fetch_attachment)
-        );
-
         // Starting NetworkThread
         if (imap_or_pop) {
             network_thread = new IMAP(this);
         } else {
             network_thread = new POP(this);
         }
-        network_thread.sp = spt;
+
+        // Starting an animated dialog
+        SpinningStatus sp = new SpinningStatus(false, false, this, network_thread);
+        sp.set_progress(
+                getString(R.string.progress_downloading),
+                getString(R.string.progress_fetch_attachment)
+        );
+
+        network_thread.sp = sp;
         network_thread.start();
         network_thread.attachment_action(current.get_account(), chosen_att, chosen_folder, this);
     }
@@ -1030,25 +1034,26 @@ public class InboxMessage extends AppCompatActivity {
     private void start_saving_full_message(boolean in_db_only) {
         Common.fixed_or_rotating_orientation(true, this); // Prevents screen rotation crash
 
-        // Starting a spinning animation dialog
-        SpinningStatus sp = new SpinningStatus(true, false, this, network_thread);
-        sp.set_progress(
-            getString(R.string.progress_downloading),
-            getString(R.string.progress_fetch_msg) + "."
-        );
-
         // Starting refresh INBOX
         if (imap_or_pop) {
             network_thread = new IMAP(this);
         } else {
             network_thread = new POP(this);
         }
+
+        // Starting a spinning animation dialog
+        SpinningStatus sp = new SpinningStatus(true, false, this, network_thread);
+        sp.set_progress(
+                getString(R.string.progress_downloading),
+                getString(R.string.progress_fetch_msg) + "."
+        );
+
         network_thread.sp = sp;
         network_thread.start();
         if (in_db_only) {
-            network_thread.msg_action(current.get_account(), current, null, save_in_db, this);
+            network_thread.msg_action(current_inbox, current, null, save_in_db, this);
         } else {
-            network_thread.msg_action(current.get_account(), current, chosen_folder, save_in_db, this);
+            network_thread.msg_action(current_inbox, current, chosen_folder, save_in_db, this);
         }
     }
 
@@ -1087,20 +1092,21 @@ public class InboxMessage extends AppCompatActivity {
         // Prevents screen rotation crash
         Common.fixed_or_rotating_orientation(true, this);
 
-        // Starting a spinning animation dialog
-        SpinningStatus spt = new SpinningStatus(false, false, this, network_thread);
-        spt.set_progress(
-            getString(R.string.progress_deleting),
-            getString(R.string.progress_deleting_msg) + " " + current.get_subject()
-        );
-
         // Starting Handler
         if (imap_or_pop) {
             network_thread = new IMAP(this);
         } else {
             network_thread = new POP(this);
         }
-        network_thread.sp = spt;
+
+        // Starting a spinning animation dialog
+        SpinningStatus sp = new SpinningStatus(false, false, this, network_thread);
+        sp.set_progress(
+                getString(R.string.progress_deleting),
+                getString(R.string.progress_deleting_msg) + " " + current.get_subject()
+        );
+
+        network_thread.sp = sp;
         network_thread.start();
         network_thread.move_action(current.get_account(), current, this);
     }
@@ -1366,7 +1372,7 @@ public class InboxMessage extends AppCompatActivity {
         last_connection_data_id = network_thread.last_connection_data_id;
         last_connection_data = network_thread.last_connection_data;
         if (last_connection_data_id > -1) {
-            if (network_thread.last_connection_data_id == current_inbox) {
+            if (network_thread.last_connection_data_id == current_inbox_id) {
                 iv_ssl_auth.setVisibility(View.VISIBLE);
                 if (!network_thread.last_connection_data.isEmpty()) {
                     iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
@@ -1379,7 +1385,6 @@ public class InboxMessage extends AppCompatActivity {
         } else {
             iv_ssl_auth.setVisibility(View.GONE);
             iv_ssl_auth.setImageResource(R.drawable.padlock_error);
-            Dialogs.toaster(false, getString(R.string.err_action_failed), this);
         }
     }
 

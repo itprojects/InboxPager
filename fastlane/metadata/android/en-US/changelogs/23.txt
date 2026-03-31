@@ -1,0 +1,11 @@
+Added classes for OAuth2.
+Added new database fields for OAuth2.
+Added org.json parsing library.
+Added Foreground Service to maintain network access.
+New permissions:
+    android.permission.FOREGROUND_SERVICE
+    android.permission.FOREGROUND_SERVICE_DATA_SYNC
+Fixed Date Popup Background.
+Deprecated AUTH LOGIN, and HELO commands, servers can use PLAIN or XOAUTH2.
+Updated gradle dependencies.
+    agp, 9.1.0

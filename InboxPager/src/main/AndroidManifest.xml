@@ -4,6 +4,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Required for persistent network access (service), when communicating with email server -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+
     <!-- Required for API 29 and below, legacy external storage permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
@@ -51,6 +55,9 @@
             android:name="net.inbox.InboxGPG"
             android:label="OpenPGP"
             android:windowSoftInputMode="stateHidden|adjustResize"/>
+        <activity
+            android:name="net.inbox.visuals.OAuth2Preferences"
+            android:windowSoftInputMode="stateHidden|adjustResize"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}"
@@ -61,6 +68,14 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"/>
         </provider>
+        <!-- Required for persistent network access (service), when communicating with email server -->
+        <!-- stopWithTask="true" expected to stop service if application not running -->
+        <service
+            android:name="net.inbox.server.NetworkService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false"
+            android:stopWithTask="true">
+        </service>
     </application>
 
     <queries>

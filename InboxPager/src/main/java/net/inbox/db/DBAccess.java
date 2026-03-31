@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ public class DBAccess extends SQLiteOpenHelper {
 
     private SQLiteDatabase dbw;
 
-    private static final int db_version = 1;// increment if db fields change
+    private static final int db_version = 2; // increment if db fields change
     private static final String db_name = "pages";
 
     // Tables
@@ -65,10 +65,21 @@ public class DBAccess extends SQLiteOpenHelper {
     private final String key_smtp_port = "smtp_port";
     private final String key_always_ask_pass = "always_ask_pass";
     private final String key_auto_save_full_msgs = "auto_save_full_msgs";
+    private final String key_auth_type_of_incoming = "auth_type_of_incoming";
+    private final String key_auth_type_of_outgoing = "auth_type_of_outgoing";
+    private final String key_oauth2_client_id = "oauth2_client_id";
+    private final String key_oauth2_client_secret = "oauth2_client_secret";
+    private final String key_oauth2_access_token = "oauth2_access_token";
+    private final String key_oauth2_access_token_expires_in = "oauth2_access_token_expires_in";
+    private final String key_oauth2_refresh_token = "oauth2_refresh_token";
+    private final String key_oauth2_refresh_token_expires_in = "oauth2_refresh_token_expires_in"; // for completeness
+    private final String key_oauth2_auth_endpoint = "oauth2_auth_endpoint";
+    private final String key_oauth2_token_endpoint = "oauth2_token_endpoint";
+    private final String key_oauth2_scopes = "oauth2_scopes";
 
     // Table columns of messages
     private final String key_account = "account";
-    private final String key_to = "to_";// Hidden
+    private final String key_to = "to_"; // hidden
     private final String key_cc = "cc";
     private final String key_bcc = "bcc";
     private final String key_from = "from_";
@@ -77,7 +88,7 @@ public class DBAccess extends SQLiteOpenHelper {
     private final String key_charset_plain = "charset_plain";
     private final String key_charset_html = "charset_html";
     private final String key_subject = "subject";
-    private final String key_message_id = "message_id";// On server
+    private final String key_message_id = "message_id"; // on server
     private final String key_uid = "uid";
     private final String key_date = "date";
     private final String key_received = "received";
@@ -116,41 +127,60 @@ public class DBAccess extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String create_table_accounts = "CREATE TABLE IF NOT EXISTS accounts ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "messages INTEGER, recent INTEGER, unseen INTEGER,"
-                + "uidnext INTEGER, uidvalidity INTEGER, total_size INTEGER,"
-                + "auto_refresh BOOLEAN, imap_or_pop BOOLEAN, email TEXT,"
-                + "username TEXT, pass TEXT, imap_or_pop_extensions TEXT,"
-                + "imap_or_pop_server TEXT, imap_or_pop_port TEXT, smtp_extensions TEXT,"
-                + "smtp_server TEXT, smtp_port TEXT, always_ask_pass INTEGER,"
-                + "auto_save_full_msgs INTEGER"
-                + " )";
+        String create_table_accounts = "CREATE TABLE IF NOT EXISTS accounts (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "messages INTEGER, recent INTEGER, unseen INTEGER, " +
+            "uidnext INTEGER, uidvalidity INTEGER, total_size INTEGER, " +
+            "auto_refresh BOOLEAN, imap_or_pop BOOLEAN, email TEXT, " +
+            "username TEXT, pass TEXT, imap_or_pop_extensions TEXT, " +
+            "imap_or_pop_server TEXT, imap_or_pop_port TEXT, smtp_extensions TEXT, " +
+            "smtp_server TEXT, smtp_port TEXT, always_ask_pass INTEGER, " +
+            "auto_save_full_msgs INTEGER, " +
+            "auth_type_of_incoming TEXT, auth_type_of_outgoing TEXT, " +
+            "oauth2_client_id TEXT, oauth2_client_secret TEXT, " +
+            "oauth2_access_token TEXT, oauth2_access_token_expires_in TEXT, " +
+            "oauth2_refresh_token TEXT, oauth2_refresh_token_expires_in TEXT, " +
+            "oauth2_auth_endpoint TEXT, oauth2_token_endpoint TEXT, " +
+            "oauth2_scopes)";
         db.execSQL(create_table_accounts);
 
-        String create_table_messages = "CREATE TABLE IF NOT EXISTS messages ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT, account INTEGER, to_ TEXT, cc TEXT,"
-                + "bcc TEXT, from_ TEXT, content_type TEXT, content_transfer_encoding TEXT,"
-                + "charset_plain TEXT, charset_html TEXT, subject TEXT, message_id TEXT,"
-                + "uid TEXT, date TEXT, received TEXT, structure TEXT, contents TEXT,"
-                + "contents_html TEXT, contents_other TEXT, contents_crypto TEXT, full_msg TEXT,"
-                + "size INTEGER, attachments INTEGER, seen BOOLEAN )";
+        String create_table_messages = "CREATE TABLE IF NOT EXISTS messages (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, account INTEGER, to_ TEXT, cc TEXT, " +
+            "bcc TEXT, from_ TEXT, content_type TEXT, content_transfer_encoding TEXT, " +
+            "charset_plain TEXT, charset_html TEXT, subject TEXT, message_id TEXT, " +
+            "uid TEXT, date TEXT, received TEXT, structure TEXT, contents TEXT, " +
+            "contents_html TEXT, contents_other TEXT, contents_crypto TEXT, full_msg TEXT, " +
+            "size INTEGER, attachments INTEGER, seen BOOLEAN )";
         db.execSQL(create_table_messages);
 
-        String create_table_attachments = "CREATE TABLE IF NOT EXISTS attachments ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT, account INTEGER, message INTEGER,"
-                + "imap_uid TEXT, pop_indx TEXT, mime_type TEXT, boundary TEXT, name TEXT,"
-                + "transfer_encoding TEXT, size INTEGER"
-                + " )";
+        String create_table_attachments = "CREATE TABLE IF NOT EXISTS attachments (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, account INTEGER, message INTEGER, " +
+            "imap_uid TEXT, pop_indx TEXT, mime_type TEXT, boundary TEXT, name TEXT, " +
+            "transfer_encoding TEXT, size INTEGER)";
         db.execSQL(create_table_attachments);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int old_ver, int new_ver) {
         // Delete previous tables from database
-        db.execSQL("DROP TABLE IF EXISTS accounts");
-        db.execSQL("DROP TABLE IF EXISTS messages");
-        db.execSQL("DROP TABLE IF EXISTS attachments");
+        //db.execSQL("DROP TABLE IF EXISTS accounts");
+        //db.execSQL("DROP TABLE IF EXISTS messages");
+        //db.execSQL("DROP TABLE IF EXISTS attachments");
+
+        if (old_ver < 2) {
+            // Added in version 9.0
+            db.execSQL("ALTER TABLE accounts ADD COLUMN auth_type_of_incoming TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN auth_type_of_outgoing TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_client_id TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_client_secret TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_access_token TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_access_token_expires_in TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_refresh_token TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_refresh_token_expires_in TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_auth_endpoint TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_token_endpoint TEXT;");
+            db.execSQL("ALTER TABLE accounts ADD COLUMN oauth2_scopes TEXT;");
+        }
 
         // Create a new upgraded database
         this.onCreate(db);
@@ -168,7 +198,7 @@ public class DBAccess extends SQLiteOpenHelper {
 
     /**
      * Checks then cleans and defragments database, improving overall speed.
-     * This function does not need to be run everyday, so checking for date.
+     * This function does not need to be run every day, so checking for date.
      **/
     public void vacuum_db() {
         if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) == 1) {
@@ -198,6 +228,17 @@ public class DBAccess extends SQLiteOpenHelper {
         values.put(key_smtp_port, current.get_smtp_port());
         values.put(key_always_ask_pass, current.get_always_ask_pass());
         values.put(key_auto_save_full_msgs, current.get_auto_save_full_msgs());
+        values.put(key_auth_type_of_incoming, current.get_auth_type_of_incoming());
+        values.put(key_auth_type_of_outgoing, current.get_auth_type_of_outgoing());
+        values.put(key_oauth2_client_id, current.get_oauth2_client_id());
+        values.put(key_oauth2_client_secret, current.get_oauth2_client_secret());
+        values.put(key_oauth2_access_token, current.get_oauth2_access_token());
+        values.put(key_oauth2_access_token_expires_in, current.get_oauth2_access_token_expires_in());
+        values.put(key_oauth2_refresh_token, current.get_oauth2_refresh_token());
+        values.put(key_oauth2_refresh_token_expires_in, current.get_oauth2_refresh_token_expires_in());
+        values.put(key_oauth2_auth_endpoint, current.get_oauth2_auth_endpoint());
+        values.put(key_oauth2_token_endpoint, current.get_oauth2_token_endpoint());
+        values.put(key_oauth2_scopes, current.get_oauth2_scopes());
 
         // ID of the newly created row
         int ret = (int) dbw.insert(table_accounts, null, values);
@@ -229,6 +270,17 @@ public class DBAccess extends SQLiteOpenHelper {
         values.put(key_smtp_port, current.get_smtp_port());
         values.put(key_always_ask_pass, current.get_always_ask_pass());
         values.put(key_auto_save_full_msgs, current.get_auto_save_full_msgs());
+        values.put(key_auth_type_of_incoming, current.get_auth_type_of_incoming());
+        values.put(key_auth_type_of_outgoing, current.get_auth_type_of_outgoing());
+        values.put(key_oauth2_client_id, current.get_oauth2_client_id());
+        values.put(key_oauth2_client_secret, current.get_oauth2_client_secret());
+        values.put(key_oauth2_access_token, current.get_oauth2_access_token());
+        values.put(key_oauth2_access_token_expires_in, current.get_oauth2_access_token_expires_in());
+        values.put(key_oauth2_refresh_token, current.get_oauth2_refresh_token());
+        values.put(key_oauth2_refresh_token_expires_in, current.get_oauth2_refresh_token_expires_in());
+        values.put(key_oauth2_auth_endpoint, current.get_oauth2_auth_endpoint());
+        values.put(key_oauth2_token_endpoint, current.get_oauth2_token_endpoint());
+        values.put(key_oauth2_scopes, current.get_oauth2_scopes());
 
         dbw.update(table_accounts, values, key_id + " = " + current.get_id(), null);
     }
@@ -270,6 +322,17 @@ public class DBAccess extends SQLiteOpenHelper {
             current.set_smtp_port(cursor.getInt(17));
             current.set_always_ask_pass(cursor.getInt(18) == 1);
             current.set_auto_save_full_msgs(cursor.getInt(19) == 1);
+            current.set_auth_type_of_incoming(cursor.getString(20));
+            current.set_auth_type_of_outgoing(cursor.getString(21));
+            current.set_oauth2_client_id(cursor.getString(22));
+            current.set_oauth2_client_secret(cursor.getString(23));
+            current.set_oauth2_access_token(cursor.getString(24));
+            current.set_oauth2_access_token_expires_in(cursor.getString(25));
+            current.set_oauth2_refresh_token(cursor.getString(26));
+            current.set_oauth2_refresh_token_expires_in(cursor.getString(27));
+            current.set_oauth2_auth_endpoint(cursor.getString(28));
+            current.set_oauth2_token_endpoint(cursor.getString(29));
+            current.set_oauth2_scopes(cursor.getString(30));
 
             // Prevent memory issues
             cursor.close();
@@ -331,6 +394,81 @@ public class DBAccess extends SQLiteOpenHelper {
         return count;
     }
 
+    // Save OAuth2 refresh token from email server to local database
+    public void set_oauth2_auth_jwt(
+        int id,
+        String access_token,
+        String expires_in,
+        String refresh_token,
+        String refresh_token_expires_in
+    ) {
+        ContentValues values = new ContentValues();
+        if (access_token != null) {
+            values.put(key_oauth2_access_token, access_token);
+            values.put(key_oauth2_access_token_expires_in, expires_in);
+        }
+        values.put(key_oauth2_refresh_token, refresh_token);
+        values.put(key_oauth2_refresh_token_expires_in, refresh_token_expires_in);
+
+        // Updating Oauth2 tokens for account
+        dbw.update(table_accounts, values, key_id + " = " + id, null);
+    }
+
+    // Save OAuth2 refresh token from email server to local database
+    public void set_oauth2_to_account(
+        int id,
+        String oauth2_client_id,
+        String oauth2_client_secret,
+        String oauth2_refresh_token,
+        String oauth2_auth_endpoint,
+        String oauth2_token_endpoint,
+        String oauth2_scopes
+    ) {
+        ContentValues values = new ContentValues();
+        values.put(key_oauth2_client_id, oauth2_client_id);
+        values.put(key_oauth2_client_secret, oauth2_client_secret);
+        values.put(key_oauth2_refresh_token, oauth2_refresh_token);
+        values.put(key_oauth2_auth_endpoint, oauth2_auth_endpoint);
+        values.put(key_oauth2_token_endpoint, oauth2_token_endpoint);
+        values.put(key_oauth2_scopes, oauth2_scopes);
+
+        // Updating OAuth2 preferences for account
+        dbw.update(table_accounts, values, key_id + " = " + id, null);
+    }
+
+    public String[] get_account_oauth2_preferences(int id) {
+        // Query database
+        Cursor cursor = dbw.query(
+                table_accounts,
+                new String[] { "*" },
+                "id = " + id,
+                null,
+                null,
+                null,
+                null
+        );
+
+        // If the account (id) is found
+        if (cursor != null) {
+            cursor.moveToFirst();
+
+            String[] current = new String[]{
+                cursor.getString(22), // client_id
+                cursor.getString(23), // client_secret
+                //cursor.getString(24), // access_token
+                cursor.getString(26), // refresh_token
+                cursor.getString(28), // auth_endpoint
+                cursor.getString(29), // token_endpoint
+                cursor.getString(30) // scopes
+            };
+
+            // Prevent memory issues
+            cursor.close();
+
+            return current;
+        } else return null;
+    }
+
     /**
      * Count unseen messages for account.
      **/
@@ -361,6 +499,13 @@ public class DBAccess extends SQLiteOpenHelper {
         return count;
     }
 
+    public void update_account_access_token(int id, String access_token, String timestamp) {
+        dbw.execSQL(
+            "UPDATE " + table_accounts + " SET oauth2_access_token = '" + access_token +
+            "', oauth2_access_token_expires_in = '" + timestamp + "' WHERE id = " + id
+        );
+    }
+
     public ArrayList<Inbox> get_all_accounts() {
         Cursor cursor = dbw.query(
             table_accounts,
@@ -389,6 +534,17 @@ public class DBAccess extends SQLiteOpenHelper {
                 current.set_email(cursor.getString(9));
                 current.set_always_ask_pass(cursor.getInt(18) == 1);
                 current.set_auto_save_full_msgs(cursor.getInt(19) == 1);
+                current.set_auth_type_of_incoming(cursor.getString(20));
+                current.set_auth_type_of_outgoing(cursor.getString(21));
+                current.set_oauth2_client_id(cursor.getString(22));
+                current.set_oauth2_client_secret(cursor.getString(23));
+                current.set_oauth2_access_token(cursor.getString(24));
+                current.set_oauth2_access_token_expires_in(cursor.getString(25));
+                current.set_oauth2_refresh_token(cursor.getString(26));
+                current.set_oauth2_refresh_token_expires_in(cursor.getString(27));
+                current.set_oauth2_auth_endpoint(cursor.getString(28));
+                current.set_oauth2_token_endpoint(cursor.getString(29));
+                current.set_oauth2_scopes(cursor.getString(30));
 
                 accounts.add(current);
             } while (cursor.moveToNext());

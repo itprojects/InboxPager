@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2018-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -129,7 +129,9 @@ public class SendFilePicker extends AppCompatActivity {
             tv_picker_select.setText(getString(R.string.file_title));
             tv_picker_select.setOnClickListener(view -> pick_files());
         } catch (Exception e) {
-            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
+            String s_error = e.getMessage();
+            InboxPager.log = InboxPager.log.concat(s_error + "\n\n");
+            Dialogs.toaster(true, s_error, this);
             finish();
         }
 

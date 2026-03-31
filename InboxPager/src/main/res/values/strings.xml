@@ -64,6 +64,7 @@
         LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
         EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </string>
+    <string name="license_org_json" translatable="false">Org.Json, Public Domain</string>
     <string name="license_gnu_cryoto" translatable="false">Gnu Crypto, General Public License 2</string>
     <string name="license_long_gnu_cryoto" translatable="false">Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.\n\nThis file is part of GNU Crypto.\n\n GNU Crypto is free software; you can redistribute it and/or modify it under the terms of the
         GNU General Public License as published by the Free Software Foundation; either version 2, or (at your option) any later version.\n\nGNU Crypto is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
@@ -150,7 +151,6 @@
     <string name="err_server_not_configured">Outgoing server has not been configured correctly.</string>
     <string name="err_not_saved">Could not complete save action.</string>
     <string name="err_imap_attachment_saving">Offline attachment file saving failed. Download attachment online and delete full message from database.</string>
-    <string name="err_action_failed">Action may have failed (see log).</string>
     <string name="err_refresh">Errors in</string>
     <string name="err_pick_signing_key">Pick a signing key!</string>
     <string name="err_pick_rcpt_keys">Pick recipient keys!</string>
@@ -158,6 +158,7 @@
     <string name="err_missing_webview">Missing WebView package for html display!</string>
     <string name="err_bad_hash">Cannot produce password hash!</string>
     <string name="err_unknown_error">Unknown Error</string>
+    <string name="err_error">Error</string>
 
     <!-- InboxPager activity -->
     <string name="activity_pw">PASSWORD</string>
@@ -172,7 +173,7 @@
     <string name="drawer_open">Open Inbox List</string>
     <string name="drawer_close">Close Inbox List</string>
     <string name="helper_title">Welcome!</string>
-    <string name="helper_msg">Have an enjoyable messaging, and remember to setup a data protection password, in the settings menu, or your accounts may get easily compromised.</string>
+    <string name="helper_msg">Have an enjoyable messaging, and remember to set up a data protection password, in the settings menu, or your accounts may get easily compromised.</string>
     <string name="btn_pw">SET PASSWORD</string>
     <string name="btn_continue">Continue</string>
     <string name="btn_cancel">Cancel</string>
@@ -196,7 +197,7 @@
 
     <!-- InboxPreferences activity -->
     <string name="activity_add_account_title">Add Account</string>
-    <string name="activity_edit_account_title">Edit This Account</string>
+    <string name="activity_edit_account_title">Edit Account</string>
     <string name="edit_account_email">Account Name</string>
     <string name="edit_account_email_hint">your.account@example.com</string>
     <string name="edit_account_username">Username</string>
@@ -231,7 +232,9 @@
     <string name="edit_account_no_saving">Account needs a name!</string>
     <string name="edit_account_save">SAVE</string>
     <string name="edit_account_saving">Saving…</string>
+    <string name="edit_account_saved">Saved.</string>
     <string name="edit_account_not_saved">NOT Saved!</string>
+    <string name="edit_account_save_account_first">You must first save the account…</string>
     <string name="edit_account_delete">DELETE</string>
     <string name="edit_account_test_results">Test Results</string>
     <string name="edit_account_pop1" translatable="false">POP3:110</string>
@@ -382,5 +385,58 @@
         <item translatable="false">PKCS7</item>
         <item translatable="false">TBC</item>
     </string-array>
+
+    <!-- OAuth2 -->
+    <string name="oauth2_error_in_https">There is an error in the response. Response Code: </string>
+    <string name="oauth2_no_available_ports">This device has no available local ports, but one is required for authentication.</string>
+
+    <string name="oauth2_preferences_title">OAuth2</string>
+    <string name="oauth2_information_title">Information</string>
+    <string name="oauth2_tab_local">Device</string>
+    <string name="oauth2_tab_remote">Server</string>
+
+    <string name="oauth2_tv_client_id_info">Client ID, text that identifies the application to the server. User must provide this, because this application cannot provide it. Servers will allow users to create their own client id.</string>
+    <string name="oauth2_tv_client_secret_info">THIS IS NOT your account password!\n\nClient Secret, text that helps the server know which application is connected. User must provide this, because this application cannot provide it. Servers create this, when creating client id.</string>
+    <string name="oauth2_tv_refresh_token_info">NEVER SHARE THIS WITH OTHER PEOPLE!\n\nRefresh Token, secret text used to allow full access to email account. If compromised, you should immediately log in to your email account through a browser to revoke and re-authorise the OAuth permissions for the application.\n\nGMail example:\n\n1/xEoDL4iW3cxlI7yDbSRFYNG01kVKM2C-259HOF2aQbI</string>
+    <string name="oauth2_tv_auth_endpoint_info">Server URL, by which the application asks the user for permission to their email account.\n\nGMail example:\n\nhttps://accounts.google.com/o/oauth2/v2/auth</string>
+    <string name="oauth2_tv_token_endpoint_info">Server URL, by which the application uses the email account, by creating access tokens.\n\nGMail example:\n\nhttps://oauth2.googleapis.com/token</string>
+    <string name="oauth2_tv_scopes_info">Account permissions as list of URLs, separated by an empty space between them.\n\nGMail example:\n\nhttps://mail.google.com/</string>
+    <string name="oauth2_tv_extra_parameters_info">Extra parameters used for a special purposes, when communicating with the email server.\n\nOutlook example:\n\ntenant=common</string>
+
+    <string name="oauth2_client_id">Client ID</string>
+    <string name="oauth2_client_secret">Client Secret</string>
+    <string name="oauth2_refresh_token">Refresh Token</string>
+    <string name="oauth2_auth_endpoint">Authorisation Endpoint (URL)</string>
+    <string name="oauth2_token_endpoint">Token Endpoint (URL)</string>
+    <string name="oauth2_scopes">Scopes (Permission URLs)</string>
+    <string name="oauth2_extra_parameters">Extras (p1=v1&amp;p2=v2)</string>
+
+    <string name="oauth2_error_access_token">Unknown Connection Error: Access Token</string>
+    <string name="oauth2_error_auth_refresh">Unknown Connection Error: Authentication Code to Refresh Token</string>
+    <string name="oauth2_bad_parameter">Incorrect or missing parameter: </string>
+    <string name="oauth2_cannot_parse">Cannot parse server response!</string>
+
+    <string name="oauth2_help">Help with OAuth2</string>
+    <string name="oauth2_help_long">Please read the README.md from the Inbox Pager repository website for detailed tutorial and images.</string>
+    <string name="oauth2_request_auth">Request Authorisation</string>
+    <string name="oauth2_request_auth_server">Device is now waiting for the server to connect…</string>
+    <string name="oauth2_request_auth_open_in_browser">Copy and open URL below, on this device…</string>
+
+    <string name="oauth2_server_failure_title">OAuth2 Failure</string>
+    <string name="oauth2_server_failure_bad_method">Only http GET method is implemented, but another http method was used.</string>
+    <string name="oauth2_server_failure_auth_code_extraction">Cannot extract authentication code from HTTP GET request.</string>
+    <string name="oauth2_server_failure_client_sent_errors">Your email server has indicated an error.</string>
+    <string name="oauth2_server_failure_bad_json">Android application could not understand JSON (JWT) request.</string>
+    <string name="oauth2_server_failure_missing_refresh_token">The email server did not provide a refresh token.</string>
+
+    <string name="oauth2_server_success_title">OAuth2 Completed Successfully</string>
+    <string name="oauth2_server_success_body">OAuth2 operations completed successfully. Delete the browsing history, or at least this page, then close the browser.</string>
+
+    <string name="oauth2_server_still_operating">OAuth2 operations are still running.</string>
+
+    <!-- Foreground Service -->
+    <string name="fg_service_title">Inbox Pager Service</string>
+    <string name="fg_service_text">Status: in foreground</string>
+    <string name="fg_service_notification_channel_description">Operates in the foreground, performs user-initiated application actions.</string>
 
 </resources>

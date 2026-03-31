@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 package net.inbox.server;
 
 import net.inbox.InboxPager;
+import net.inbox.db.Inbox;
 import net.inbox.pager.R;
 
 import java.io.BufferedReader;
@@ -30,7 +31,6 @@ import java.security.interfaces.DSAPublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -45,47 +45,72 @@ import android.content.Context;
 
 class SocketIO implements Runnable {
 
+    private Inbox current_inbox;
     private BufferedReader r;
     private PrintWriter w;
     private SSLSocket s;
 
     private int port;
     private String server;
+    private String auth;
     private NetworkThread network_thread;
 
     private WeakReference<Context> ctx;
 
-    SocketIO(String srv, int prt, IMAP net_thread, Context ct) {
+    SocketIO(Inbox current_inbox_, String srv, int prt, String auth_, IMAP net_thread, Context ct) {
+        current_inbox = current_inbox_;
         server = srv;
         port = prt;
+        auth = auth_;
         network_thread = net_thread;
         ctx = new WeakReference<>(ct);
     }
 
-    SocketIO(String srv, int prt, POP net_thread, Context ct) {
+    SocketIO(Inbox current_inbox_, String srv, int prt, String auth_, POP net_thread, Context ct) {
+        current_inbox = current_inbox_;
         server = srv;
         port = prt;
+        auth = auth_;
         network_thread = net_thread;
         ctx = new WeakReference<>(ct);
     }
 
-    SocketIO(String srv, int prt, SMTP net_thread, Context ct) {
+    SocketIO(Inbox current_inbox_, String srv, int prt, String auth_, SMTP net_thread, Context ct) {
+        current_inbox = current_inbox_;
         server = srv;
         port = prt;
+        auth = auth_;
         network_thread = net_thread;
         ctx = new WeakReference<>(ct);
     }
 
     public void run() {
         try {
+            // Check account OAuth2 access token, if enabled
+            if (current_inbox != null && auth.equals("XOAUTH2") &&
+                !OAuth2.is_token_valid(current_inbox.get_oauth2_access_token_expires_in())
+            ) {
+                // Get a new OAuth2 access token, using a refresh token
+                String access_result = OAuth2.obtain_access_token(ctx.get(), current_inbox);
+                if (access_result == null) { // access obtained, save into DB
+                    InboxPager.get_db().update_account_access_token(
+                        current_inbox.get_id(),
+                        current_inbox.get_oauth2_access_token(),
+                        current_inbox.get_oauth2_access_token_expires_in()
+                    );
+                } else { // errors, throw error
+                    throw new Exception(current_inbox.get_email() + ":\n\n" + access_result);
+                }
+            }
+
             SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
             s = (SSLSocket) sf.createSocket(server, port);
 
-            HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
-            if (!hv.verify(server, s.getSession())) {
-                String s_error = ctx.get().getString(R.string.ex_field)
-                    + " Possibly Unverified Host: '" + server + "' != '"
-                    + s.getSession().getPeerHost() + "'";
+            // Check Socket
+            if (!HttpsURLConnection.getDefaultHostnameVerifier().verify(server, s.getSession())) {
+                String s_error = ctx.get().getString(R.string.ex_field) +
+                    " Possibly Unverified Host: '" + server + "' != '" +
+                    s.getSession().getPeerHost() + "'";
                 InboxPager.log = InboxPager.log.concat(s_error + "\n\n");
                 //throw new Exception(s_error); // do not proceed with unverified hosts
             }
@@ -95,7 +120,7 @@ class SocketIO implements Runnable {
                 r = new BufferedReader(new InputStreamReader(s.getInputStream()));
                 String line;
                 while ((line = r.readLine()) != null) {
-                    // System.out.println("SOCKET:SERVER(REMOTE): " + line.toString()); // for debugging
+                    //System.out.println("SOCKET:SERVER(REMOTE): " + line); // for debugging
                     network_thread.reply(line);
                 }
             } catch (IOException ee) {
@@ -131,7 +156,7 @@ class SocketIO implements Runnable {
 
     public boolean write(String line) {
         if (w == null || r == null || s == null) return false;
-        // System.out.println("SOCKET::::CLIENT(APP): " + line); // for debugging
+        //System.out.println("SOCKET::::CLIENT(APP): " + line); // for debugging
         w.print(line + "\r\n");
         w.flush();
         return true;
@@ -145,9 +170,9 @@ class SocketIO implements Runnable {
             lb = session_0.getPeerHost() + ":" + session_0.getPeerPort() + "\n\n";
             for (X509Certificate cert : session_0.getPeerCertificateChain()) {
                 lb = lb.concat(
-                    "\n\uD83D\uDCDC" + cert.getIssuerDN().getName() + "\n\n"
-                    + getKeyLength(cert.getPublicKey()) + cert.getSigAlgName() + "\n"
-                    + "SHA-256:\n\n" + sha256Hex(cert.getEncoded()).toUpperCase() + "\n\n"
+                    "\n\uD83D\uDCDC" + cert.getIssuerDN().getName() + "\n\n" +
+                    getKeyLength(cert.getPublicKey()) + cert.getSigAlgName() + "\n" +
+                    "SHA-256:\n\n" + sha256Hex(cert.getEncoded()).toUpperCase() + "\n\n"
                 );
             }
 
@@ -168,13 +193,13 @@ class SocketIO implements Runnable {
             return ((RSAPublicKey) pk).getModulus().bitLength() + " bit RSA Public Key\n";
         } else if (pk instanceof ECPublicKey) {
             java.security.spec.ECParameterSpec pk_spec = ((ECPublicKey) pk).getParams();
-            return pk_spec == null ? "? Public Key\n" : pk_spec.getOrder().bitLength()
-                    + " bit Elliptic Curve Public Key\n";
+            return pk_spec == null ? "? Public Key\n" : pk_spec.getOrder().bitLength() +
+                " bit Elliptic Curve Public Key\n";
         } else if (pk instanceof DSAPublicKey) {
             DSAPublicKey pk_dsa = (DSAPublicKey) pk;
 
             return pk_dsa.getParams() == null ? pk_dsa.getY().bitLength() + " bit DSA Public Key\n"
-                    : pk_dsa.getParams().getP().bitLength() + " bit DSA Public Key\n";
+                : pk_dsa.getParams().getP().bitLength() + " bit DSA Public Key\n";
         } else return "? Public key\n";
     }
 }

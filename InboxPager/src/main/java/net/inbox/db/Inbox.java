@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -38,9 +38,20 @@ public class Inbox {
     private int smtp_port;
     private boolean always_ask_pass;
     private boolean auto_save_full_msgs;
+    private String auth_type_of_incoming;
+    private String auth_type_of_outgoing;
+    private String oauth2_client_id;
+    private String oauth2_client_secret;
+    private String oauth2_access_token;
+    private String oauth2_access_token_expires_in;
+    private String oauth2_refresh_token;
+    private String oauth2_refresh_token_expires_in;
+    private String oauth2_auth_endpoint;
+    private String oauth2_token_endpoint;
+    private String oauth2_scopes;
 
     // Non-db params
-    private boolean ehlo;// If unsupported, old SMTP
+
     private boolean to_be_refreshed = false;
 
     public int get_id() {
@@ -123,9 +134,27 @@ public class Inbox {
         return auto_save_full_msgs;
     }
 
-    public boolean get_ehlo() {
-        return ehlo;
-    }
+    public String get_auth_type_of_incoming() { return auth_type_of_incoming; }
+
+    public String get_auth_type_of_outgoing() { return auth_type_of_outgoing; }
+
+    public String get_oauth2_client_id() { return oauth2_client_id; }
+
+    public String get_oauth2_client_secret() { return oauth2_client_secret; }
+
+    public String get_oauth2_access_token() { return oauth2_access_token; }
+
+    public String get_oauth2_access_token_expires_in() { return oauth2_access_token_expires_in; }
+
+    public String get_oauth2_refresh_token() { return oauth2_refresh_token; }
+
+    public String get_oauth2_refresh_token_expires_in() { return oauth2_refresh_token_expires_in; }
+
+    public String get_oauth2_auth_endpoint() { return oauth2_auth_endpoint; }
+
+    public String get_oauth2_token_endpoint() { return oauth2_token_endpoint; }
+
+    public String get_oauth2_scopes() { return oauth2_scopes; }
 
     public boolean get_to_be_refreshed() {
         return to_be_refreshed;
@@ -211,9 +240,27 @@ public class Inbox {
         auto_save_full_msgs = b;
     }
 
-    public void set_ehlo(boolean b) {
-        ehlo = b;
-    }
+    public void set_auth_type_of_incoming(String s) { auth_type_of_incoming = s; }
+
+    public void set_auth_type_of_outgoing(String s) { auth_type_of_outgoing = s; }
+
+    public void set_oauth2_client_id(String s) { oauth2_client_id = s; }
+
+    public void set_oauth2_client_secret(String s) { oauth2_client_secret = s; }
+
+    public void set_oauth2_access_token(String s) { oauth2_access_token = s; }
+
+    public void set_oauth2_access_token_expires_in(String s) { oauth2_access_token_expires_in = s; }
+
+    public void set_oauth2_refresh_token(String s) { oauth2_refresh_token = s; }
+
+    public void set_oauth2_refresh_token_expires_in(String s) { oauth2_refresh_token_expires_in = s; }
+
+    public void set_oauth2_auth_endpoint(String s) { oauth2_auth_endpoint = s; }
+
+    public void set_oauth2_token_endpoint(String s) { oauth2_token_endpoint = s; }
+
+    public void set_oauth2_scopes(String s) { oauth2_scopes = s; }
 
     public void set_to_be_refreshed(boolean b) {
         to_be_refreshed = b;

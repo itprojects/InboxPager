@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -34,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -111,33 +112,34 @@ public class IMAP extends NetworkThread {
             data.sbuffer.append("\r\n");
             return;
         }
-        if (l.startsWith(tag + " OK") || l.startsWith(tag + " NO") || l.startsWith(tag + " BAD")) {
-            // Line is a tagged response: "a1 OK", "a1 BAD", "a1 NO"
-            if (l.startsWith(tag + " OK")) {
-                data.cmd_return = l;
-                stat = 1;
-                if (data.delegate) {
-                    imap_delegation(false);
-                } else {
-                    imap_conductor(false);
-                }
-            } else if (l.startsWith(tag + " NO")) {
-                data.cmd_return = l;
-                stat = 2;
-                data.sequence.clear();
-                data.sequence.add("logout");
-                String str_tmp = tag + " NO";
-                error_dialog(current_inbox.get_email() + "\n\n" + l.substring(str_tmp.length()));
-            } else if (l.startsWith(tag + " BAD")) {
-                data.cmd_return = l;
-                stat = 3;
-                data.sequence.clear();
-                data.sequence.add("LOGOUT");
-                error_dialog(current_inbox.get_email() + "\n\n" + l);
+        String tag_OK = tag + " OK";
+        String tag_NO = tag + " NO";
+        String tag_BAD = tag + " BAD";
+        if (l.startsWith(tag_OK)) { // Line is a tagged response: "a1 OK"
+            data.cmd_return = l;
+            stat = 1;
+            if (data.delegate) {
+                imap_delegation(false);
+            } else {
+                imap_conductor(false);
             }
+        } else if (l.startsWith(tag_NO)) { // Line is a tagged response: "a1 NO"
+            data.cmd_return = l;
+            stat = 2;
+            data.sequence.clear();
+            data.sequence.add("LOGOUT");
+            error_dialog(current_inbox.get_email() + "\n\n" + l.substring(tag_NO.length()));
+        } else if (l.startsWith(tag_BAD)) { // Line is a tagged response: "a1 BAD"
+            data.cmd_return = l;
+            stat = 3;
+            data.sequence.clear();
+            data.sequence.add("LOGOUT");
+            error_dialog(current_inbox.get_email() + "\n\n" + l);
         } else if (l.charAt(0) != '*' && data.os != null) {
             l += "\r\n";
             data.sbuffer.append(l);
+        } else if (l.charAt(0) == '+' && data.sequence.get(0).startsWith("LOGIN")) {
+            imap_conductor(false);
         } else if (l.charAt(0) == '*' || l.charAt(0) == '+')  {
             // Catching stray data
             if (l.length() > 2 && l.charAt(1) != ' ') {
@@ -186,7 +188,7 @@ public class IMAP extends NetworkThread {
         data.sequence.add("CAPABILITY");
         data.sequence.add("LOGOUT");
 
-        socket_start_imap(this);
+        socket_start_imap(current_inbox, this, true);
 
         try {
             sleep(1000);
@@ -208,19 +210,19 @@ public class IMAP extends NetworkThread {
                         );
                     }
 
-                    if (current_inbox.get_imap_or_pop_extensions() != null
-                        && !current_inbox.get_imap_or_pop_extensions().isEmpty()
+                    if (current_inbox.get_imap_or_pop_extensions() != null &&
+                        !current_inbox.get_imap_or_pop_extensions().isEmpty()
                     ) {
                         String tested;
                         if (current_inbox.get_imap_or_pop_extensions()
-                                .equals(act.get().getString(R.string.err_no_capability))
+                            .equals(act.get().getString(R.string.err_no_capability))
                         ) {
                             tested = act.get().getString(R.string.err_no_capability);
                         } else {
                             // Preparing the dialog message
                             load_extensions();
-                            tested = act.get().getString(R.string.edit_account_check_login_types)
-                                + "\n\n";
+                            tested = act.get().getString(R.string.edit_account_check_login_types) +
+                                "\n\n";
                             for (int i = 0;i < data.auths.size();++i) {
                                 if (i == (data.auths.size() - 1)) {
                                     tested += data.auths.get(i).toUpperCase();
@@ -228,8 +230,8 @@ public class IMAP extends NetworkThread {
                                     tested = tested.concat(data.auths.get(i).toUpperCase() + ", ");
                                 }
                             }
-                            tested += "\n\n"
-                                + act.get().getString(R.string.edit_account_check_other) + "\n\n";
+                            tested += "\n\n" +
+                                act.get().getString(R.string.edit_account_check_other) + "\n\n";
                             for (int i = 0;i < data.general.size();++i) {
                                 if (i == (data.general.size() - 1)) {
                                     tested += data.general.get(i).toUpperCase();
@@ -295,7 +297,7 @@ public class IMAP extends NetworkThread {
         data.sequence.add("PREP_REFRESH");
         data.sequence.add("LOGOUT");
 
-        socket_start_imap(this);
+        socket_start_imap(current_inbox, this, false);
     }
 
     @Override
@@ -339,12 +341,12 @@ public class IMAP extends NetworkThread {
         data.sequence.add("SAVE_ATTACHMENT");
         data.sequence.add("LOGOUT");
 
-        socket_start_imap(this);
+        socket_start_imap(current_inbox, this, false);
     }
 
     @Override
-    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, AppCompatActivity at) {
-        current_inbox = db.get_account(aid);
+    public void msg_action(Inbox current_inbox_, Object msg, Object doc_file, boolean sv, AppCompatActivity at) {
+        current_inbox = current_inbox_;
         act = new WeakReference<>(at);
 
         // A partial reset of variables
@@ -360,7 +362,7 @@ public class IMAP extends NetworkThread {
             data.sequence.add("CAPABILITY");
         }
 
-        data.msg_current = msg;
+        data.msg_current = (Message) msg;
         data.save_in_db = sv;
         if (doc_file == null) {
             data.a_file = null;
@@ -376,7 +378,7 @@ public class IMAP extends NetworkThread {
             );
         }
 
-        on_ui_thread(act.get().getString(R.string.progress_downloading), msg.get_subject());
+        on_ui_thread(act.get().getString(R.string.progress_downloading), data.msg_current.get_subject());
 
         // Refresh messages sequence
         data.sequence.add("LOGIN");
@@ -384,7 +386,7 @@ public class IMAP extends NetworkThread {
         data.sequence.add("SAVE_MSG");
         data.sequence.add("LOGOUT");
 
-        socket_start_imap(this);
+        socket_start_imap(current_inbox, this, false);
     }
 
     @Override
@@ -419,7 +421,7 @@ public class IMAP extends NetworkThread {
         data.sequence.add("EXPUNGE");
         data.sequence.add("LOGOUT");
 
-        socket_start_imap(this);
+        socket_start_imap(current_inbox, this, false);
     }
 
     @Override
@@ -502,6 +504,7 @@ public class IMAP extends NetworkThread {
                     }
                     break;
                 case "EXAMINE":
+                    // Common with INBOX IMAP folder
                     imap_examine(cmd_start);
                     break;
                 case "SELECT":
@@ -595,9 +598,10 @@ public class IMAP extends NetworkThread {
                     // Update spinning dialog message
                     if (sp != null) {
                         on_ui_thread(
-                            "-1",
-                            (act.get().getString(R.string.progress_fetch_msg) + " "
-                                + (data.msg_indx + 1) + " / " + (data.message_uids.size()))
+                            "-1", (
+                                act.get().getString(R.string.progress_fetch_msg) + " " +
+                                (data.msg_indx + 1) + " / " + (data.message_uids.size())
+                            )
                         );
                     }
                     ++data.msg_indx;
@@ -615,15 +619,15 @@ public class IMAP extends NetworkThread {
                 break;
             case "MSG_TEXT_PLAIN":
                 // Get plain text of the message
-                    if (data.msg_text_plain[0] == null || data.msg_text_plain[0].equals("-1")) {
-                        cmd_start = false;
-                    } else imap_fetch_msg_body_text(cmd_start, 1);
+                if (data.msg_text_plain[0] == null || data.msg_text_plain[0].equals("-1")) {
+                    cmd_start = false;
+                } else imap_fetch_msg_body_text(cmd_start, 1);
                 break;
             case "MSG_TEXT_HTML":
                 // Get html text of the message
-                    if (data.msg_text_html == null || data.msg_text_html[0].equals("-1")) {
-                        cmd_start = false;
-                    } else imap_fetch_msg_body_text(cmd_start, 2);
+                if (data.msg_text_html == null || data.msg_text_html[0].equals("-1")) {
+                    cmd_start = false;
+                } else imap_fetch_msg_body_text(cmd_start, 2);
                 break;
             case "MSG_CRYPTO_MIME":
                 if (data.crypto_contents) {
@@ -686,16 +690,57 @@ public class IMAP extends NetworkThread {
         if (go) {
             tag();
             load_extensions();
-            if (data.auths.contains("PLAIN")) {
-                data.auth = "PLAIN";
-                write(tag + " LOGIN " + current_inbox.get_username()
-                        + " " + current_inbox.get_pass());
-            } else {
+            boolean probable_fail = true;
+            data.auth = current_inbox.get_auth_type_of_incoming();
+            if (!data.auths.contains(data.auth)) { // warn of failure
+                InboxPager.log = InboxPager.log.concat(
+                    act.get().getString(R.string.err_no_authentication) + "\n\n"
+                );
+            }
+            switch (data.auth) {
+                case "PLAIN": {
+                    if (data.auths.contains("PLAIN")) {
+                        probable_fail = false;
+                        data.auth = "PLAIN";
+                        write(tag + " AUTHENTICATE PLAIN");
+                    }
+                    break;
+                }
+                case "XOAUTH2": {
+                    probable_fail = false;
+                    data.auth = "XOAUTH2";
+                    write(tag + " AUTHENTICATE XOAUTH2");
+                    break;
+                }
+            }
+            if (probable_fail) {
                 error_dialog(act.get().getString(R.string.err_no_authentication));
                 data.sequence.clear();
                 imap_logout(true);
             }
         } else {
+            switch (data.auth) {
+                case "PLAIN": {
+                    write(
+                        Base64.encodeToString(
+                            (
+                                "\0" + current_inbox.get_username() +
+                                "\0" + current_inbox.get_pass()
+                            ).getBytes(StandardCharsets.UTF_8),
+                            Base64.NO_WRAP
+                        )
+                    );
+                    break;
+                }
+                case "XOAUTH2": {
+                    write(
+                        OAuth2.xoauth2_string(
+                            current_inbox.get_username(), current_inbox.get_oauth2_access_token()
+                        )
+                    );
+                    break;
+                }
+            }
            clear_buff();
         }
     }
@@ -736,17 +781,17 @@ public class IMAP extends NetworkThread {
             // Is the current inbox to be refreshed?
             if (db.get_messages_count(current_inbox.get_id()) != messages) {
                 current_inbox.set_to_be_refreshed(true);
-            } else if (uidnext != current_inbox.get_uidnext()
-                && uidvalidity != current_inbox.get_uidvalidity()
+            } else if (uidnext != current_inbox.get_uidnext() &&
+                uidvalidity != current_inbox.get_uidvalidity()
             ) {
                 current_inbox.set_to_be_refreshed(true);
             }
 
-            if (messages != current_inbox.get_messages()
-                || recent != current_inbox.get_recent()
-                || uidnext != current_inbox.get_uidnext()
-                || uidvalidity != current_inbox.get_uidvalidity()
-                || unseen != current_inbox.get_unseen()
+            if (messages != current_inbox.get_messages() ||
+                recent != current_inbox.get_recent() ||
+                uidnext != current_inbox.get_uidnext() ||
+                uidvalidity != current_inbox.get_uidvalidity() ||
+                unseen != current_inbox.get_unseen()
             ) {
                 current_inbox.set_messages(messages);
                 current_inbox.set_recent(recent);
@@ -793,6 +838,7 @@ public class IMAP extends NetworkThread {
                     }
                 }
             }
+
             clear_buff();
         }
     }
@@ -1042,8 +1088,8 @@ public class IMAP extends NetworkThread {
 
                     // Checking for signed and/or encrypted i.e. PGP/MIME
                     str = data.msg_current.get_content_type().toLowerCase();
-                    data.crypto_contents = str.contains("multipart/encrypted")
-                        || str.contains("multipart/signed");
+                    data.crypto_contents = str.contains("multipart/encrypted") ||
+                        str.contains("multipart/signed");
                 }
             }
             data.msg_current.set_received(received);
@@ -1079,7 +1125,8 @@ public class IMAP extends NetworkThread {
             );
 
             // Declare the number of attachments for later
-            if (data.msg_structure != null) data.msg_current.set_attachments(data.msg_structure.size());
+            if (data.msg_structure != null)
+                data.msg_current.set_attachments(data.msg_structure.size());
 
             clear_buff();
         }
@@ -1184,7 +1231,7 @@ public class IMAP extends NetworkThread {
             if (crypto) {
                 // Boundary search
                 String bounds = data.msg_current.get_content_type()
-                        .replaceAll("\r", "").replaceAll("\n", "");
+                    .replaceAll("\r", "").replaceAll("\n", "");
                 int nn = bounds.toLowerCase().indexOf("boundary=");
                 if (nn != -1) {
                     bounds = bounds.substring(nn + 9);

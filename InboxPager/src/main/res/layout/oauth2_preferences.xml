@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_view_oauth2_preferences"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- fallbackLineSpacing corrects the TextView extra height space issue on API >= 33 -->
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/oauth2_preferences_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/color_home_bar_background"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+        <TextView
+            android:id="@+id/oauth2_preferences_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:ellipsize="end"
+            android:letterSpacing="0.1"
+            android:fallbackLineSpacing="false"
+            android:fontFamily="@font/dottz"
+            android:maxLines="1"
+            android:paddingTop="4dp"
+            android:shadowColor="@color/color_title"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="3"
+            android:text="@string/oauth2_preferences_title"
+            android:textAppearance="@android:style/TextAppearance.Medium.Inverse"
+            android:textColor="@color/color_title"
+            android:visibility="visible" />
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tl_oauth2_preferences"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="fixed">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/oauth2_tab_local"/>
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/oauth2_tab_remote"/>
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Local preferences on device -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:id="@+id/llay_oauth2_preferences_local">
+
+                <TextView
+                    android:id="@+id/tv_oauth2_client_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginStart="10dp"
+                    android:maxLines="1"
+                    android:gravity="center"
+                    android:text="@string/oauth2_client_id"
+                    android:textStyle="italic"
+                    android:labelFor="@+id/et_oauth2_client_id"
+                    android:drawablePadding="10dp"
+                    app:drawableLeftCompat="@drawable/question_circle"/>
+
+                <EditText
+                    android:id="@+id/et_oauth2_client_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="start"
+                    android:autofillHints="@string/empty_string"
+                    android:inputType="textMultiLine|textNoSuggestions"/>
+
+                <TextView
+                    android:id="@+id/tv_oauth2_client_secret"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:maxLines="1"
+                    android:gravity="center"
+                    android:text="@string/oauth2_client_secret"
+                    android:textStyle="italic"
+                    android:labelFor="@+id/et_oauth2_client_secret"
+                    android:drawablePadding="10dp"
+                    app:drawableLeftCompat="@drawable/question_circle"/>
+
+                <EditText
+                    android:id="@+id/et_oauth2_client_secret"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="start"
+                    android:autofillHints="@string/empty_string"
+                    android:inputType="textMultiLine|textNoSuggestions" />
+
+                <TextView
+                    android:id="@+id/tv_oauth2_refresh_token"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:maxLines="1"
+                    android:gravity="center"
+                    android:text="@string/oauth2_refresh_token"
+                    android:textStyle="italic"
+                    android:labelFor="@+id/et_oauth2_refresh_token"
+                    android:drawablePadding="10dp"
+                    app:drawableStartCompat="@drawable/question_circle"/>
+
+                <EditText
+                    android:id="@+id/et_oauth2_refresh_token"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="start"
+                    android:autofillHints="@string/empty_string"
+                    android:inputType="textMultiLine|textNoSuggestions"/>
+
+                <TextView
+                    android:id="@+id/tv_oauth2_auth_endpoint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:maxLines="1"
+                    android:gravity="center"
+                    android:text="@string/oauth2_auth_endpoint"
+                    android:textStyle="italic"
+                    android:labelFor="@+id/et_oauth2_auth_endpoint"
+                    android:drawablePadding="10dp"
+                    app:drawableStartCompat="@drawable/question_circle"/>
+
+                <EditText
+                    android:id="@+id/et_oauth2_auth_endpoint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="start"
+                    android:autofillHints="@string/empty_string"
+                    android:inputType="textMultiLine|textNoSuggestions" />
+
+                <TextView
+                    android:id="@+id/tv_oauth2_token_endpoint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:maxLines="1"
+                    android:gravity="center"
+                    android:text="@string/oauth2_token_endpoint"
+                    android:textStyle="italic"
+                    android:labelFor="@+id/et_oauth2_token_endpoint"
+                    android:drawablePadding="10dp"
+                    app:drawableStartCompat="@drawable/question_circle"/>
+
+                <EditText
+                    android:id="@+id/et_oauth2_token_endpoint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="start"
+                    android:autofillHints="@string/empty_string"
+                    android:inputType="textMultiLine|textNoSuggestions" />
+
+                <TextView
+                    android:id="@+id/tv_oauth2_scopes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:maxLines="1"
+                    android:gravity="center"
+                    android:text="@string/oauth2_scopes"
+                    android:textStyle="italic"
+                    android:labelFor="@+id/et_oauth2_scopes"
+                    android:drawablePadding="10dp"
+                    app:drawableStartCompat="@drawable/question_circle"/>
+
+                <EditText
+                    android:id="@+id/et_oauth2_scopes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="start"
+                    android:autofillHints="@string/empty_string"
+                    android:inputType="textMultiLine|textNoSuggestions" />
+
+            </LinearLayout>
+
+            <!-- Preferences for remote registration of oauth2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:id="@+id/llay_oauth2_preferences_remote"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tv_oauth2_help"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:maxLines="1"
+                    android:gravity="center"
+                    android:text="@string/oauth2_help"
+                    android:textStyle="italic"
+                    android:drawablePadding="10dp"
+                    app:drawableLeftCompat="@drawable/question_circle"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/tv_oauth2_extra_parameters"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="10dp"
+                        android:maxLines="1"
+                        android:text="@string/oauth2_extra_parameters"
+                        android:textStyle="italic"
+                        android:labelFor="@+id/et_oauth2_extra_parameters"
+                        android:drawablePadding="10dp"
+                        app:drawableStartCompat="@drawable/question_circle"/>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/sw_oauth2_use_extras"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"/>
+
+                </LinearLayout>
+
+                <EditText
+                    android:id="@+id/et_oauth2_extra_parameters"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="start"
+                    android:autofillHints="@string/empty_string"
+                    android:inputType="textMultiLine|textNoSuggestions"
+                    android:visibility="gone"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btn_oauth2_request_auth"
+                        style="?android:attr/borderlessButtonStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:text="@string/oauth2_request_auth"
+                        android:drawablePadding="10dp"
+                        android:drawableStart="@drawable/network"/>
+
+                    <Button
+                        android:id="@+id/btn_oauth2_cancel_request_auth"
+                        style="?android:attr/borderlessButtonStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:drawablePadding="10dp"
+                        android:drawableStart="@drawable/cancel"/>
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_oauth2_request_auth_server"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="center"
+                    android:text="@string/oauth2_request_auth_server"
+                    android:textColor="@color/color_orange"
+                    android:drawablePadding="10dp"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/tv_oauth2_request_auth_note"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="center"
+                    android:text="@string/oauth2_request_auth_open_in_browser"
+                    android:drawablePadding="10dp"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/tv_oauth2_request_auth_copy_url"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="center"
+                    android:textIsSelectable="true"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2024-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,8 @@
 package net.inbox;
 
 import static net.inbox.InboxPager.vib;
+
+import static java.lang.System.currentTimeMillis;
 
 import android.Manifest;
 import android.app.Activity;
@@ -85,7 +87,7 @@ public class Common {
 
             // Notification with unique time-based id
             NotificationManagerCompat.from(ctx).notify(
-                (int)(System.currentTimeMillis() % 100000), builder.build()
+                (int)(currentTimeMillis() % 100000), builder.build()
             );
         }
     }
@@ -180,7 +182,7 @@ public class Common {
         return webview_status == 1;
     }
 
-    // Sandbox WebView, prepare for use.
+    // Sandbox WebView, prepare for use
     public static void setup_webview(WebSettings web_settings, float font_size) {
         web_settings.setDefaultFontSize((int) font_size);
         web_settings.setDefaultFixedFontSize((int) font_size);

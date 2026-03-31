@@ -131,6 +131,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     android:layout_marginStart="15sp"
+                    android:layout_marginEnd="10sp"
                     android:layout_marginTop="17sp"
                     android:text="@string/edit_account_pass"
                     android:textStyle="bold" />
@@ -152,6 +153,7 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10sp"
                     android:layout_marginStart="10sp"
                     android:layout_marginEnd="10sp"
                     android:orientation="horizontal">
@@ -162,8 +164,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10sp"
                         android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:layoutDirection="rtl" />
+                        android:layout_centerVertical="true" />
 
                     <CheckBox
                         android:id="@+id/cb_pw"
@@ -181,85 +182,138 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="start"
                     android:layout_marginStart="15sp"
-                    android:layout_marginTop="5sp"
+                    android:layout_marginEnd="10sp"
+                    android:layout_marginTop="15sp"
                     android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/tv_imap_or_pop"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
                         android:maxLines="1"
                         android:text="@string/edit_account_imap_or_pop_on"
                         android:textStyle="bold" />
 
-                    <EditText
-                        android:id="@+id/et_imap_or_pop_server_port"
+                    <Spinner
+                        android:id="@+id/spinner_imap_or_pop"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:paddingStart="5sp"
+                        android:paddingEnd="5sp"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="15sp"
+                    android:layout_marginEnd="10sp"
+                    android:layout_marginTop="5sp"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/et_imap_or_pop_server"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5sp"
+                        android:layout_marginEnd="10sp"
+                        android:ems="12"
+                        android:gravity="center_horizontal"
+                        android:hint="@string/edit_account_incoming_server_hint_imap"
+                        android:autofillHints="@string/empty_string"
+                        android:inputType="textNoSuggestions" />
+
+                    <EditText
+                        android:id="@+id/et_imap_or_pop_server_port"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:digits="0123456789"
-                        android:ems="4"
+                        android:ems="2"
                         android:gravity="center_horizontal"
                         android:hint="@string/edit_account_incoming_server_port_hint_imap"
                         android:autofillHints="@string/empty_string"
                         android:inputType="number|textNoSuggestions"
                         android:maxLength="5" />
 
-                    <EditText
-                        android:id="@+id/et_imap_or_pop_server"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="5sp"
-                        android:layout_marginEnd="10sp"
-                        android:ems="13"
-                        android:gravity="center_horizontal"
-                        android:hint="@string/edit_account_incoming_server_hint_imap"
-                        android:autofillHints="@string/empty_string"
-                        android:inputType="textNoSuggestions" />
-
                 </LinearLayout>
-
             </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginStart="15sp"
+            android:layout_marginEnd="10sp"
+            android:layout_marginTop="15sp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:maxLines="1"
+                android:text="@string/edit_account_smtp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/spinner_smtp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:paddingStart="5sp"
+                android:paddingEnd="5sp"/>
+
+        </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:layout_marginStart="15sp"
+                android:layout_marginEnd="10sp"
                 android:layout_marginTop="5sp"
                 android:orientation="horizontal">
 
-                <TextView
+                <EditText
+                    android:id="@+id/et_smtp_server"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:text="@string/edit_account_smtp"
-                    android:textStyle="bold" />
+                    android:layout_marginStart="5sp"
+                    android:layout_marginEnd="10sp"
+                    android:ems="12"
+                    android:gravity="center_horizontal"
+                    android:hint="@string/edit_account_smtp_server_hint"
+                    android:autofillHints="@string/empty_string"
+                    android:inputType="textNoSuggestions" />
 
                 <EditText
                     android:id="@+id/et_smtp_server_port"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:digits="0123456789"
-                    android:ems="4"
+                    android:ems="2"
                     android:gravity="center_horizontal"
                     android:hint="@string/edit_account_smtp_server_port_hint"
                     android:autofillHints="@string/empty_string"
                     android:inputType="number|textNoSuggestions"
                     android:maxLength="5" />
 
-                <EditText
-                    android:id="@+id/et_smtp_server"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5sp"
-                    android:layout_marginEnd="10sp"
-                    android:ems="13"
-                    android:gravity="center_horizontal"
-                    android:hint="@string/edit_account_smtp_server_hint"
-                    android:autofillHints="@string/empty_string"
-                    android:inputType="textNoSuggestions" />
-
             </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_oauth2_preferences"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10sp"
+                android:layout_marginStart="10sp"
+                android:layout_marginEnd="15sp"
+                android:text="@string/oauth2_preferences_title"
+                android:drawablePadding="10dp"
+                android:drawableStart="@drawable/btn_oauth2"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -282,6 +336,7 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:drawablePadding="10dp"
                     android:drawableStart="@drawable/network"
                     android:text="@string/edit_account_nc_check" />
 
@@ -290,6 +345,7 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:drawablePadding="10dp"
                     android:drawableStart="@drawable/network"
                     android:text="@string/edit_account_check_incoming" />
 
@@ -298,6 +354,7 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:drawablePadding="10dp"
                     android:drawableStart="@drawable/network"
                     android:text="@string/edit_account_check_smtp" />
             </LinearLayout>

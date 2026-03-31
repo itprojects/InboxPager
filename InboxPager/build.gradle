@@ -5,15 +5,13 @@ plugins {
 android {
     namespace 'net.inbox.pager'
     compileSdk 36
-
     defaultConfig {
         applicationId "net.inbox.pager"
         minSdk 23
         targetSdk 36
-        versionCode 22
-        versionName "8.0"
+        versionCode 23
+        versionName "9.0"
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -36,6 +34,7 @@ dependencies {
     implementation libs.appcompat
     implementation libs.constraintlayout
     implementation libs.documentfile
+    implementation libs.org.json
     implementation libs.material
     implementation libs.preference
     implementation libs.sqlite

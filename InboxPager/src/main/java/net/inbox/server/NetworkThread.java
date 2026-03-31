@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -48,8 +48,8 @@ public abstract class NetworkThread extends Thread {
     // True, when waiting for login
     boolean ready = false;
 
-    // True, when exchange ends
-    boolean over = false;
+    // True, when exchange ends, volatile for speed
+    volatile boolean over = false;
 
     // Command ID tag
     String tag = "";
@@ -115,14 +115,14 @@ public abstract class NetworkThread extends Thread {
         ArrayList<String> general = new ArrayList<>();
     }
 
-    Inbox current_inbox;
+    protected Inbox current_inbox;
 
     // Last session state variables
     public int last_connection_data_id = -1;
     public String last_connection_data = null;
 
     public NetworkThread(AppCompatActivity at) {
-        db = InboxPager.get_db(); // Get the database
+        db = InboxPager.get_db(); // get the database
         act = new WeakReference<>(at);
     }
 
@@ -153,18 +153,13 @@ public abstract class NetworkThread extends Thread {
      * Downloads a particular message.
      * In the case of SMTP it tries to send a message.
      **/
-    public abstract void msg_action(int aid, Message msg, Object doc_file, boolean sv, AppCompatActivity at);
+    public abstract void msg_action(Inbox current_inbox_, Object msg, Object doc_file, boolean sv, AppCompatActivity at);
 
     /**
      * Communicating individually with remote server.
      * Moves a particular message to a different folder.
      **/
     public abstract void move_action(int aid, Message msg, AppCompatActivity at);
-
-    /**
-     * Loads the capability extensions.
-     **/
-    public abstract void load_extensions();
 
     /**
      * Cancel the current activities, for an unknown reason.
@@ -175,6 +170,11 @@ public abstract class NetworkThread extends Thread {
      * Clears session buffers.
      **/
     public abstract void clear_buff();
+
+    /**
+     * Loads the capability extensions.
+     **/
+    public abstract void load_extensions();
 
     /**
      * Communication through network socket.
@@ -216,11 +216,13 @@ public abstract class NetworkThread extends Thread {
         }
     }
 
-    void socket_start_imap(IMAP hand) {
-        // Starting communication on socket
+    // Starting IMAP communication on socket
+    void socket_start_imap(Inbox current_inbox, IMAP hand, boolean test_only) {
         io_sock = new SocketIO(
+            test_only ? null : current_inbox,
             current_inbox.get_imap_or_pop_server(),
             current_inbox.get_imap_or_pop_port(),
+            current_inbox.get_auth_type_of_incoming(),
             hand,
             act.get().getBaseContext()
         );
@@ -228,11 +230,13 @@ public abstract class NetworkThread extends Thread {
         io_sock_thread.start();
     }
 
-    void socket_start_pop(POP hand) {
-        // Starting communication on socket
+    // Starting POP communication on socket
+    void socket_start_pop(Inbox current_inbox, POP hand, boolean test_only) {
         io_sock = new SocketIO(
+            test_only ? null : current_inbox,
             current_inbox.get_imap_or_pop_server(),
             current_inbox.get_imap_or_pop_port(),
+            current_inbox.get_auth_type_of_incoming(),
             hand,
             act.get().getBaseContext()
         );
@@ -240,11 +244,13 @@ public abstract class NetworkThread extends Thread {
         io_sock_thread.start();
     }
 
-    void socket_start_smtp(SMTP hand) {
-        // Starting communication on socket
+    // Starting SMTP communication on socket
+    void socket_start_smtp(Inbox current_inbox, SMTP hand, boolean test_only) {
         io_sock = new SocketIO(
+            test_only ? null : current_inbox,
             current_inbox.get_smtp_server(),
             current_inbox.get_smtp_port(),
+            current_inbox.get_auth_type_of_outgoing(),
             hand,
             act.get().getBaseContext()
         );
@@ -273,8 +279,8 @@ public abstract class NetworkThread extends Thread {
                     act.get().getString(R.string.ex_no_internet),
                     act.get()
                 );
-            } else if (e.getMessage() != null
-                && e.getMessage().matches("(?i).*Unable to resolve host.*")
+            } else if (e.getMessage() != null &&
+                e.getMessage().matches("(?i).*Unable to resolve host.*")
             ) {
                 Dialogs.dialog_simple(
                     act.get().getString(R.string.ex_title),

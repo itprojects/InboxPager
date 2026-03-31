@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -100,7 +100,7 @@ public class Dialogs {
         make_text_selectable(builder.show());
     }
 
-    private static void make_text_selectable(AlertDialog adg) {
+    public static void make_text_selectable(AlertDialog adg) {
         TextView text_box = adg.findViewById(android.R.id.message);
         if (text_box != null) text_box.setTextIsSelectable(true);
     }
@@ -176,10 +176,10 @@ public class Dialogs {
         builder.setPositiveButton(at.getString(R.string.crypto_decrypt), null);
     }
 
-    public static void toaster(final boolean time, final String msg, final AppCompatActivity ct) {
+    public static void toaster(final boolean quick, final String msg, final AppCompatActivity ct) {
         ct.runOnUiThread(
             () -> {
-                if (time) {
+                if (quick) {
                     Toast.makeText(ct, msg, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(ct, msg, Toast.LENGTH_LONG).show();
@@ -188,8 +188,8 @@ public class Dialogs {
         );
     }
 
-    public static void toaster(final boolean time, final String msg, final Context ct) {
-        if (time) {
+    public static void toaster(final boolean quick, final String msg, final Context ct) {
+        if (quick) {
             Toast.makeText(ct, msg, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(ct, msg, Toast.LENGTH_LONG).show();

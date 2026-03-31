@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -126,6 +126,15 @@ public class About extends AppCompatActivity {
             v -> Dialogs.dialog_simple(
                 getString(R.string.dialog_license),
                 getString(R.string.license_long_sql_cipher_other),
+                (AppCompatActivity) v.getContext()
+            )
+        );
+
+        TextView tv_org_json = findViewById(R.id.tv_org_json);
+        tv_org_json.setOnClickListener(
+            v -> Dialogs.dialog_simple(
+                getString(R.string.dialog_license),
+                getString(R.string.license_org_json),
                 (AppCompatActivity) v.getContext()
             )
         );

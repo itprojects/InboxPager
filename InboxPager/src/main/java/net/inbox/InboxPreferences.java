@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,8 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 import androidx.appcompat.app.AlertDialog;
@@ -32,11 +34,16 @@ import androidx.appcompat.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -50,6 +57,7 @@ import net.inbox.server.NetworkThread;
 import net.inbox.server.IMAP;
 import net.inbox.server.POP;
 import net.inbox.server.SMTP;
+import net.inbox.visuals.OAuth2Preferences;
 
 import java.util.HashMap;
 
@@ -59,10 +67,13 @@ public class InboxPreferences extends AppCompatActivity {
 
     // Adding or editing account
     private boolean add_mode = false;
+    private boolean account_is_modified_in_db = false;
 
     // Used in switching IMAP/POP
     private boolean initial_switch_value = false;
     private int initial_imap_or_pop_port = -1;
+
+    private final String[] auth_types = { "PLAIN", "XOAUTH2" };
 
     private EditText et_email;
     private EditText et_username;
@@ -73,15 +84,22 @@ public class InboxPreferences extends AppCompatActivity {
     private EditText et_imap_or_pop_server_port;
     private EditText et_smtp_server;
     private EditText et_smtp_server_port;
+    private Spinner spinner_imap_or_pop;
+    private ArrayAdapter<String> adapter_incoming_type;
+    private int selection_incoming = -1;
+    private Spinner spinner_smtp;
+    private ArrayAdapter<String> adapter_outgoing_type;
+    private int selection_outgoing = -1;
     private CheckBox cb_auto_refresh;
     private CheckBox cb_always_ask_pass;
     private CheckBox cb_auto_save_full_msgs;
 
-    private int current_inbox = -2;
-
-    private Inbox current = new Inbox();
+    private int current_inbox_id = -2;
+    private Inbox current_inbox = new Inbox();
 
     private SharedPreferences prefs;
+
+    private ActivityResultLauncher<Intent> start_activity_for_result_oauth2_preferences;
 
     @Override
     protected void onCreate(Bundle saved_instance_state) {
@@ -108,18 +126,25 @@ public class InboxPreferences extends AppCompatActivity {
             // Restore existing state
             if (saved_instance_state != null) {
                 add_mode = saved_instance_state.getBoolean("sv_add_mode");
+                account_is_modified_in_db = saved_instance_state.getBoolean("sv_account_is_modified_in_db");
                 initial_switch_value = saved_instance_state.getBoolean("sv_initial_switch_value");
                 initial_imap_or_pop_port = saved_instance_state.getInt("sv_initial_imap_or_pop_port");
-                current_inbox = saved_instance_state.getInt("sv_current_inbox");
+                current_inbox_id = saved_instance_state.getInt("sv_current_inbox_id");
+                selection_incoming = saved_instance_state.getInt("sv_adapter_incoming");
+                selection_outgoing = saved_instance_state.getInt("sv_adapter_outgoing");
             } else {
-                // Launching the corresponding ADD or EDIT operation
+                // Launching the corresponding to ADD or EDIT operation
                 if (getIntent().getExtras() != null) {
                     add_mode = getIntent().getExtras().getBoolean("add");
-                    current_inbox = getIntent().getExtras().getInt("db_id");
+                    current_inbox_id = getIntent().getExtras().getInt("db_id");
                 }
             }
 
-            current.set_id(current_inbox);
+            if (add_mode && current_inbox_id < 0) { // adding
+                current_inbox.set_id(current_inbox_id);
+            } else {
+                current_inbox = db.get_account(current_inbox_id); // editing
+            }
 
             Toolbar tb = findViewById(R.id.edit_account_toolbar);
             setSupportActionBar(tb);
@@ -148,6 +173,8 @@ public class InboxPreferences extends AppCompatActivity {
             et_imap_or_pop_server_port = findViewById(R.id.et_imap_or_pop_server_port);
             et_smtp_server = findViewById(R.id.et_smtp_server);
             et_smtp_server_port = findViewById(R.id.et_smtp_server_port);
+            spinner_imap_or_pop = findViewById(R.id.spinner_imap_or_pop);
+            spinner_smtp = findViewById(R.id.spinner_smtp);
             cb_auto_refresh = findViewById(R.id.cb_auto_refresh);
             cb_always_ask_pass = findViewById(R.id.cb_always_ask_pass);
             cb_auto_save_full_msgs = findViewById(R.id.cb_auto_save_full_msgs);
@@ -178,7 +205,9 @@ public class InboxPreferences extends AppCompatActivity {
             cb_pw.setOnCheckedChangeListener(
                 (v, is_checked) -> {
                     if (is_checked) {
-                        et_pass.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                        et_pass.setInputType(
+                            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                        );
                     } else {
                         et_pass.setInputType(
                             InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -187,7 +216,19 @@ public class InboxPreferences extends AppCompatActivity {
                 }
             );
 
-            et_imap_or_pop_server_port.addTextChangedListener(new TextWatcher() {
+            adapter_incoming_type = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, auth_types
+            );
+            adapter_incoming_type.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner_imap_or_pop.setAdapter(adapter_incoming_type); // IMAP, POP
+            adapter_outgoing_type = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, auth_types
+            );
+            adapter_outgoing_type.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner_smtp.setAdapter(adapter_outgoing_type); // SMTP
+
+            et_imap_or_pop_server_port.addTextChangedListener(
+                new TextWatcher() {
                     int n = 0;
 
                     @Override
@@ -208,27 +249,44 @@ public class InboxPreferences extends AppCompatActivity {
                 }
             );
 
-            et_smtp_server_port.addTextChangedListener(new TextWatcher() {
+            et_smtp_server_port.addTextChangedListener(
+                new TextWatcher() {
+                    int n = 0;
 
-                int n = 0;
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    if (s.length() > 0) {
-                        n = Integer.parseInt(s.toString());
-                        if (n < 1 || n > 65535) {
-                            // override bad setting
-                            et_smtp_server_port.setText("");
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        if (s.length() > 0) {
+                            n = Integer.parseInt(s.toString());
+                            if (n < 1 || n > 65535) {
+                                et_smtp_server_port.setText(""); // override bad setting
+                            }
                         }
                     }
-                }
 
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
+                    @Override
+                    public void afterTextChanged(Editable s) {}
+                }
+            );
+
+            Button btn_oauth2_preferences = findViewById(R.id.btn_oauth2_preferences);
+            btn_oauth2_preferences.setOnClickListener(
+                view -> {
+                    int id = current_inbox.get_id();
+                    if (id > -1) {
+                        Intent oauth2_preferences = new Intent(this, OAuth2Preferences.class);
+                        Bundle b = new Bundle();
+                        b.putInt("current_inbox_id", id);
+                        b.putString("username", current_inbox.get_username());
+                        oauth2_preferences.putExtras(b);
+                        start_activity_for_result_oauth2_preferences.launch(oauth2_preferences);
+                    } else {
+                        Dialogs.toaster(true, getString(R.string.edit_account_save_account_first), this);
+                    }
+                }
+            );
 
             Button btn_nc_check = findViewById(R.id.btn_nc_check);
             btn_nc_check.setOnClickListener(v -> btn_nc_check_action());
@@ -254,8 +312,8 @@ public class InboxPreferences extends AppCompatActivity {
                             // Changed protocol, but not port!
                             dialog_port_consideration();
                         } else {
-                            if (db.get_messages_count(current.get_id()) > 0) {
-                                dialog_deletion_messages();
+                            if (db.get_messages_count(current_inbox.get_id()) > 0) {
+                                dialog_deletion_messages(); // IMAP/POP change has to remove them
                             } else {
                                 btn_save_action();
                             }
@@ -270,12 +328,14 @@ public class InboxPreferences extends AppCompatActivity {
             Button btn_delete_full_msgs = findViewById(R.id.btn_delete_full_msgs);
             btn_delete_full_msgs.setOnClickListener(
                 v -> {
-                    db.delete_all_full_messages(current.get_id());
-                    Dialogs.toaster(
-                        false,
-                        getString(R.string.message_no_full_message),
-                        getBaseContext()
-                    );
+                    if (current_inbox_id > -1) { // check account exists in database
+                        db.delete_all_full_messages(current_inbox.get_id());
+                        Dialogs.toaster(
+                            false,
+                            getString(R.string.message_no_full_message),
+                            getBaseContext()
+                        );
+                    }
                 }
             );
 
@@ -283,13 +343,15 @@ public class InboxPreferences extends AppCompatActivity {
             Button btn_delete_msgs_keep = findViewById(R.id.btn_delete_msgs_keep);
             btn_delete_msgs_keep.setOnClickListener(
                 v -> {
-                    HashMap<Integer, String> mess = db.get_all_message_uids(current_inbox);
-                    if (!mess.isEmpty()) db.delete_all_messages(mess);
-                    Dialogs.toaster(
-                        false,
-                        getString(R.string.message_del_messages),
-                        getBaseContext()
-                    );
+                    if (current_inbox_id > -1) { // check account exists in database
+                        HashMap<Integer, String> mess = db.get_all_message_uids(current_inbox_id);
+                        if (!mess.isEmpty()) db.delete_all_messages(mess);
+                        Dialogs.toaster(
+                            false,
+                            getString(R.string.message_del_messages),
+                            getBaseContext()
+                        );
+                    }
                 }
             );
 
@@ -302,73 +364,110 @@ public class InboxPreferences extends AppCompatActivity {
             }
 
             // Used in IMAP <-> POP
-            initial_switch_value = current.get_imap_or_pop();
-            initial_imap_or_pop_port = current.get_imap_or_pop_port();
+            initial_switch_value = current_inbox.get_imap_or_pop();
+            initial_imap_or_pop_port = current_inbox.get_imap_or_pop_port();
         } catch (Exception e) {
-            InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
+            String s_error = e.getMessage();
+            InboxPager.log = InboxPager.log.concat(s_error + "\n\n");
+            Dialogs.toaster(true, s_error, this);
             finish();
         }
 
         // Handle insets for cutout and system bars
         set_activity_insets_listener(main_root);
+
+        start_activity_for_result_oauth2_preferences = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                int result_code = result.getResultCode();
+                if (result_code == 101) {
+                    account_is_modified_in_db = true;
+
+                    // Reload changed Inbox, in case user returns to OAuth2,
+                    // but also to prevent overwritten parameters
+                    current_inbox = db.get_account(current_inbox_id);
+                }
+            }
+        );
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle saved_instance_state) {
         super.onSaveInstanceState(saved_instance_state);
         saved_instance_state.putBoolean("sv_add_mode", add_mode);
+        saved_instance_state.putBoolean("sv_account_is_modified_in_db", account_is_modified_in_db);
         saved_instance_state.putBoolean("sv_initial_switch_value", initial_switch_value);
         saved_instance_state.putInt("sv_initial_imap_or_pop_port", initial_imap_or_pop_port);
-        saved_instance_state.putInt("sv_current_inbox", current_inbox);
+        saved_instance_state.putInt("sv_current_inbox_id", current_inbox_id);
+        saved_instance_state.putInt("sv_adapter_incoming", (int) spinner_imap_or_pop.getSelectedItemId());
+        saved_instance_state.putInt("sv_adapter_outgoing", (int) spinner_smtp.getSelectedItemId());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.log_action_btns, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.log_menu) {
+            Dialogs.dialog_view_log(this);
+        }
+
+        return true;
     }
 
     @Override
     public void finish() {
+        // Run before super() to correctly set result code
+        if (account_is_modified_in_db) { // Account has changed
+            // Declare result, request ListView re-flow
+            setResult(
+                12, // Added or Edited Account
+                new Intent().putExtra("account_is_modified_in_db", true)
+                    .putExtra("current_inbox_id", current_inbox_id)
+            );
+        }
+
         super.finish();
-        if (add_mode) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
-                overrideActivityTransition(
-                    OVERRIDE_TRANSITION_CLOSE, R.anim.left_in, R.anim.left_out
-                );
-            } else { // Android API <= 33
-                overridePendingTransition(R.anim.left_in, R.anim.left_out);
-            }
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
-                overrideActivityTransition(
-                    OVERRIDE_TRANSITION_CLOSE, R.anim.right_in, R.anim.right_out
-                );
-            } else { // Android API <= 33
-                overridePendingTransition(R.anim.right_in, R.anim.right_out);
-            }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
+            overrideActivityTransition(
+                OVERRIDE_TRANSITION_CLOSE, R.anim.right_in, R.anim.right_out
+            );
+        } else { // Android API <= 33
+            overridePendingTransition(R.anim.right_in, R.anim.right_out);
         }
     }
 
     private void prepare_add() {
         // Assign user data parameters
-        current.set_auto_refresh(prefs.getBoolean("auto_refresh", false));
-        current.set_imap_or_pop(prefs.getBoolean("imap_or_pop", false));
+        current_inbox.set_auto_refresh(prefs.getBoolean("auto_refresh", false));
+        current_inbox.set_imap_or_pop(prefs.getBoolean("imap_or_pop", false));
 
         // Assign the default parameters
         cb_auto_refresh.setChecked(prefs.getBoolean("auto_refresh", true));
         cb_always_ask_pass.setChecked(prefs.getBoolean("always_ask_pass", false));
         cb_auto_save_full_msgs.setChecked(prefs.getBoolean("auto_save_full_msgs", false));
         sw_imap_or_pop.setChecked(prefs.getBoolean("imap_or_pop", false));
+        prepare_auth_spinners(true);
     }
 
     private void prepare_edit() {
-        current = db.get_account(current.get_id());
-        et_email.setText(current.get_email());
-        et_username.setText(current.get_username());
-        et_pass.setText(current.get_pass());
-        et_imap_or_pop_server.setText(current.get_imap_or_pop_server());
-        et_imap_or_pop_server_port.setText(String.valueOf(current.get_imap_or_pop_port()));
-        et_smtp_server.setText(current.get_smtp_server());
-        et_smtp_server_port.setText(String.valueOf(current.get_smtp_port()));
-        cb_auto_refresh.setChecked(current.get_auto_refresh());
-        cb_always_ask_pass.setChecked(current.get_always_ask_pass());
-        cb_auto_save_full_msgs.setChecked(current.get_auto_save_full_msgs());
-        sw_imap_or_pop.setChecked(current.get_imap_or_pop());
+        et_email.setText(current_inbox.get_email());
+        et_username.setText(current_inbox.get_username());
+        et_pass.setText(current_inbox.get_pass());
+        et_imap_or_pop_server.setText(current_inbox.get_imap_or_pop_server());
+        et_imap_or_pop_server_port.setText(String.valueOf(current_inbox.get_imap_or_pop_port()));
+        et_smtp_server.setText(current_inbox.get_smtp_server());
+        et_smtp_server_port.setText(String.valueOf(current_inbox.get_smtp_port()));
+        cb_auto_refresh.setChecked(current_inbox.get_auto_refresh());
+        cb_always_ask_pass.setChecked(current_inbox.get_always_ask_pass());
+        cb_auto_save_full_msgs.setChecked(current_inbox.get_auto_save_full_msgs());
+        sw_imap_or_pop.setChecked(current_inbox.get_imap_or_pop());
         if (sw_imap_or_pop.isChecked()) {
             sw_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_switchOn));
             tv_imap_or_pop.setText(getString(R.string.edit_account_imap_or_pop_on));
@@ -384,6 +483,27 @@ public class InboxPreferences extends AppCompatActivity {
             et_imap_or_pop_server_port.setHint(getString
                     (R.string.edit_account_incoming_server_port_hint_pop));
         }
+        prepare_auth_spinners(false);
+    }
+
+    private void prepare_auth_spinners(boolean add_or_edit) {
+        if (selection_incoming == -1 || selection_outgoing == -1) {
+            if (add_or_edit) {
+                selection_incoming = 0; // PLAIN default
+                selection_outgoing = 0; // PLAIN default
+            } else {
+                String type_of_incoming = current_inbox.get_auth_type_of_incoming();
+                String type_of_outgoing = current_inbox.get_auth_type_of_outgoing();
+                if (type_of_incoming == null || type_of_outgoing == null) {
+                    type_of_incoming = "PLAIN";
+                    type_of_outgoing = "PLAIN";
+                }
+                selection_incoming = adapter_incoming_type.getPosition(type_of_incoming);
+                selection_outgoing = adapter_outgoing_type.getPosition(type_of_outgoing);
+            }
+        }
+        spinner_imap_or_pop.setSelection(selection_incoming);
+        spinner_smtp.setSelection(selection_outgoing);
     }
 
     private void btn_nc_check_action() {
@@ -403,7 +523,7 @@ public class InboxPreferences extends AppCompatActivity {
     private void btn_check_action(boolean smtp) {
         Dialogs.toaster(true, getString(R.string.edit_account_checking), this);
 
-        if (current.get_id() <= 0) {
+        if (current_inbox.get_id() <= 0) {
             Dialogs.toaster(true, getString(R.string.edit_account_check_save_first), this);
             return;
         }
@@ -453,73 +573,65 @@ public class InboxPreferences extends AppCompatActivity {
             network_thread = new SMTP(this);
             network_thread.start();
         } else {
-            if (current.get_imap_or_pop()) {
+            if (current_inbox.get_imap_or_pop()) {
                 network_thread = new IMAP(this);
             } else {
                 network_thread = new POP(this);
             }
             network_thread.start();
         }
-        network_thread.test_server(current, this);
+        network_thread.test_server(current_inbox, this);
     }
 
     private void btn_save_action() {
-        current.set_auto_refresh(cb_auto_refresh.isChecked());
-        current.set_always_ask_pass(cb_always_ask_pass.isChecked());
-        current.set_auto_save_full_msgs(cb_auto_save_full_msgs.isChecked());
-        current.set_imap_or_pop(sw_imap_or_pop.isChecked());
-        current.set_email(et_email.getText().toString());
-        current.set_username(et_username.getText().toString());
-        current.set_pass(et_pass.getText().toString());
-        current.set_imap_or_pop_server(et_imap_or_pop_server.getText().toString());
+        current_inbox.set_auto_refresh(cb_auto_refresh.isChecked());
+        current_inbox.set_always_ask_pass(cb_always_ask_pass.isChecked());
+        current_inbox.set_auto_save_full_msgs(cb_auto_save_full_msgs.isChecked());
+        current_inbox.set_imap_or_pop(sw_imap_or_pop.isChecked());
+        current_inbox.set_email(et_email.getText().toString());
+        current_inbox.set_username(et_username.getText().toString());
+        current_inbox.set_pass(et_pass.getText().toString());
+        current_inbox.set_imap_or_pop_server(et_imap_or_pop_server.getText().toString());
         String pt_imap_or_pop = et_imap_or_pop_server_port.getText().toString();
         if (pt_imap_or_pop.isEmpty()) {
             if (sw_imap_or_pop.isChecked()) {
-                current.set_imap_or_pop_port(993);
+                current_inbox.set_imap_or_pop_port(993);
             } else {
-                current.set_imap_or_pop_port(995);
+                current_inbox.set_imap_or_pop_port(995);
             }
-        } else current.set_imap_or_pop_port(Integer.parseInt(pt_imap_or_pop));
-        current.set_smtp_server(et_smtp_server.getText().toString());
+        } else current_inbox.set_imap_or_pop_port(Integer.parseInt(pt_imap_or_pop));
+        current_inbox.set_imap_or_pop_extensions("-1"); // on change, reset extensions
+        current_inbox.set_smtp_server(et_smtp_server.getText().toString());
+        current_inbox.set_smtp_extensions("-1"); // on change, reset extensions
         String pt_smtp = et_smtp_server_port.getText().toString();
         if (pt_smtp.isEmpty()) {
-            current.set_smtp_port(465);
-        } else current.set_smtp_port(Integer.parseInt(pt_smtp));
+            current_inbox.set_smtp_port(465);
+        } else current_inbox.set_smtp_port(Integer.parseInt(pt_smtp));
         if (et_email.getText().toString().isEmpty()) {
             Dialogs.toaster(true, getString(R.string.edit_account_no_saving), this);
             return;
         } else {
             Dialogs.toaster(true, getString(R.string.edit_account_saving), this);
         }
-
-
-        // Declaring the result of the activity
-        Intent ret_intent = new Intent();
+        current_inbox.set_auth_type_of_incoming((String) spinner_imap_or_pop.getSelectedItem());
+        current_inbox.set_auth_type_of_outgoing((String) spinner_smtp.getSelectedItem());
 
         if (add_mode) {
-            if (current.get_email().isEmpty()) {
+            if (current_inbox.get_email().isEmpty()) {
                 Dialogs.toaster(false, getString(R.string.edit_account_not_saved), this);
                 return;
             }
 
             // Notifying changes to caller activity
-            int new_inbox_id = db.add_account(current);
-            ret_intent.putExtra("new_inbox_id", new_inbox_id);
+            current_inbox_id = db.add_account(current_inbox);
+            current_inbox.set_id(current_inbox_id);
         } else {
             // If the account exists - update in database
-            db.update_account(current);
+            db.update_account(current_inbox);
         }
 
-        // Request ListView re-flow
-        setResult(
-            12,
-            ret_intent.putExtra("status", true).putExtra(
-                "new_name", current.get_email().toUpperCase()
-            )
-        );
-
-        // End activity
-        finish();
+        account_is_modified_in_db = true;
+        Dialogs.toaster(false, getString(R.string.edit_account_saved), this);
     }
 
     /**
@@ -533,7 +645,7 @@ public class InboxPreferences extends AppCompatActivity {
         builder.setPositiveButton(
             getString(R.string.btn_yes),
             (dialog, id) -> {
-                if (db.get_messages_count(current.get_id()) > 0) {
+                if (db.get_messages_count(current_inbox.get_id()) > 0) {
                     dialog_deletion_messages();
                 } else {
                     btn_save_action();
@@ -561,9 +673,8 @@ public class InboxPreferences extends AppCompatActivity {
     }
 
     public void delete_account() {
-        db.delete_account(current.get_id());
-        Intent ret_intent = new Intent();
-        setResult(24, ret_intent.putExtra("inbox_deleted", true));
+        db.delete_account(current_inbox.get_id());
+        setResult(24, new Intent().putExtra("inbox_deleted", true));
         finish();
     }
 
@@ -580,13 +691,13 @@ public class InboxPreferences extends AppCompatActivity {
             (dialog, id) -> {
                 dialog.dismiss();
                 delete_all_messages();
-                current.set_imap_or_pop_extensions("-1");
-                current.set_messages(0);
-                current.set_recent(0);
-                current.set_unseen(0);
-                current.set_uidvalidity(0);
-                current.set_total_size(0);
-                db.update_account(current);
+                current_inbox.set_imap_or_pop_extensions("-1");
+                current_inbox.set_messages(0);
+                current_inbox.set_recent(0);
+                current_inbox.set_unseen(0);
+                current_inbox.set_uidvalidity(0);
+                current_inbox.set_total_size(0);
+                db.update_account(current_inbox);
                 btn_save_action();
             }
         );
@@ -601,7 +712,7 @@ public class InboxPreferences extends AppCompatActivity {
     }
 
     public void delete_all_messages() {
-        HashMap<Integer, String> local_msgs = db.get_all_message_uids(current.get_id());
+        HashMap<Integer, String> local_msgs = db.get_all_message_uids(current_inbox.get_id());
         if (!local_msgs.isEmpty()) db.delete_all_messages(local_msgs);
     }
 }

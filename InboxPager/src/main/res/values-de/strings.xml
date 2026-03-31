@@ -112,11 +112,13 @@
     <string name="edit_account_auto_check">Im Alle Konten sind zu aktualisieren zulassen</string>
     <string name="edit_account_email">Kontobezeichnung</string>
     <string name="edit_account_email_hint">ihr.konto@example.de</string>
-    <string name="activity_edit_account_title">Bearbeiten Sie dieses Konto</string>
+    <string name="activity_edit_account_title">Bearbeiten Sie das Konto</string>
     <string name="notification_sent_message">Nachricht gesendet.</string>
     <string name="activity_add_account_title">Konto hinzufügen</string>
     <string name="no_messages">Posteingang leeren</string>
+    <string name="edit_account_save_account_first">Zuerst müssen Sie das Konto speichern…</string>
     <string name="edit_account_delete">LÖSCHEN</string>
+    <string name="edit_account_saved">Ist gespeichert.</string>
     <string name="edit_account_not_saved">NICHT gespeichert!</string>
     <string name="edit_account_saving">Speichern…</string>
     <string name="edit_account_save">SPEICHERN</string>
@@ -149,6 +151,7 @@
     <string name="err_missing_webview">Fehlendes WebView-Paket für HTML-Anzeige!</string>
     <string name="err_bad_hash">Passwort-Hash kann nicht erzeugt werden!</string>
     <string name="err_unknown_error">Unbekannter Fehler</string>
+    <string name="err_error">Fehler</string>
     <string name="activity_pw">PASSWORT</string>
     <string name="menu_refresh">Aktualisierung</string>
     <string name="menu_preferences">Anwendungspräferenzen</string>
@@ -199,7 +202,6 @@
     <string name="err_server_not_configured">Der Ausgangsserver wurde nicht richtig konfiguriert.</string>
     <string name="err_no_full_msg">Vollständige Nachricht nicht in Datenbank gefunden. Zuerst vom Server herunterladen.</string>
     <string name="err_not_saved">Speicheraktion konnte nicht abgeschlossen werden.</string>
-    <string name="err_action_failed">Die Aktion könnte gescheitert sein (siehe Logbuch).</string>
     <string name="err_pick_signing_key">Wählen Sie einen Signaturschlüssel!</string>
     <string name="err_pick_rcpt_keys">Empfängerschlüssel auswählen!</string>
     <string name="err_missing_crypto_mime">Fehlende kryptografische Nachrichtendaten!</string>
@@ -242,4 +244,45 @@
     <string name="sett_transparent_webview_title">Transparentes WebView</string>
     <string name="sett_enable_pw_emergency_summary_off">Schutzstatus: AUSGESCHALTET\n\nWenn aktiviert, LÖSCHT sie die Anwendungsdatenbank nach der Eingabe des Anwendungspasswortfensters.</string>
     <string name="notification_new_message">Du hast neue Nachrichten.</string>
+    <string name="oauth2_no_available_ports">Dieses Gerät verfügt über keine verfügbaren lokalen Ports, aber für die Authentifizierung ist einer erforderlich.</string>
+    <string name="oauth2_preferences_title">OAuth2</string>
+    <string name="oauth2_tv_extra_parameters_info">Zusätzliche Parameter, die für spezielle Zwecke verwendet werden, wenn sie mit dem E-Mail-Server kommunizieren.\n\nAussichtsbeispiel:\n\ntenant=common</string>
+    <string name="oauth2_client_id">Kunden-ID</string>
+    <string name="oauth2_client_secret">Kundengeheimnis</string>
+    <string name="oauth2_refresh_token">Aktualisiertes Token</string>
+    <string name="oauth2_auth_endpoint">Autorisierungsendpunkt (URL)</string>
+    <string name="oauth2_token_endpoint">Token-Endpunkt (URL)</string>
+    <string name="oauth2_scopes">Scopes (Berechtigungs-URLs)</string>
+    <string name="oauth2_extra_parameters">Extras (p1=v1&amp;p2=v2)</string>
+    <string name="oauth2_error_access_token">Unbekannter Verbindungsfehler: Zugriffstoken</string>
+    <string name="oauth2_error_auth_refresh">Unbekannter Verbindungsfehler: Authentifizierungscode zum Aktualisiertes Token</string>
+    <string name="oauth2_bad_parameter">"Falscher oder fehlender Parameter: "</string>
+    <string name="oauth2_cannot_parse">Serverantwort kann nicht parsen!</string>
+    <string name="oauth2_help">Hilfe bei OAuth2</string>
+    <string name="oauth2_help_long">Bitte lesen Sie das README.md auf der Inbox Pager-Repository-Website für detaillierte Tutorials und Bilder.</string>
+    <string name="oauth2_request_auth">Genehmigungsantrag</string>
+    <string name="oauth2_request_auth_server">Das Gerät wartet jetzt darauf, dass der Server sich verbindet…</string>
+    <string name="oauth2_request_auth_open_in_browser">Kopieren und öffnen Sie die URL unten auf diesem Gerät…</string>
+    <string name="oauth2_server_failure_title">OAuth2-Fehler</string>
+    <string name="oauth2_server_failure_bad_method">Es wurde nur die HTTP-GET-Methode implementiert, aber eine andere HTTP-Methode wurde verwendet.</string>
+    <string name="oauth2_server_failure_auth_code_extraction">Der Authentifizierungscode aus der HTTP-GET-Anfrage kann nicht extrahiert werden.</string>
+    <string name="oauth2_server_failure_client_sent_errors">Ihr E-Mail-Server hat einen Fehler angezeigt.</string>
+    <string name="oauth2_server_failure_bad_json">Die Android-Anwendung konnte die JSON-(JWT)-Anfrage nicht verstehen.</string>
+    <string name="oauth2_server_failure_missing_refresh_token">Der E-Mail-Server stellte kein Refresh-Token zur Verfügung.</string>
+    <string name="oauth2_server_success_title">OAuth2 erfolgreich abgeschlossen</string>
+    <string name="oauth2_server_success_body">OAuth2-Operationen wurden erfolgreich abgeschlossen. Lösche den Browserverlauf oder zumindest diese Seite und schließe dann den Browser.</string>
+    <string name="oauth2_server_still_operating">OAuth2-Operationen laufen weiterhin.</string>
+    <string name="fg_service_title">Inbox-Pager-Dienst</string>
+    <string name="fg_service_text">Status: im Vordergrund</string>
+    <string name="fg_service_notification_channel_description">Arbeitet im Vordergrund, führt benutzerinitiierte Anwendungsaktionen aus.</string>
+    <string name="oauth2_information_title">Informationen</string>
+    <string name="oauth2_tab_local">Gerät</string>
+    <string name="oauth2_tab_remote">Server</string>
+    <string name="oauth2_error_in_https">"Es gibt einen Fehler in der Antwort. Antwortcode: "</string>
+    <string name="oauth2_tv_client_id_info">Client-ID, Text, der die Anwendung für den Server identifiziert. Der Nutzer muss dies bereitstellen, da diese Anwendung es nicht bereitstellen kann. Server erlauben es Nutzern, ihre eigene Client-ID zu erstellen.</string>
+    <string name="oauth2_tv_client_secret_info">DAS IST NICHT DEIN KONTOPASSWORT!\n\nClient Secret, Text, der dem Server hilft zu erkennen, welche Anwendung verbunden ist. Der Nutzer muss dies bereitstellen, da diese Anwendung es nicht bereitstellen kann. Server erstellen dies, wenn sie eine Client-ID erstellen.</string>
+    <string name="oauth2_tv_refresh_token_info">TEILE DAS NIEMALS MIT ANDEREN!\n\nRefresh Token, geheimer Text, der den vollen Zugriff auf das E-Mail-Konto ermöglicht. Wenn Sie kompromittiert sind, sollten Sie sich sofort über einen Browser in Ihr E-Mail-Konto einloggen, um die OAuth-Berechtigungen für die Anwendung zu widerrufen und neu zu autorisieren. GMail-Beispiel: NEVER SHARE THIS WITH OTHER PEOPLE!  Refresh Token, secret text used to allow full access to email account. If compromised, you should immediately log in to your email account through a browser to revoke and re-authorise the OAuth permissions for the application.\n\nGMail example:\n\n1/xEoDL4iW3cxlI7yDbSRFYNG01kVKM2C-259HOF2aQbI</string>
+    <string name="oauth2_tv_auth_endpoint_info">Server-URL, über die die Anwendung den Benutzer um Erlaubnis für sein E-Mail-Konto bittet.\n\nGMail-Beispiel:\n\nhttps://accounts.google.com/o/oauth2/v2/auth</string>
+    <string name="oauth2_tv_token_endpoint_info">Server-URL, mit der die Anwendung das E-Mail-Konto nutzt, indem Zugriffstoken erstellt werden.\n\nGMail-Beispiel:\n\nhttps://oauth2.googleapis.com/token</string>
+    <string name="oauth2_tv_scopes_info">Kontoberechtigungen als Liste von URLs, getrennt durch ein leeres Feld zwischen ihnen.\n\nGMail-Beispiel:\n\nhttps://mail.google.com/</string>
 </resources>

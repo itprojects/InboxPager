@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -29,20 +29,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
-
-import androidx.activity.EdgeToEdge;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.preference.PreferenceManager;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -59,15 +45,30 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.preference.PreferenceManager;
+
 import net.inbox.db.DBAccess;
 import net.inbox.db.Inbox;
 import net.inbox.db.Message;
 import net.inbox.pager.R;
+import net.inbox.server.IMAP;
+import net.inbox.server.NetworkService;
+import net.inbox.server.NetworkThread;
+import net.inbox.server.POP;
 import net.inbox.visuals.Dialogs;
 import net.inbox.visuals.SpinningStatus;
-import net.inbox.server.NetworkThread;
-import net.inbox.server.IMAP;
-import net.inbox.server.POP;
 import net.sqlcipher.database.SQLiteDatabase;
 
 import java.util.ArrayList;
@@ -117,9 +118,9 @@ public class InboxPager extends AppCompatActivity {
     private int last_connection_data_id = -1;
     private String last_connection_data = null;
 
-    private int current_inbox = -2;
+    private int current_inbox_id = -2;
 
-    private Inbox current;
+    private Inbox current_inbox;
 
     private ActivityResultLauncher<Intent> start_activity_for_result;
 
@@ -149,11 +150,11 @@ public class InboxPager extends AppCompatActivity {
             unlocked = saved_instance_state.getBoolean("sv_unlocked");
             over = saved_instance_state.getInt("sv_over");
             show_help = saved_instance_state.getBoolean("sv_show_help");
-            current_inbox = saved_instance_state.getInt("sv_current_inbox");
-            if (current_inbox != -2 && db != null) {
-                current = db.get_account(current_inbox); // Loading known ID inbox
+            current_inbox_id = saved_instance_state.getInt("sv_current_inbox_id");
+            if (current_inbox_id != -2 && db != null) {
+                current_inbox = db.get_account(current_inbox_id); // Loading known ID inbox
             } else {
-                current = null;
+                current_inbox = null;
             }
             last_connection_data_id = saved_instance_state.getInt("sv_last_connection_data_id");
             last_connection_data = saved_instance_state.getString("sv_last_connection_data");
@@ -284,6 +285,12 @@ public class InboxPager extends AppCompatActivity {
             );
         }
 
+        // Start foreground service, for persistent network access
+        if (!NetworkService.is_network_service_running(this)) {
+            Intent fg_service = new Intent(this, NetworkService.class);
+            ContextCompat.startForegroundService(this, fg_service);
+        }
+
         // Helper dialog
         if (show_help) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -324,14 +331,9 @@ public class InboxPager extends AppCompatActivity {
                         refresh = false;
                         populate_accounts_list_view();
                     } else {
-                        if (data.getBooleanExtra("status", false)) {
-                            current.set_email(data.getStringExtra("new_name"));
-                            tv_pager_title.setText(data.getStringExtra("new_name"));
+                        if (data.getBooleanExtra("account_is_modified_in_db", false)) {
                             populate_accounts_list_view();
-                        }
-                        int new_inbox = data.getIntExtra("new_inbox_id", -2);
-                        if (new_inbox >= 0) {
-                            current_inbox = new_inbox;
+                            current_inbox_id = data.getIntExtra("current_inbox_id", -2);
                             set_current_inbox();
                         }
                     }
@@ -340,7 +342,7 @@ public class InboxPager extends AppCompatActivity {
                         && data.getBooleanExtra("inbox_deleted", false)
                     ) {
                         populate_accounts_list_view();
-                        current_inbox = -2;
+                        current_inbox_id = -2;
                         set_current_inbox();
                     }
                 } else if (result_code == 36) { // Delete Message
@@ -349,8 +351,8 @@ public class InboxPager extends AppCompatActivity {
                     Intent send_intent = new Intent(getApplicationContext(), InboxSend.class);
                     //Bundle b = new Bundle();
                     Bundle b = data.getExtras();
-                    b.putInt("db_id", current.get_id());
-                    b.putString("title", current.get_email());
+                    b.putInt("db_id", current_inbox.get_id());
+                    b.putString("title", current_inbox.get_email());
                     startActivity(send_intent.putExtras(b));
                 }
             }
@@ -380,7 +382,7 @@ public class InboxPager extends AppCompatActivity {
         MenuItem item3 = menu.findItem(R.id.edit_account);
 
         // Show/hide relevant menus
-        if (current_inbox == -2) {
+        if (current_inbox_id == -2) {
             if (item1 != null) item1.setVisible(false);
             if (item2 != null) item2.setVisible(false);
             if (item3 != null) item3.setVisible(false);
@@ -442,7 +444,7 @@ public class InboxPager extends AppCompatActivity {
         } else if (item_id == R.id.status_menu) {
             dialog_statistical();
         } else if (item_id == R.id.mark_all_seen_menu) {
-            db.mark_all_seen(current.get_id());
+            db.mark_all_seen(current_inbox.get_id());
             set_count_top();
             populate_accounts_list_view();
             populate_messages_list_view();
@@ -450,8 +452,8 @@ public class InboxPager extends AppCompatActivity {
             Intent ii = new Intent(getApplicationContext(), InboxPreferences.class);
             Bundle bb = new Bundle();
             bb.putBoolean("add", false);
-            bb.putInt("db_id", current.get_id());
-            bb.putString("title", current.get_email());
+            bb.putInt("db_id", current_inbox.get_id());
+            bb.putString("title", current_inbox.get_email());
             start_activity_for_result.launch(ii.putExtras(bb));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
                 overrideActivityTransition(
@@ -476,7 +478,7 @@ public class InboxPager extends AppCompatActivity {
         saved_instance_state.putBoolean("sv_unlocked", unlocked);
         saved_instance_state.putInt("sv_over", over);
         saved_instance_state.putBoolean("sv_show_help", show_help);
-        saved_instance_state.putInt("sv_current_inbox", current_inbox);
+        saved_instance_state.putInt("sv_current_inbox_id", current_inbox_id);
         saved_instance_state.putInt("sv_last_connection_data_id", last_connection_data_id);
         saved_instance_state.putString("sv_last_connection_data", last_connection_data);
     }
@@ -552,7 +554,7 @@ public class InboxPager extends AppCompatActivity {
         ib_refresh = findViewById(R.id.refresh);
         ib_refresh.setOnClickListener(
             v -> {
-                if (current_inbox != -2) refresh_current();
+                if (current_inbox_id != -2) refresh_current();
             }
         );
 
@@ -563,7 +565,7 @@ public class InboxPager extends AppCompatActivity {
         // Setting up the SSL authentication application
         iv_ssl_auth = findViewById(R.id.ssl_auth_img_vw);
         iv_ssl_auth.setOnClickListener(v -> dialog_servers());
-        if (last_connection_data_id > -1 && last_connection_data_id == current_inbox) {
+        if (last_connection_data_id > -1 && last_connection_data_id == current_inbox_id) {
             iv_ssl_auth.setVisibility(View.VISIBLE); // restore connection security icon
             if (last_connection_data != null && !last_connection_data.isEmpty())
                 iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
@@ -602,8 +604,8 @@ public class InboxPager extends AppCompatActivity {
             view -> {
                 Intent in = new Intent(getApplicationContext(), InboxSend.class);
                 Bundle bn = new Bundle();
-                bn.putInt("db_id", current.get_id());
-                bn.putString("title", current.get_email());
+                bn.putInt("db_id", current_inbox.get_id());
+                bn.putString("title", current_inbox.get_email());
                 startActivity(in.putExtras(bn));
                 overridePendingTransition(R.anim.left_in, R.anim.left_out);
             }
@@ -640,7 +642,7 @@ public class InboxPager extends AppCompatActivity {
         ArrayList<Inbox> list_accounts = db.get_all_accounts();
 
         if (list_accounts.isEmpty()) {
-            current_inbox = -2;
+            current_inbox_id = -2;
             al_accounts_items = new ArrayList<>();
             tv_background.setText(getString(R.string.no_accounts));
             tv_background.setVisibility(View.VISIBLE);
@@ -682,7 +684,7 @@ public class InboxPager extends AppCompatActivity {
             inbox_adapter.notifyDataSetChanged();
             inbox_list_view.setOnItemClickListener((parent, v, position, id) -> {
                 InboxListItem inbox_itm = (InboxListItem) parent.getItemAtPosition(position);
-                current_inbox = inbox_itm.get_id();
+                current_inbox_id = inbox_itm.get_id();
                 set_current_inbox();
             });
         }
@@ -737,16 +739,16 @@ public class InboxPager extends AppCompatActivity {
                 iv_send_activity.setVisibility(View.GONE);
             } else if (al_accounts_items.size() == 1) {
                 // Set current inbox from the only account available
-                current_inbox = al_accounts_items.get(0).get_id();
-                current = db.get_account(current_inbox);
-                tv_pager_title.setText(current.get_email());
+                current_inbox_id = al_accounts_items.get(0).get_id();
+                current_inbox = db.get_account(current_inbox_id);
+                tv_pager_title.setText(current_inbox.get_email());
                 ib_refresh.setVisibility(View.VISIBLE);
                 populate_messages_list_view();
             } else {
-                if (current_inbox != -2) {
+                if (current_inbox_id != -2) {
                     // Set current inbox with known current
-                    current = db.get_account(current_inbox);
-                    tv_pager_title.setText(current.get_email());
+                    current_inbox = db.get_account(current_inbox_id);
+                    tv_pager_title.setText(current_inbox.get_email());
                     ib_refresh.setVisibility(View.VISIBLE);
                     populate_messages_list_view();
                 } else {
@@ -768,13 +770,13 @@ public class InboxPager extends AppCompatActivity {
     }
 
     public void populate_messages_list_view() {
-        if (current != null) {
-            al_messages = db.get_all_messages(current.get_id(), unread_focus_mode_state);
+        if (current_inbox != null) {
+            al_messages = db.get_all_messages(current_inbox.get_id(), unread_focus_mode_state);
         }
 
         // If there is any SMTP
         try {
-            if (current.get_smtp_server().isEmpty()) {
+            if (current_inbox.get_smtp_server().isEmpty()) {
                 iv_send_activity.setVisibility(View.GONE);
             } else iv_send_activity.setVisibility(View.VISIBLE);
         } catch (Exception e) {
@@ -807,17 +809,17 @@ public class InboxPager extends AppCompatActivity {
                         m.set_seen(true);
                         ImageView imv = v.findViewById(R.id.message_list_title_unseen_mark);
                         imv.setVisibility(m.get_seen() ? View.GONE : View.VISIBLE);
-                        db.seen_unseen_message(current_inbox, m.get_uid(), true);
-                        update_unread_messages_count(current_inbox);
+                        db.seen_unseen_message(current_inbox_id, m.get_uid(), true);
+                        update_unread_messages_count(current_inbox_id);
                     }
 
                     Intent i = new Intent(getApplicationContext(), InboxMessage.class);
                     Bundle b = new Bundle();
                     b.putInt("db_id", m.get_id());
-                    b.putInt("db_inbox", current_inbox);
-                    b.putString("title", current.get_email());
-                    b.putBoolean("no_send", current.get_smtp_server().isEmpty());
-                    b.putBoolean("imap_or_pop", current.get_imap_or_pop());
+                    b.putInt("db_inbox", current_inbox_id);
+                    b.putString("title", current_inbox.get_email());
+                    b.putBoolean("no_send", current_inbox.get_smtp_server().isEmpty());
+                    b.putBoolean("imap_or_pop", current_inbox.get_imap_or_pop());
                     start_activity_for_result.launch(i.putExtras(b));
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android API >= 34
                         overrideActivityTransition(
@@ -852,14 +854,14 @@ public class InboxPager extends AppCompatActivity {
     }
 
     private void set_count_top() {
-        if (current != null) {
-            int i = current.get_unseen();
+        if (current_inbox != null) {
+            int i = current_inbox.get_unseen();
 
             // Checking for discrepancies
-            int unseen_count = db.count_unseen_account_messages(current_inbox);
+            int unseen_count = db.count_unseen_account_messages(current_inbox_id);
             if (i != unseen_count) {
                 i = unseen_count;
-                current.set_unseen(i);
+                current_inbox.set_unseen(i);
             }
 
             if (i < 1) {
@@ -887,29 +889,30 @@ public class InboxPager extends AppCompatActivity {
         // Prevents screen rotation crash
         Common.fixed_or_rotating_orientation(true, this);
 
-        // Starting a spinning animation dialog
-        SpinningStatus sp = new SpinningStatus(true, false, this, network_thread);
-        sp.set_progress(
-            getString(R.string.progress_title),
-            getString(R.string.progress_refreshing)
-        );
-
         // Starting refresh INBOX
-        if (current.get_imap_or_pop()) {
+        if (current_inbox.get_imap_or_pop()) {
             network_thread = new IMAP(this);
         } else {
             network_thread = new POP(this);
         }
+
+        // Starting a spinning animation dialog
+        SpinningStatus sp = new SpinningStatus(true, false, this, network_thread);
+        sp.set_progress(
+                getString(R.string.progress_title),
+                getString(R.string.progress_refreshing)
+        );
+
         network_thread.sp = sp;
         network_thread.start();
-        network_thread.default_action(false, current, this);
+        network_thread.default_action(false, current_inbox, this);
     }
 
     /**
      * Dialog account information - i.e. # messages, # unread, # bytes.
      **/
     private void dialog_statistical() {
-        int sz = current.get_total_size();
+        int sz = current_inbox.get_total_size();
         String total_size;
         if (sz < 1024) {
             total_size = sz + " " + getString(R.string.attch_bytes);
@@ -922,13 +925,12 @@ public class InboxPager extends AppCompatActivity {
         String msg = String.format(
             Locale.getDefault(),
             "%d %s, %s %s, %s",
-            current.get_messages(),
+            current_inbox.get_messages(),
             getString(R.string.stats_messages),
-            current.get_unseen(),
+            current_inbox.get_unseen(),
             getString(R.string.stats_unseen),
             total_size
         );
-
         Dialogs.dialog_simple(getString(R.string.stats_title), msg, this);
     }
 
@@ -937,7 +939,7 @@ public class InboxPager extends AppCompatActivity {
         last_connection_data_id = network_thread.last_connection_data_id;
         last_connection_data = network_thread.last_connection_data;
         if (last_connection_data_id > -1) {
-            if (network_thread.last_connection_data_id == current_inbox) {
+            if (network_thread.last_connection_data_id == current_inbox_id) {
                 iv_ssl_auth.setVisibility(View.VISIBLE);
                 if (!network_thread.last_connection_data.isEmpty()) {
                     iv_ssl_auth.setImageResource(R.drawable.padlock_normal);
@@ -950,7 +952,6 @@ public class InboxPager extends AppCompatActivity {
         } else {
             iv_ssl_auth.setVisibility(View.GONE);
             iv_ssl_auth.setImageResource(R.drawable.padlock_error);
-            Dialogs.toaster(false, getString(R.string.err_action_failed), this);
         }
     }
 

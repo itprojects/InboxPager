@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -49,8 +49,8 @@ public class AppPreferences extends FragmentActivity {
 
         setContentView(R.layout.app_preferences);
 
-        Toolbar toolbar = findViewById(R.id.app_preferences_toolbar);
-        //setSupportActionBar(toolbar);
+        //Toolbar tb = findViewById(R.id.app_preferences_toolbar);
+        //setSupportActionBar(tb);
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Load the Preferences Fragment

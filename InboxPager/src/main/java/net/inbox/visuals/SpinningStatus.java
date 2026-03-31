@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -67,6 +67,11 @@ public class SpinningStatus {
             .setCancelable(false).setView(pb).create();
 
         pd.show();
+    }
+
+    // only closes dialog
+    public void dismiss() {
+        pd.dismiss();
     }
 
     public void set_progress(String... msg) {

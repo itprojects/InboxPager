@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -129,7 +129,7 @@ public class POP extends NetworkThread {
             } else {
                 pop_conductor(false);
             }
-        } else if (l.startsWith("+") && tag.matches("AUTH (LOGIN|PLAIN).*")) {
+        } else if (l.startsWith("+") && tag.startsWith("AUTH")) {
             // A server challenge
             data.cmd_return = l;
             pop_conductor(false);
@@ -194,7 +194,7 @@ public class POP extends NetworkThread {
         data.sequence.add("CAPA");
         data.sequence.add("QUIT");
 
-        socket_start_pop(this);
+        socket_start_pop(current_inbox, this, true);
 
         try {
             sleep(1000);
@@ -312,7 +312,7 @@ public class POP extends NetworkThread {
         data.sequence.add("PREP_REFRESH");
         data.sequence.add("QUIT");
 
-        socket_start_pop(this);
+        socket_start_pop(current_inbox, this, false);
     }
 
     @Override
@@ -354,12 +354,12 @@ public class POP extends NetworkThread {
         data.sequence.add("SAVE_ATTACHMENT");
         data.sequence.add("QUIT");
 
-        socket_start_pop(this);
+        socket_start_pop(current_inbox, this, false);
     }
 
     @Override
-    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, AppCompatActivity at) {
-        current_inbox = db.get_account(aid);
+    public void msg_action(Inbox current_inbox_, Object msg, Object doc_file, boolean sv, AppCompatActivity at) {
+        current_inbox = current_inbox_;
         act = new WeakReference<>(at);
 
         // A partial reset of variables
@@ -375,7 +375,7 @@ public class POP extends NetworkThread {
             data.sequence.add("CAPA");
         }
 
-        data.msg_current = msg;
+        data.msg_current = (Message) msg;
         data.save_in_db = sv;
         if (doc_file == null) {
             data.a_file = null;
@@ -391,7 +391,7 @@ public class POP extends NetworkThread {
             );
         }
 
-        on_ui_thread(act.get().getString(R.string.progress_downloading), msg.get_subject());
+        on_ui_thread(act.get().getString(R.string.progress_downloading), data.msg_current.get_subject());
 
         // Refresh messages sequence
         data.sequence.add("AUTH");
@@ -401,7 +401,7 @@ public class POP extends NetworkThread {
         data.sequence.add("SAVE_MSG");
         data.sequence.add("QUIT");
 
-        socket_start_pop(this);
+        socket_start_pop(current_inbox, this, false);
     }
 
     @Override
@@ -429,7 +429,7 @@ public class POP extends NetworkThread {
         data.sequence.add("DELETE_MSG");
         data.sequence.add("QUIT");
 
-        socket_start_pop(this);
+        socket_start_pop(current_inbox, this, false);
     }
 
     @Override
@@ -495,15 +495,7 @@ public class POP extends NetworkThread {
                         data.sequence.add("QUIT");
                         pop_logout(cmd_start);
                     }
-                    switch (tag) {
-                        case "AUTH LOGIN":
-                        case "AUTH LOGIN password":
-                            pop_login(cmd_start);
-                            return;
-                        default:
-                            pop_login(cmd_start);
-                            break;
-                    }
+                    pop_login(cmd_start);
                     if (!cmd_start) {
                         last_connection_data_id = current_inbox.get_id();
                         last_connection_data = io_sock.print();
@@ -713,14 +705,14 @@ public class POP extends NetworkThread {
                         String st = s.substring(7).trim().replace("\r", "");
                         if (!st.equals("NEVER")) {
                             if (st.equals("0")) {
-                                Dialogs.dialog_simple(
-                                    null,
+                                Dialogs.toaster(
+                                    false,
                                     act.get().getString(R.string.err_pop_immediate),
                                     act.get()
                                 );
                             } else {
-                                Dialogs.dialog_simple(
-                                    null,
+                                Dialogs.toaster(
+                                    false,
                                     String.format(act.get().getString(R.string.err_pop_expiration), st),
                                     act.get()
                                 );
@@ -739,66 +731,54 @@ public class POP extends NetworkThread {
     private void pop_login(boolean go) {
         if (go) {
             load_extensions();
-            if (data.auths.contains("LOGIN")) {
-                tag = "AUTH LOGIN";
-                data.auth = "AUTH LOGIN";
-                write(tag);
-            } else if (data.auths.contains("PLAIN")) {
-                tag = "AUTH PLAIN";
-                data.auth = "AUTH PLAIN";
-                write(tag);
-            } else {
+            boolean probable_fail = true;
+            data.auth = current_inbox.get_auth_type_of_incoming();
+            if (!data.auths.contains(data.auth)) { // warn of failure
+                InboxPager.log = InboxPager.log.concat(
+                    act.get().getString(R.string.err_no_authentication) + "\n\n"
+                );
+            }
+            switch (data.auth) {
+                case "PLAIN":
+                    probable_fail = false;
+                    tag = "AUTH PLAIN";
+                    write(tag);
+                    break;
+                case "XOAUTH2":
+                    probable_fail = false;
+                    tag = "AUTH XOAUTH2";
+                    write(tag);
+                    break;
+            }
+            if (probable_fail) {
                 error_dialog(act.get().getString(R.string.err_no_authentication));
                 data.sequence.clear();
                 pop_logout(true);
             }
         } else {
-            if (tag.startsWith("AUTH LOGIN")) {
-                // LOGIN type of authentication
-                String str = new String(
-                    Base64.decode(
-                        data.cmd_return.substring(2).trim().getBytes(), Base64.DEFAULT
-                    )
-                ).toUpperCase();
-                if (str.startsWith("USERNAME")) {
-                    if (str.length() > 500) {
-                        write_limited(
-                            Base64.encodeToString(str.getBytes(), Base64.DEFAULT).trim().toCharArray()
-                        );
-                    } else {
-                        write(Base64.encodeToString(
-                            current_inbox.get_username().getBytes(), Base64.DEFAULT).trim()
-                        );
-                    }
-                    tag = "AUTH LOGIN password";
-                } else if (str.startsWith("PASSWORD")) {
-                    tag = "";
-                    str = current_inbox.get_pass();
-                    if (str.isEmpty()) {
-                        write("=");
-                    } else {
-                        str = Base64.encodeToString(str.getBytes(), Base64.DEFAULT).trim();
-                        if (str.length() > 500) {
-                            write_limited(str.toCharArray());
-                        } else {
-                            write(str);
-                        }
-                    }
-                    clear_buff();
+            switch (data.auth) {
+                case "PLAIN": {
+                    write(
+                        Base64.encodeToString(
+                            (
+                                "\0" + current_inbox.get_username() +
+                                "\0" + current_inbox.get_pass()
+                            ).getBytes(),
+                            Base64.NO_WRAP
+                        )
+                    );
+                    break;
                 }
-            } else if (data.auth.equals("AUTH PLAIN")) {
-                // PLAIN type of authentication
-                String str = Base64.encodeToString(
-                    ("\0"+ current_inbox.get_username() + "\0" + current_inbox.get_pass()).getBytes(),
-                        Base64.DEFAULT
-                ).trim();
-                if (str.length() > 500) {
-                    write_limited(str.toCharArray());
-                } else {
-                    write(str);
+                case "XOAUTH2": {
+                    write(
+                        OAuth2.xoauth2_string(
+                            current_inbox.get_username(), current_inbox.get_oauth2_access_token()
+                        )
+                    );
+                    break;
                 }
-                clear_buff();
             }
+            clear_buff();
         }
     }
 
@@ -832,8 +812,8 @@ public class POP extends NetworkThread {
             }
 
             // Is the current inbox to be refreshed?
-            if (messages == db.get_messages_count(current_inbox.get_id())
-                && total_size == current_inbox.get_total_size()) {
+            if (messages == db.get_messages_count(current_inbox.get_id()) &&
+                total_size == current_inbox.get_total_size()) {
                 current_inbox.set_to_be_refreshed(false);
             } else {
                 current_inbox.set_to_be_refreshed(true);

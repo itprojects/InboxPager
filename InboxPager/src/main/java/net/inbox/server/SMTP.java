@@ -1,5 +1,5 @@
 /*
- * InboxPager, an android email client.
+ * InboxPager, an Android email client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -111,10 +111,7 @@ public class SMTP extends NetworkThread {
         // Testing
         data.test_mode = true;
 
-        // Testing using EHLO command
-        current_inbox.set_ehlo(true);
-
-        socket_start_smtp(this);
+        socket_start_smtp(current_inbox, this, true);
 
         try {
             sleep(1000);
@@ -136,8 +133,8 @@ public class SMTP extends NetworkThread {
                         );
                     }
 
-                    if (current_inbox.get_smtp_extensions() != null
-                        && !current_inbox.get_smtp_extensions().isEmpty()
+                    if (current_inbox.get_smtp_extensions() != null &&
+                        !current_inbox.get_smtp_extensions().isEmpty()
                     ) {
                         String tested;
                         if (current_inbox.get_smtp_extensions()
@@ -206,14 +203,14 @@ public class SMTP extends NetworkThread {
     public void attachment_action(int aid, Attachment att, Object doc_file, AppCompatActivity at) {}
 
     @Override
-    public void msg_action(int aid, Message msg, Object doc_file, boolean sv, AppCompatActivity at) {
-        current_inbox = db.get_account(aid);
+    public void msg_action(Inbox current_inbox_, Object msg, Object doc_file, boolean sv, AppCompatActivity at) {
+        current_inbox = current_inbox_;
         act = new WeakReference<>(at);
         if (sp != null) {
             on_ui_thread(
                 "-1",
-                act.get().getString(R.string.progress_connecting) + " "
-                    + current_inbox.get_smtp_server()
+                act.get().getString(R.string.progress_connecting) + " " +
+                current_inbox.get_smtp_server()
             );
         }
 
@@ -225,15 +222,11 @@ public class SMTP extends NetworkThread {
         // Data storage
         data = new DataSMTP();
 
-        // Check server capabilities
-        // SMTP Server extensions check
-        current_inbox.set_ehlo(current_inbox.get_smtp_extensions().equals("-1"));
-
         // Main mail sequence
         data.sequence.add("RCPT");
         data.sequence.add("DATA");
 
-        data.msg_current = msg;
+        data.msg_current = (Message) msg;
 
         try {
             // Check for attachments
@@ -243,7 +236,7 @@ public class SMTP extends NetworkThread {
             InboxPager.log = InboxPager.log.concat(e.getMessage() + "\n\n");
             Dialogs.dialog_exception(e, act.get());
         }
-        socket_start_smtp(this);
+        socket_start_smtp(current_inbox, this, false);
     }
 
     @Override
@@ -428,9 +421,10 @@ public class SMTP extends NetworkThread {
      * <domain> Service ready.
      **/
     private void smtp_220() {
-        tag = current_inbox.get_ehlo() ? "EHLO " : "HELO ";
+        tag = "EHLO mail";
         data.smtp_host = data.cmd_return.split(" ")[0];
-        write(tag + data.smtp_host);
+        write(tag);
+        //write(tag + data.smtp_host);
     }
 
     /**
@@ -522,15 +516,28 @@ public class SMTP extends NetworkThread {
             if (!data.test_mode) {
                 data.smtp_utf_8 = data.general.contains("SMTPUTF8");
                 load_extensions();
-                if (data.auths.contains("LOGIN")) {
-                    data.auth = "LOGIN";
-                    tag = "AUTH LOGIN";
-                    write(tag);
-                } else if (data.auths.contains("PLAIN")) {
-                    data.auth = "PLAIN";
-                    tag = "AUTH PLAIN";
-                    write(tag);
-                } else {
+                boolean probable_fail = true;
+                data.auth = current_inbox.get_auth_type_of_outgoing();
+                if (!data.auths.contains(data.auth)) { // warn of failure
+                    InboxPager.log = InboxPager.log.concat(
+                        act.get().getString(R.string.err_no_authentication) + "\n\n"
+                    );
+                }
+                switch (data.auth) {
+                    case "PLAIN": {
+                        probable_fail = false;
+                        tag = "AUTH PLAIN";
+                        write(tag);
+                        break;
+                    }
+                    case "XOAUTH2": {
+                        probable_fail = false;
+                        tag = "AUTH XOAUTH2";
+                        write(tag);
+                        break;
+                    }
+                }
+                if (probable_fail) {
                     error_dialog(act.get().getString(R.string.err_no_authentication));
                     data.sequence.clear();
                     cancel_action();
@@ -543,43 +550,30 @@ public class SMTP extends NetworkThread {
     }
 
     /**
-     * Authentication needed. User name and password.
+     * Authentication needed. Email account and password,
+     * or for OAuth2 email account and access token.
      **/
     private void smtp_334() {
-        if (data.auth.equalsIgnoreCase("LOGIN")) {
-            // LOGIN type of authentication
-            String str = new String(
-                Base64.decode(data.cmd_return.trim().getBytes(), Base64.DEFAULT)
-            ).toUpperCase();
-            if (str.startsWith("USERNAME")) {
+        switch (data.auth) {
+            case "PLAIN": {
                 write(
-                    new String(
-                        Base64.encode(current_inbox.get_username().getBytes(), Base64.DEFAULT)
-                    ).trim()
+                    Base64.encodeToString(
+                        (
+                            "\0" + current_inbox.get_username() +
+                            "\0" + current_inbox.get_pass()
+                        ).getBytes(),
+                        Base64.NO_WRAP
+                    )
                 );
-            } else if (str.startsWith("PASSWORD")) {
-                str = current_inbox.get_pass();
-                if (str.isEmpty()) {
-                    write("=");
-                } else {
-                    str = Base64.encodeToString(str.getBytes(), Base64.DEFAULT).trim();
-                    if (str.length() > 500) {
-                        write_limited(str.toCharArray());
-                    } else {
-                        write(str);
-                    }
-                }
+                break;
             }
-        } else if (data.auth.equalsIgnoreCase("PLAIN")) {
-            // PLAIN type of authentication
-            String str = Base64.encodeToString(
-                ("\0" + current_inbox.get_username() + "\0" + current_inbox.get_pass()).getBytes(),
-                Base64.DEFAULT
-            );
-            if (str.length() > 500) {
-                write_limited(str.toCharArray());
-            } else {
-                write(str);
+            case "XOAUTH2": {
+                write(
+                    OAuth2.xoauth2_string(
+                        current_inbox.get_username(), current_inbox.get_oauth2_access_token()
+                    )
+                );
+                break;
             }
         }
     }
@@ -620,7 +614,7 @@ public class SMTP extends NetworkThread {
                 );
             } else {
                 SimpleDateFormat sdf = new SimpleDateFormat(
-                        "EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH
+                    "EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH
                 );
                 sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
                 Calendar calendar = Calendar.getInstance();

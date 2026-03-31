@@ -71,7 +71,6 @@
     <string name="err_no_full_msg">Mensaje completo no encontrado en la base de datos. Descargar desde el servidor primero.</string>
     <string name="err_not_saved">No se pudo completar la acción de guardar.</string>
     <string name="err_imap_attachment_saving">Error al guardar el archivo adjunto sin conexión. Descargue el archivo adjunto en línea y elimine el mensaje completo de la base de datos.</string>
-    <string name="err_action_failed">La acción pudo haber fallado (véase el registro).</string>
     <string name="err_refresh">Errores en</string>
     <string name="err_pick_signing_key">¡Elegir una clave de firma!</string>
     <string name="err_pick_rcpt_keys">¡Elegir las llaves del destinatario!</string>
@@ -79,6 +78,7 @@
     <string name="err_missing_webview">¡Falta el paquete WebView para la visualización en html!</string>
     <string name="err_bad_hash">¡No se puede producir hash de contraseña!</string>
     <string name="err_unknown_error">Error desconocido</string>
+    <string name="err_error">Error</string>
     <string name="activity_pw">CONTRASEÑA</string>
     <string name="activity_pager_title">Pager</string>
     <string name="menu_refresh">Actualizar</string>
@@ -108,7 +108,7 @@
     <string name="no_messages">Buzón Vacío</string>
     <string name="notification_sent_message">Mensaje enviado.</string>
     <string name="activity_add_account_title">Añadir Cuenta</string>
-    <string name="activity_edit_account_title">Editar Esta Cuenta</string>
+    <string name="activity_edit_account_title">Editar Cuenta</string>
     <string name="edit_account_email">Nombre de la Cuenta</string>
     <string name="edit_account_email_hint">su.cuenta@example.es</string>
     <string name="edit_account_username">Nombre de Usuario</string>
@@ -132,7 +132,9 @@
     <string name="edit_account_no_saving">¡La cuenta necesita un nombre!</string>
     <string name="edit_account_save">SALVAR</string>
     <string name="edit_account_saving">Guardando…</string>
+    <string name="edit_account_saved">Guardado.</string>
     <string name="edit_account_not_saved">NO guardar!</string>
+    <string name="edit_account_save_account_first">Primero debes guardar la cuenta…</string>
     <string name="edit_account_delete">ELIMINAR</string>
     <string name="edit_account_test_results">Resultados de la Prueba</string>
     <string name="picker_pick">SELECCIONE</string>
@@ -242,4 +244,45 @@
     <string name="sett_transparent_webview_title">WebView transparente</string>
     <string name="sett_enable_pw_emergency_summary_off">Estado de protección: DISCAPACITADO\n\nCuando está activada, ELIMINA la base de datos de la aplicación tras escribir la ventana de contraseña de la aplicación.</string>
     <string name="notification_new_message">Tienes mensajes nuevos.</string>
+    <string name="oauth2_no_available_ports">Este dispositivo no tiene puertos locales disponibles, pero uno es necesario para la autenticación.</string>
+    <string name="oauth2_preferences_title">OAuth2</string>
+    <string name="oauth2_tv_extra_parameters_info">Parámetros extra usados para fines especiales, al comunicarse con el servidor de correo.\n\nEjemplo de Outlook:\n\ntenant=common</string>
+    <string name="oauth2_client_id">ID de cliente</string>
+    <string name="oauth2_client_secret">Cliente Secret</string>
+    <string name="oauth2_refresh_token">Token de actualización</string>
+    <string name="oauth2_auth_endpoint">Punto de autorización (URL)</string>
+    <string name="oauth2_token_endpoint">Punto de token (URL)</string>
+    <string name="oauth2_scopes">Ámbitos (URLs de permisos)</string>
+    <string name="oauth2_extra_parameters">Extras (p1=v1&amp;p2=v2)</string>
+    <string name="oauth2_error_access_token">Error de conexión desconocido: Token de acceso</string>
+    <string name="oauth2_error_auth_refresh">Error de conexión desconocido: Código de autenticación para actualizar el token</string>
+    <string name="oauth2_bad_parameter">"Parámetro incorrecto o ausente: "</string>
+    <string name="oauth2_cannot_parse">¡No puedo analizar la respuesta del servidor!</string>
+    <string name="oauth2_help">Ayuda con OAuth2</string>
+    <string name="oauth2_help_long">Por favor, lee el README.md en la web del repositorio Inbox Pager para un tutorial detallado y algunas imágenes.</string>
+    <string name="oauth2_request_auth">Solicitud de autorización</string>
+    <string name="oauth2_request_auth_server">El dispositivo ahora está esperando a que el servidor se conecte…</string>
+    <string name="oauth2_request_auth_open_in_browser">Copia y abre la URL abajo, en este dispositivo…</string>
+    <string name="oauth2_server_failure_title">Fallo de OAuth2</string>
+    <string name="oauth2_server_failure_bad_method">Solo se implementa el método HTTP GET, pero se utilizó otro método http.</string>
+    <string name="oauth2_server_failure_auth_code_extraction">No se puede extraer el código de autenticación de la solicitud HTTP GET.</string>
+    <string name="oauth2_server_failure_client_sent_errors">Tu servidor de correo electrónico ha indicado un error.</string>
+    <string name="oauth2_server_failure_bad_json">La aplicación de Android no pudo entender la solicitud JSON (JWT).</string>
+    <string name="oauth2_server_failure_missing_refresh_token">El servidor de correo no proporcionaba un token de actualización.</string>
+    <string name="oauth2_server_success_title">OAuth2 completado con éxito</string>
+    <string name="oauth2_server_success_body">Las operaciones de OAuth2 se completaron con éxito. Borra el historial de navegación, o al menos esta página, y luego cierra el navegador.</string>
+    <string name="oauth2_server_still_operating">Las operaciones de OAuth2 siguen en marcha.</string>
+    <string name="fg_service_title">Servicio Inbox Pager</string>
+    <string name="fg_service_text">Estado: en primer plano</string>
+    <string name="fg_service_notification_channel_description">Opera en primer plano, realiza acciones de aplicación iniciadas por el usuario.</string>
+    <string name="oauth2_error_in_https">"Hay un error en la respuesta. Código de respuesta: "</string>
+    <string name="oauth2_information_title">Información</string>
+    <string name="oauth2_tab_local">Dispositivo</string>
+    <string name="oauth2_tab_remote">Servidor</string>
+    <string name="oauth2_tv_client_id_info">ID del cliente, texto que identifica la aplicación para el servidor. El usuario debe proporcionarlo, porque esta aplicación no puede hacerlo. Los servidores permiten a los usuarios crear su propio id de cliente.</string>
+    <string name="oauth2_tv_client_secret_info">¡ESTA NO ES tu contraseña de cuenta!\n\nClient Secret, texto que ayuda al servidor a saber qué aplicación está conectada. El usuario debe proporcionarlo, porque esta aplicación no puede hacerlo. Los servidores crean esto al crear el id del cliente.</string>
+    <string name="oauth2_tv_refresh_token_info">¡NUNCA COMPARTAS ESTO CON OTRAS PERSONAS!\n\nRefresh Token, texto secreto que se usa para permitir el acceso completo a la cuenta de correo electrónico. Si se ve comprometido, debe iniciar sesión inmediatamente en su cuenta de correo electrónico a través de un navegador para revocar y reautorizar los permisos OAuth para la aplicación\n\nEjemplo de GMail:\n\n1/xEoDL4iW3cxlI7yDbSRFYNG01kVKM2C-259HOF2aQbI</string>
+    <string name="oauth2_tv_auth_endpoint_info">URL del servidor, mediante la cual la aplicación pide permiso al usuario para acceder a su cuenta de correo electrónico.\n\nEjemplo de GMail:\n\nhttps://accounts.google.com/o/oauth2/v2/auth</string>
+    <string name="oauth2_tv_token_endpoint_info">URL del servidor, mediante la cual la aplicación utiliza la cuenta de correo electrónico, creando tokens de acceso.\n\nEjemplo de GMail:\n\nhttps://oauth2.googleapis.com/token</string>
+    <string name="oauth2_tv_scopes_info">Permisos de cuenta como una lista de URLs, separadas por un espacio vacío entre ellas.\n\nEjemplo de GMail:\n\nhttps://mail.google.com/</string>
 </resources>
