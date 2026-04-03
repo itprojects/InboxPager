@@ -261,7 +261,7 @@ This step requires an **Android device** that can **freely access the internet**
 
 <p align="center">
   <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/phoneScreenshots/oauth2_3.png" width="250"/>
-  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/phoneScreenshots/oauth2_3.png" width="250"/>
+  <img src="https://github.com/itprojects/InboxPager/raw/master/fastlane/metadata/android/en-US/images/phoneScreenshots/oauth2_4.png" width="250"/>
 </p>
 
 7. Go to **the browser again**, open a new tab with the copied URL for address. Load it and wait a few seconds to see the page. This page is the authorisation consent screen, where you are expected give your permission, for the Inbox Pager, to use your account.

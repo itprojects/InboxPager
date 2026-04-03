@@ -1,5 +1,5 @@
 /*
- * InboxPager, an Android email client.
+ * InboxPager, an Android e-mail client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
@@ -616,12 +616,7 @@ public class InboxPreferences extends AppCompatActivity {
         current_inbox.set_auth_type_of_incoming((String) spinner_imap_or_pop.getSelectedItem());
         current_inbox.set_auth_type_of_outgoing((String) spinner_smtp.getSelectedItem());
 
-        if (add_mode) {
-            if (current_inbox.get_email().isEmpty()) {
-                Dialogs.toaster(false, getString(R.string.edit_account_not_saved), this);
-                return;
-            }
-
+        if (add_mode && current_inbox_id < 0) {
             // Notifying changes to caller activity
             current_inbox_id = db.add_account(current_inbox);
             current_inbox.set_id(current_inbox_id);

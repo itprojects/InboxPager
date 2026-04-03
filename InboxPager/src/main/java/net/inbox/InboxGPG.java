@@ -1,6 +1,6 @@
 /*
  * InboxGPG interacts with OpenKeychain encryption package.
- * InboxPager, an Android email client.
+ * InboxPager, an Android e-mail client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * Copyright (C) 2013-2015 Dominik Schürmann <dominik@dominikschuermann.de>
  *

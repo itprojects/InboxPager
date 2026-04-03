@@ -1,5 +1,5 @@
 /*
- * InboxPager, an Android email client.
+ * InboxPager, an Android e-mail client.
  * Copyright (C) 2016-2026  ITPROJECTS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
